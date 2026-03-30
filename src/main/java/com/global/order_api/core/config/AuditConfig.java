@@ -20,5 +20,10 @@ public class AuditConfig {
 		// for test only 
 		// soon security and JWT
 		return ()-> Optional.of("SYSTEM");
+		// lambda expression
+		// () => function don't take any parameters
+		// -> means that write the result direct
+		// optinal.of means that i sure there a value  
+		// because this function return object not string to prevent nullpointerexception
 	}
 }
