@@ -24,5 +24,16 @@ public class BaseException extends RuntimeException {
         this.messageKey = messageKey;
         this.args = args;
     }
+	
+	// for me not user => logs in console in checked exceptions
+	// to see the full cause (e) of exception (caused by) not just a message
+	
+	public BaseException(String messageKey ,Throwable cause)
+	{
+		super(messageKey,cause);
+        this.messageKey = messageKey;
+        this.args = null;
+	}
+	
 }
 
