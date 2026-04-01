@@ -3,8 +3,12 @@ package com.global.order_api.core.base;
 import lombok.Getter;
 
 @Getter
-public class BaseException extends RuntimeException {
+public abstract class BaseException extends RuntimeException {
 	
+	// final for immutability
+	// final to prevent any code editing the message had a value
+	// and to prevent nullpointerExcpetion
+	// thread safety
 	private final String messageKey;
 	private final Object[] args;
 	
