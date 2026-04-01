@@ -1,0 +1,92 @@
+package com.global.order_api.core.exception;
+
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import com.global.order_api.core.response.ApiResponse;
+
+import lombok.extern.log4j.Log4j2;
+
+@RestControllerAdvice
+@Log4j2
+public class GlobalExceptionHandler {
+	
+	// to read messages properties files
+	private final MessageSource messageSource;
+	
+	// inject message source
+	public GlobalExceptionHandler(MessageSource messageSource)
+	{
+		this.messageSource=messageSource;
+	}
+	
+	// 404 Not Found exception
+	// to determine the type of exception will  be handled by this method
+	@ExceptionHandler(ResourceNotFoundException.class)
+	public ResponseEntity<?> handleResourceNotFoundException(ResourceNotFoundException ex)
+	{
+		String message =translateMessage(ex.getMessageKey(), ex.getArgs());
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(message));
+	}
+	
+	// 409 Conflict exception
+	@ExceptionHandler(DuplicateRecordException.class)
+	public ResponseEntity<?> handleDuplicateRecordException(DuplicateRecordException ex)
+	{
+		String message =translateMessage(ex.getMessageKey(), ex.getArgs());
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(message));
+	}
+	
+	// 400 Bad Request (user exceptions)
+	// present message to inform user to change his mistake
+	@ExceptionHandler(BusinessLogicException.class)
+    public ResponseEntity<?> handleBusinessLogicException(BusinessLogicException ex) {
+        String message = translateMessage(ex.getMessageKey(), ex.getArgs());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(message));
+    }
+	
+	// 500 Internal Server Error
+	// storage errors
+	@ExceptionHandler(FileStorageException.class)
+    public ResponseEntity<?> handleFileStorageException(FileStorageException ex) {
+        
+		log.error("File Storage Error", ex);
+        String message = translateMessage(ex.getMessageKey(), ex.getArgs());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error(message));
+    }
+	
+	// 500 Internal Server Error
+	// for global exceptions or unexpected exceptions (system exceptions)
+	// like nullPointerException or DB connection failure or third party timeout
+	// or arithmetic exception or parsing JSON error
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity<?> handleGlobalException(Exception ex) {
+		// logs in console for me
+		log.error("Internal Server Error", ex);
+	    // message for user
+	    String message = translateMessage("error.internal.server", null);
+	    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error(message));
+	}
+		
+		
+	// helper method for translate message
+	private String translateMessage(String messageKey , Object[] args)
+	{
+		try
+		{	// get user language
+			return messageSource.getMessage(messageKey, args ,LocaleContextHolder.getLocale());
+		}
+		catch (Exception e) {
+			// return the same message key for me to know me that this key not found in messages files
+			return messageKey;
+		}
+		
+	}
+	
+}
