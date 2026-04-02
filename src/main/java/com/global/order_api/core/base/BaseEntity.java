@@ -41,5 +41,7 @@ public abstract class BaseEntity<ID>{
 	
 	@LastModifiedBy
 	private String updatedBy;
+	
+	private boolean isDeleted = false;
 }
 

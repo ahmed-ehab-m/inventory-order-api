@@ -23,7 +23,9 @@ public abstract class BaseException extends RuntimeException {
 		this.args=null;
 	}
 	
-	public BaseException(String messageKey, Object[] args) {
+	// ... => args can be empty or any number
+	// and send the argument direct not should put it into array
+	public BaseException(String messageKey, Object... args) {
         super(messageKey);
         this.messageKey = messageKey;
         this.args = args;

@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.global.order_api.core.response.ApiResponse;
 
@@ -73,7 +74,14 @@ public class GlobalExceptionHandler {
 	    String message = translateMessage("error.internal.server", null);
 	    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error(message));
 	}
-		
+	
+	// for resource favicon (actuator)
+	@ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<?> handleNoStaticResourceFound(NoResourceFoundException ex) {
+        log.warn("Static resource not found: {}", ex.getResourcePath());
+        
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Resource not found");
+    }
 		
 	// helper method for translate message
 	private String translateMessage(String messageKey , Object[] args)
