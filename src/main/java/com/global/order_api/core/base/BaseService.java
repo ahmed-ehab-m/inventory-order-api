@@ -11,6 +11,7 @@ public abstract class BaseService<T extends BaseEntity<ID> , ID extends Number> 
 	
 	
 	// read methods
+	
 	public T findById(ID id)
 	{
 		return baseRepo.findByIdOrThrow(id);
