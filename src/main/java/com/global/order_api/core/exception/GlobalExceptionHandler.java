@@ -1,11 +1,13 @@
 package com.global.order_api.core.exception;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
@@ -26,6 +28,33 @@ public class GlobalExceptionHandler {
 	{
 		this.messageSource=messageSource;
 	}
+	
+	// DataBase and JPA Exceptions
+	@ExceptionHandler(DataIntegrityViolationException.class)
+	public ResponseEntity<?> handleDataBaseExceptions(DataIntegrityViolationException ex)
+	{
+		// message for user
+		String message =translateMessage("error.data.integrity",null);
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.error(message));
+	}
+		
+	// Validation Exceptions
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<?> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        List<String> errors = new ArrayList<>();
+        // loop on errors to get field name + the error message
+        // bindingResult => bind => linking user json request with DTO
+        // Result => result of binding process to check if any validation annotations exceptions
+        ex.getBindingResult().getFieldErrors().forEach(error ->
+        {
+        	String errorMessage=error.getField() + ": "+error.getDefaultMessage();
+        	errors.add(errorMessage);
+        }
+            );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error("error.validation", errors));
+    }
+	
+	//////////////////////////////////////////
 	
 	// 404 Not Found exception
 	// to determine the type of exception will  be handled by this method
