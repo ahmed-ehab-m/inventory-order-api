@@ -58,7 +58,7 @@ public class ApiResponse<T> {
             .timeStamp(LocalDateTime.now())
             .build();
     }
-	
+
 	// validation error so i may have list of errors
 		public static <T> ApiResponse<T> error(String message, List<String> errors) {
 	        return ApiResponse.<T>builder()
