@@ -17,6 +17,8 @@ import lombok.Setter;
 
 public abstract class BaseResponseDto<ID> {
 	private ID id;
-	private LocalDateTime createdAt;
+	private LocalDateTime createdAt;	
 	private LocalDateTime updatedAt;
+    private String createdBy;
+    private String updatedBy;
 }

@@ -12,4 +12,8 @@ public class DuplicateRecordException extends BaseException{
 	public DuplicateRecordException(String messageKey, Object[] args) {
         super(messageKey, args);
     }
+	
+	public DuplicateRecordException(String resourceName, String fieldName, Object fieldValue) {
+        super("error.resource.duplicate", resourceName, fieldName, fieldValue);
+    }
 }

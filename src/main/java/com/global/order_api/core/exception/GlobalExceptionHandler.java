@@ -29,7 +29,7 @@ public class GlobalExceptionHandler {
 		this.messageSource=messageSource;
 	}
 	
-	// DataBase and JPA Exceptions
+	// DataBase and JPA Exceptions  
 	@ExceptionHandler(DataIntegrityViolationException.class)
 	public ResponseEntity<?> handleDataBaseExceptions(DataIntegrityViolationException ex)
 	{
