@@ -48,6 +48,12 @@
     </Appenders>
 	
     <Loggers>
+    	<Logger name="org.hibernate.SQL" level="debug" additivity="false">
+        <AppenderRef ref="ConsoleAppender"/> </Logger>
+
+	    <Logger name="org.hibernate.orm.jdbc.bind" level="trace" additivity="false">
+	        <AppenderRef ref="ConsoleAppender"/>
+	    </Logger>	    
 		<Logger name="javax.management" level="INFO" />
         <Logger name="sun.rmi" level="INFO" />
         <!-- Development Profile -->

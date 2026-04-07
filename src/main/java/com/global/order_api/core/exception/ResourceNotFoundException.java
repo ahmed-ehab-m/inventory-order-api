@@ -12,4 +12,7 @@ public class ResourceNotFoundException extends BaseException{
 	public ResourceNotFoundException(String messageKey, Object[] args) {
         super(messageKey, args);
     }
+	public ResourceNotFoundException(String resourceName, String fieldName, Object fieldValue) {
+        super("error.resource.not.found", resourceName, fieldName, fieldValue);
+    }
 }

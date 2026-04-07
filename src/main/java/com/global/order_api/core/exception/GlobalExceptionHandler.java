@@ -8,33 +8,30 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
+ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.global.order_api.core.response.ApiResponse;
+import com.global.order_api.core.utils.AppTranslator;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 @RestControllerAdvice
 @Log4j2
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
 	
 	// to read messages properties files
-	private final MessageSource messageSource;
+	private final AppTranslator appTranslator;
 	
-	// inject message source
-	public GlobalExceptionHandler(MessageSource messageSource)
-	{
-		this.messageSource=messageSource;
-	}
-	
-	// DataBase and JPA Exceptions
+	// DataBase and JPA Exceptions  
 	@ExceptionHandler(DataIntegrityViolationException.class)
 	public ResponseEntity<?> handleDataBaseExceptions(DataIntegrityViolationException ex)
 	{
 		// message for user
-		String message =translateMessage("error.data.integrity",null);
+		String message =appTranslator.translateMessage("error.data.integrity",null);
 		return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.error(message));
 	}
 		
@@ -61,7 +58,7 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(ResourceNotFoundException.class)
 	public ResponseEntity<?> handleResourceNotFoundException(ResourceNotFoundException ex)
 	{
-		String message =translateMessage(ex.getMessageKey(), ex.getArgs());
+		String message =appTranslator.translateMessage(ex.getMessageKey(), ex.getArgs());
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(message));
 	}
 	
@@ -69,7 +66,7 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(DuplicateRecordException.class)
 	public ResponseEntity<?> handleDuplicateRecordException(DuplicateRecordException ex)
 	{
-		String message =translateMessage(ex.getMessageKey(), ex.getArgs());
+		String message =appTranslator.translateMessage(ex.getMessageKey(), ex.getArgs());
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(message));
 	}
 	
@@ -77,7 +74,7 @@ public class GlobalExceptionHandler {
 	// present message to inform user to change his mistake
 	@ExceptionHandler(BusinessLogicException.class)
     public ResponseEntity<?> handleBusinessLogicException(BusinessLogicException ex) {
-        String message = translateMessage(ex.getMessageKey(), ex.getArgs());
+        String message = appTranslator.translateMessage(ex.getMessageKey(), ex.getArgs());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(message));
     }
 	
@@ -87,7 +84,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleFileStorageException(FileStorageException ex) {
         
 		log.error("File Storage Error", ex);
-        String message = translateMessage(ex.getMessageKey(), ex.getArgs());
+        String message = appTranslator.translateMessage(ex.getMessageKey(), ex.getArgs());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error(message));
     }
 	
@@ -100,7 +97,7 @@ public class GlobalExceptionHandler {
 		// logs in console for me
 		log.error("Internal Server Error", ex);
 	    // message for user
-	    String message = translateMessage("error.internal.server", null);
+	    String message = appTranslator.translateMessage("error.internal.server", null);
 	    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error(message));
 	}
 	
@@ -111,19 +108,5 @@ public class GlobalExceptionHandler {
         
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Resource not found");
     }
-		
-	// helper method for translate message
-	private String translateMessage(String messageKey , Object[] args)
-	{
-		try
-		{	// get user language
-			return messageSource.getMessage(messageKey, args ,LocaleContextHolder.getLocale());
-		}
-		catch (Exception e) {
-			// return the same message key for me to know me that this key not found in messages files
-			return messageKey;
-		}
-		
-	}
-	
+			
 }

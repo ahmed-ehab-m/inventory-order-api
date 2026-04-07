@@ -14,14 +14,20 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 // auditing	
 @Getter
 @Setter
 @MappedSuperclass // tell hibernate that this entity not a table in db 
 // this only a parent class 
+@SuperBuilder
+@NoArgsConstructor // for inheritance
+
 @EntityListeners(AuditingEntityListener.class) // tell SB if any data added into the table 
 // add time , user automatic
 // abstract to prevent any developer take an object by mistake
