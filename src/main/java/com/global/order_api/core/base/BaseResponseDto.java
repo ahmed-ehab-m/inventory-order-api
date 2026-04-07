@@ -14,7 +14,7 @@ import lombok.Setter;
 // and getter only to create dto for reading
 @Getter
 // no setters because this reading only dto
-
+@Setter // for map struct
 public abstract class BaseResponseDto<ID> {
 	private ID id;
 	private LocalDateTime createdAt;	
