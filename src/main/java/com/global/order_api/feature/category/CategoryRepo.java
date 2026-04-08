@@ -14,6 +14,7 @@ public interface CategoryRepo extends BaseRepo<CategoryEntity, Long> {
 	
 	// READ METHODS
 	// check if this category existed before insert
+	// catch exception early and provide simple message to front-end
 	// better performance
 	boolean	existsByName(String name);
 	

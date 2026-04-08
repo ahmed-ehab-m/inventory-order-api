@@ -14,6 +14,7 @@ import com.global.order_api.core.base.BaseRepo;
 public interface ProductRepo extends BaseRepo<ProductEntity,Long>{
 	
 	//READ METHODS 
+	
 	@EntityGraph(attributePaths = {"category"})
 	Optional<ProductEntity> findByName(String name);
 	
@@ -33,11 +34,13 @@ public interface ProductRepo extends BaseRepo<ProductEntity,Long>{
 	@Override
 	@EntityGraph(attributePaths = {"category"})
 	// for better performance using SELECT * 
+	// sort by name ,price ,created at
 	Page<ProductEntity> findAll(Pageable pageable);
+	
 	
 	@Modifying // make spring update in db not reading
 	// tell hibernate that => data changed so clean your cache
 	// tell spring we well retreive number not entity or list of entities
-	@Query("UPDATE ProductEntity p SET p.category.id =1 WHERE p.category.id =:oldCategoryId")
+	@Query("UPDATE ProductEntity p SET p.category.id =999 WHERE p.category.id =:oldCategoryId")
 	void moveProductsToDefaultCategory(@Param ("oldCategoryId") Long oldCategoryId);
 }

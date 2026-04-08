@@ -12,7 +12,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CategoryResponseDto extends  BaseResponseDto<Long> 
-{
+{	
+	private Long id; // important for front-end
     private String name;
     private String description;
 }

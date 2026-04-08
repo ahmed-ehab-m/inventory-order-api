@@ -7,24 +7,30 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.global.order_api.core.base.BaseRepo;
 import com.global.order_api.core.base.BaseService;
 import com.global.order_api.core.base.PageResponse;
 import com.global.order_api.core.exception.DuplicateRecordException;
 import com.global.order_api.core.exception.ResourceNotFoundException;
+import com.global.order_api.feature.product.ProductEntity;
+import com.global.order_api.feature.product.ProductRepo;
 
 @Service // 
+
 public class CategoryService extends BaseService<CategoryEntity, Long> {
 	
 	private final CategoryRepo categoryRepo;
 	private final CategoryMapper categoryMapper;
+	private final ProductRepo productRepo;
 
 	public CategoryService(BaseRepo<CategoryEntity, Long> baseRepo, CategoryRepo categoryRepo,
-			CategoryMapper categoryMapper) {
+			CategoryMapper categoryMapper ,ProductRepo productRepo) {
 		super(baseRepo);
 		this.categoryRepo = categoryRepo;
 		this.categoryMapper = categoryMapper;
+		this.productRepo=productRepo;
 	}
 	
 	////////////////////////////
@@ -95,8 +101,13 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 	}
 	
 	////////////////////////////
-	//soft delete method
+	//soft delete method and move products into Uncategorized
+	@Transactional
 	public void deleteCategory(Long id) {
+//		if(id==1L)
+//		{
+//			throw new
+//		}
 	    delete(id);
     }
 }
