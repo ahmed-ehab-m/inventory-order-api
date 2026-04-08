@@ -62,7 +62,7 @@ public class ProductEntity extends SoftDeletableEntity<Long> {
     // solution is => entity must be lazy 
     // and in repo layer => create SQL to get products and categories in one SQL Statement
     @ManyToOne(fetch = FetchType.LAZY) 
-    @JoinColumn(name = "categroy_id",nullable = false)
+    @JoinColumn(name = "category_id",nullable = false)
     private CategoryEntity category;
     
 }
