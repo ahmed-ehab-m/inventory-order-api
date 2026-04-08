@@ -12,11 +12,13 @@ import com.global.order_api.core.base.BaseRepo;
 @Repository
 public interface CategoryRepo extends BaseRepo<CategoryEntity, Long> {
 	
+	// READ METHODS
 	// check if this category existed before insert
 	// better performance
 	boolean	existsByName(String name);
 	
-	// to find by direct name only for backend logic and validation
+	// to find by direct name only for backend logic and validation during insert 
+	// better performance using DB indexes
 	Optional<CategoryEntity> findByName(String name);
 	
 	// for search generally (front-end-search-box)

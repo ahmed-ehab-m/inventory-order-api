@@ -4,6 +4,9 @@ CREATE TABLE products(
 	category_id BIGINT NOT NULL,
 	name VARCHAR(255) NOT NULL,
 	description TEXT,
+	image TEXT,
+	stock_count INT NOT NULL,
+	price DECIMAL(10,2) NOT NULL,
 	is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
 	
 		 -- from BaseEntity

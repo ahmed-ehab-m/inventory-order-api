@@ -26,7 +26,7 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor // for builder
 @Builder
 // to enable softdelete
-// tell hibernate that => any delete method called don
+// tell hibernate that => any delete method called
 @SQLDelete(sql="UPDATE categories SET is_deleted=true WHERE ID=?")
 public class CategoryEntity extends SoftDeletableEntity<Long>{
 	
