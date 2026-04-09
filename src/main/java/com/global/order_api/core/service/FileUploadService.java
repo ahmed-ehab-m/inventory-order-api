@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.cloudinary.Cloudinary;
@@ -12,6 +13,7 @@ import com.global.order_api.core.exception.FileStorageException;
 
 import lombok.RequiredArgsConstructor;
 
+@Component
 @RequiredArgsConstructor
 public class FileUploadService {
 	private final Cloudinary cloudinary;
@@ -67,7 +69,7 @@ public class FileUploadService {
 		return FOLDER_NAME+"/"+ fileName.substring(0,fileName.lastIndexOf("."));
 	}
 	/////////
-	private void ValidateImage(MultipartFile file)
+	private void validateImage(MultipartFile file)
 	{
 		if(file.isEmpty())
 		{
