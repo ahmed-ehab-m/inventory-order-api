@@ -120,4 +120,10 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 		productRepo.moveProductsToDefaultCategory(id);
 	    delete(id);
     }
+	
+	/////////HARD DELETE METHOD
+	@Transactional
+	public void forceDeleteCategory(Long id) {
+		categoryRepo.hardDeleteCategory(id);
+	}
 }

@@ -55,5 +55,11 @@ public interface ProductRepo extends BaseRepo<ProductEntity,Long>{
 	void moveProductsToDefaultCategory(@Param ("oldCategoryId") Long oldCategoryId);
 	
 	///////////////////////////////////////////////////////////
-	
+	////HARD DELETE METHODS
+	/// 
+	@Query(value = "SELECT image FROM products WHERE id = :id", nativeQuery = true)
+    String getImageUrlByIdEvenIfDeleted(@Param("id") Long id);
+	@Modifying
+    @Query(value = "DELETE FROM products WHERE id = :id", nativeQuery = true)
+    void hardDeleteProduct(@Param("id") Long id);
 }

@@ -23,7 +23,7 @@ public class ProductRequestDto {
 	private String name;
     
 	private String description;
-	private String image;
+//	private String image; // because front-end send image using MultiPartFile
 	
 	@NotNull(message = "{validation.field.required}")
 	@Positive(message = "{validation.field.positive}")

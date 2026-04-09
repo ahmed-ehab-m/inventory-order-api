@@ -8,11 +8,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.global.order_api.core.base.BaseRepo;
 import com.global.order_api.core.base.BaseService;
 import com.global.order_api.core.base.PageResponse;
 import com.global.order_api.core.exception.ResourceNotFoundException;
+import com.global.order_api.core.service.FileUploadService;
 import com.global.order_api.feature.category.CategoryEntity;
 import com.global.order_api.feature.category.CategoryRepo;
 
@@ -23,13 +25,15 @@ public class ProductService extends BaseService<ProductEntity, Long> {
 	private final ProductRepo productRepo;
 	private final CategoryRepo categoryRepo;
 	private final ProductMapper productMapper;
+	private final FileUploadService fileUploadService;
 	
 	public ProductService(BaseRepo<ProductEntity, Long> baseRepo, ProductRepo productRepo,
-			ProductMapper productMapper, CategoryRepo categoryRepo) {
+			ProductMapper productMapper, CategoryRepo categoryRepo ,FileUploadService fileUploadService) {
 		super(baseRepo);
 		this.productRepo = productRepo;
 		this.productMapper = productMapper;
 		this.categoryRepo=categoryRepo;
+		this.fileUploadService=fileUploadService;
 	}
 	
 	////////////////////////////
@@ -91,17 +95,22 @@ public class ProductService extends BaseService<ProductEntity, Long> {
 	
 	///WRITE METHODS
 	@Transactional
-	public ProductResponseDto createProduct(ProductRequestDto requestDto)
+	public ProductResponseDto createProduct(ProductRequestDto requestDto , MultipartFile image)
 	{
 		// first check if category is existed
 		CategoryEntity categoryEntity = categoryRepo.findByIdOrThrow(requestDto.getCategoryId());
 		ProductEntity entity=productMapper.mapToEntity(requestDto);
 		entity.setCategory(categoryEntity);
+		// upload image
+		if (image != null && !image.isEmpty()) {
+	        String imageUrl = fileUploadService.uploadImage(image);
+	        entity.setImage(imageUrl);
+	    }
 		return productMapper.mapToDto(save(entity));
 	}
 	
 	@Transactional
-	public ProductResponseDto updateProduct(ProductRequestDto requestDto,Long id)
+	public ProductResponseDto updateProduct(ProductRequestDto requestDto,Long id ,MultipartFile newImage)
 	{
 		// first check the category is existed
 		ProductEntity existingEntity= productRepo.findByIdOrThrow(id);
@@ -111,7 +120,19 @@ public class ProductService extends BaseService<ProductEntity, Long> {
 			CategoryEntity categoryEntity =categoryRepo.findByIdOrThrow(requestDto.getCategoryId());
 			existingEntity.setCategory(categoryEntity);
 		}
-		// update the entity data
+		// check about new Image
+		if(newImage !=null && !newImage.isEmpty())
+		{
+			// check if product already has image
+			if(existingEntity.getImage() !=null)
+			{
+				fileUploadService.deleteImage(existingEntity.getImage());
+			}
+			// add new Image
+			String newImageurl=fileUploadService.uploadImage(newImage);
+			existingEntity.setImage(newImageurl);
+		}
+		// update the remaining entity data
 		productMapper.updateEntityFromDto(requestDto, existingEntity);
 		return productMapper.mapToDto(save(existingEntity));
 	}
@@ -121,5 +142,15 @@ public class ProductService extends BaseService<ProductEntity, Long> {
 	public void deleteProduct(Long id) {
 	    delete(id);
     }
+	
+	// HARD DELETE
+	public void forceDeleteProduct(Long id)
+	{
+		String imageUrl=productRepo.getImageUrlByIdEvenIfDeleted(id);
+		if (imageUrl != null) {
+			fileUploadService.deleteImage(imageUrl);
+		}
+		productRepo.hardDeleteProduct(id);
+	}
 	
 }

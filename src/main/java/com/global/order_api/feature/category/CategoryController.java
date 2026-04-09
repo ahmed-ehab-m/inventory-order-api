@@ -144,4 +144,17 @@ public class CategoryController {
 		return new ResponseEntity<>(apiResponse, HttpStatus.OK); // 200
 
 	}
+	
+	///HARD DELETE METHODS
+	@DeleteMapping("/{id}/force")
+	public ResponseEntity<ApiResponse<Void>> forceDeleteCategory(
+		@PathVariable Long id
+	)
+	{
+		categoryService.forceDeleteCategory(id);
+		String message=appTranslator.getTranslatedAction("success.deleted",ENTITY_KEY);
+		ApiResponse<Void> apiResponse=ApiResponse.success(null,message);
+		return new ResponseEntity<>(apiResponse, HttpStatus.OK); // 200
+
+	}
 }
