@@ -37,7 +37,7 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 	// read Methods
 	public CategoryResponseDto findCategoryById(Long id)
 	{
-		CategoryEntity entity =findById(id);
+		CategoryEntity entity =categoryRepo.findByIdOrThrow(id);
 		return categoryMapper.mapToDto(entity);
 	}
 	
@@ -75,6 +75,7 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 	
 	////////////////////////////
 	// write methods
+	@Transactional
 	public CategoryResponseDto createCategory(CategoryRequestDto requestDto)
 	{
 		// first check unique name
@@ -86,6 +87,7 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 		return categoryMapper.mapToDto(save(entity));
 	}
 	
+	@Transactional
 	public CategoryResponseDto updateCategory(CategoryRequestDto requestDto,Long id)
 	{
 		// first check the category is existed
@@ -104,10 +106,18 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 	//soft delete method and move products into Uncategorized
 	@Transactional
 	public void deleteCategory(Long id) {
-//		if(id==1L)
-//		{
-//			throw new
-//		}
+		Long DEFAULT_CATEGORY_ID=999L;
+		
+		// first check about default category
+		// equals because this an object not primitive
+		// if i use == here i compare the memory address
+		if(id.equals(DEFAULT_CATEGORY_ID))
+		{
+			throw new IllegalArgumentException("{validation.category.default}");
+		}
+		categoryRepo.findByIdOrThrow(id);
+		// move here
+		productRepo.moveProductsToDefaultCategory(id);
 	    delete(id);
     }
 }

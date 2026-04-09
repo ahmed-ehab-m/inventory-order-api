@@ -13,13 +13,22 @@ import com.global.order_api.core.base.BaseRepo;
 
 public interface ProductRepo extends BaseRepo<ProductEntity,Long>{
 	
-	//READ METHODS 
+	/// READ METHODS 
 	
+	@Override // because we add EntityGraph
 	@EntityGraph(attributePaths = {"category"})
-	Optional<ProductEntity> findByName(String name);
+	// for better performance using SELECT * 
+	// sort by name ,price ,created at
+	Page<ProductEntity> findAll(Pageable pageable);
 	
+	////////////////////////////////////////////////////
+	
+	// for show only
 	@EntityGraph(attributePaths = {"category"})
-	Optional<ProductEntity> findById(Long id);
+	@Query("SELECT p FROM ProductEntity p WHERE p.id = :id") // because sb can't translate WithCategory
+	Optional<ProductEntity> findByIdWithCategory(@Param("id") Long id);
+	
+	////////////////////////////////////////////////
 	// entity graph => when hibernate go to to db to execute
 	// generated sql , i tell him to get data of category too 
 	// to solve n+1 problem
@@ -28,19 +37,23 @@ public interface ProductRepo extends BaseRepo<ProductEntity,Long>{
 	@EntityGraph(attributePaths = {"category"})
 	Page<ProductEntity> findByNameContainingIgnoreCase(String keyword,Pageable pageable);
 	
+	////////////////////////////////////////////////////
+	
 	@EntityGraph(attributePaths = {"category"})
 	Page<ProductEntity> findByCategoryId(Long categoryId,Pageable pageable);
-	
-	@Override
+	//////////////////////////////////////////	
 	@EntityGraph(attributePaths = {"category"})
-	// for better performance using SELECT * 
-	// sort by name ,price ,created at
-	Page<ProductEntity> findAll(Pageable pageable);
+	Optional<ProductEntity> findByName(String name);
 	
+	////////////////////////////////////////////////////////////
 	
+	/// WRITE METHODS
 	@Modifying // make spring update in db not reading
 	// tell hibernate that => data changed so clean your cache
 	// tell spring we well retreive number not entity or list of entities
 	@Query("UPDATE ProductEntity p SET p.category.id =999 WHERE p.category.id =:oldCategoryId")
 	void moveProductsToDefaultCategory(@Param ("oldCategoryId") Long oldCategoryId);
+	
+	///////////////////////////////////////////////////////////
+	
 }
