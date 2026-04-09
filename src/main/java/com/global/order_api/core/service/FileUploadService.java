@@ -1,6 +1,7 @@
 package com.global.order_api.core.service;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.web.multipart.MultipartFile;
@@ -16,9 +17,13 @@ public class FileUploadService {
 	private final Cloudinary cloudinary;
 	
 	private final String FOLDER_NAME = "inventory-order-api/products";
+	
+	private final List<String> ALLOWED_IMAGE_TYPES=List.of("image/jpeg","image/jpg", "image/png", "image/webp");
+	private final long MAX_FILE_SIZE = 5 * 1024 * 1024;
 	////UPLOAD IMAGE
 	public String uploadImage(MultipartFile file)
 	{
+		validateImage(file);
 		try {
 			
 			Map uploadResult= cloudinary.uploader()
@@ -59,6 +64,26 @@ public class FileUploadService {
 		// get image name because it in last part of url
 		String fileName=parts[parts.length-1];
 		// remove .jpg from image name and add folder name
-		return "FOLDER_NAME/"+ fileName.substring(0,fileName.lastIndexOf("."));
+		return FOLDER_NAME+"/"+ fileName.substring(0,fileName.lastIndexOf("."));
+	}
+	/////////
+	private void ValidateImage(MultipartFile file)
+	{
+		if(file.isEmpty())
+		{
+			throw new IllegalArgumentException("الملف فارغ لا يمكن رفعه");	
+		}
+		// IMAGE SIZE
+		if (file.getSize() > MAX_FILE_SIZE) {
+			throw new IllegalArgumentException("حجم الصورة يجب ألا يتعدى 5 ميجا بايت");
+		}
+		// IMAGE TYPE
+		// getcontenttype not getExtension for more security
+		// because hacker can pass a virus script and name it like virus.jpg
+		// but here we read MIME Type
+		//
+		if (!ALLOWED_IMAGE_TYPES.contains(file.getContentType())) {
+			throw new IllegalArgumentException("النوع غير مدعوم! مسموح فقط بـ (JPG, PNG, WEBP)");
+		}
 	}
 }
