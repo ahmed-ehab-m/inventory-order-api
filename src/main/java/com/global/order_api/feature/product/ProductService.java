@@ -43,7 +43,7 @@ public class ProductService extends BaseService<ProductEntity, Long> {
 	public ProductResponseDto getProductByIdWithCategory(Long id)
 	{
 		ProductEntity productEntity = productRepo.findByIdWithCategory(id)
-				.orElseThrow(() -> new ResourceNotFoundException("Product", "name", id));
+				.orElseThrow(() -> new ResourceNotFoundException("Product", "id", id));
 		return productMapper.mapToDto(productEntity);
 	}
 	//////////////////

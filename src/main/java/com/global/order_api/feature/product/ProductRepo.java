@@ -26,7 +26,7 @@ public interface ProductRepo extends BaseRepo<ProductEntity,Long> ,JpaSpecificat
 	////////////////////////////////////////////////////
 	
 	// for show only
-	@EntityGraph(attributePaths = {"category"})
+	@EntityGraph(attributePaths = {"category"}) // JOIN operation 
 	@Query("SELECT p FROM ProductEntity p WHERE p.id = :id") // because sb can't translate WithCategory
 	Optional<ProductEntity> findByIdWithCategory(@Param("id") Long id);
 	

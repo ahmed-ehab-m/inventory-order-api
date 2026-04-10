@@ -55,7 +55,7 @@ public class ProductSpecification {
 			{
 				predicates.add(criteriaBuilder.greaterThan(root.get("stockCount"), 0));
 			}
-		
+			predicates.add(criteriaBuilder.equal(root.get("isDeleted"), false));
 			return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
 		};
 	}
