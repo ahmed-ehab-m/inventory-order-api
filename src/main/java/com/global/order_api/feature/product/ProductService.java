@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -63,36 +64,13 @@ public class ProductService extends BaseService<ProductEntity, Long> {
 		// will be translated to SQL 
 		Pageable pageable=PageRequest.of(filter.getPage(), filter.getSize(), sort);
 		// holds data + meta data about it
-		Page<ProductEntity> productPage;
-		if(filter.getSearchKeyword() !=null && !filter.getSearchKeyword().isBlank())
-		{
-			productPage=productRepo.findByNameContainingIgnoreCase(filter.getSearchKeyword(), pageable);
-		}
-		// if user want all categories
-		else
-		{
-			productPage=productRepo.findAll(pageable);
-		}
+		Specification<ProductEntity> spec = ProductSpecification.buildFilter(filter);
+		Page<ProductEntity> productPage = productRepo.findAll(spec, pageable);
 		List<ProductResponseDto> dtoList=productMapper.mapToDtoList(productPage.getContent());
 		return PageResponse.from(productPage, dtoList);      
 	}
 	
 	////////////////////
-
-	public PageResponse<ProductResponseDto> getProductByCategoryId(ProductFilterRequest filter,Long id)
-	{
-		// first check if category is existed or not
-	    categoryRepo.findByIdOrThrow(id);
-		Sort sort=Sort.by(Sort.Direction.fromString(filter.getSortDirection()),filter.getSortBy());
-		//Pageable => take all user input 
-		// will be translated to SQL 
-		Pageable pageable=PageRequest.of(filter.getPage(), filter.getSize(), sort);
-		Page<ProductEntity> productPage;
-		productPage = productRepo.findByCategoryId(id,pageable);
-		List<ProductResponseDto> dtoList=productMapper.mapToDtoList(productPage.getContent());
-		return PageResponse.from(productPage, dtoList);      
-	}
-	
 	///WRITE METHODS
 	@Transactional
 	public ProductResponseDto createProduct(ProductRequestDto requestDto , MultipartFile image)
@@ -143,13 +121,14 @@ public class ProductService extends BaseService<ProductEntity, Long> {
 	    delete(id);
     }
 	
+	@Transactional
 	// HARD DELETE
 	public void forceDeleteProduct(Long id)
 	{
 		String imageUrl=productRepo.getImageUrlByIdEvenIfDeleted(id);
 		if (imageUrl != null) {
 			fileUploadService.deleteImage(imageUrl);
-		}
+		} 	
 		productRepo.hardDeleteProduct(id);
 	}
 	

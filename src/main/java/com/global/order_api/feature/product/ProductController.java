@@ -22,6 +22,7 @@ import com.global.order_api.core.utils.AppTranslator;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -52,35 +53,20 @@ public class ProductController {
 		ApiResponse<PageResponse<ProductResponseDto>> apiResponse=ApiResponse.success(pageResponse, message);
 		return ResponseEntity.ok(apiResponse); // 200
 	}
-	////////////////////////////////////
-	// GET BY ID
-	@Operation(summary = "Get Product By ID", 
-	description = "Retrieves a single product along with its category details by ID.")
-	@GetMapping("/{id}")
-	public ResponseEntity<ApiResponse<ProductResponseDto>> getProductById(
-			@Parameter(description = "ProdcutId") @PathVariable Long id)
-	{
-		ProductResponseDto productDto=productService.getProductByIdWithCategory(id);
-		String message = appTranslator.getTranslatedAction("success.retrieved", ENTITY_KEY);
-		ApiResponse<ProductResponseDto> apiResponse=ApiResponse.success(productDto, message);
-		return ResponseEntity.ok(apiResponse); // 200
-	}
 	///////////////////////////////////
-	
-	// GET BY CATEGORY ID
-	@Operation(summary = "Get Products By Category",
+	// GET BY PRODUCT ID WITH CATEGROY DETAILS
+	@Operation(summary = "Get Products By Product Id With Category",
 			description = "Retrieves a paginated list of products belonging to a specific category.")
-	@GetMapping("/categoryId/{id}")
-	public ResponseEntity<ApiResponse<PageResponse<ProductResponseDto>>> getProductsByCatergoryId(
-			@ModelAttribute ProductFilterRequest filter ,
-			@Parameter(description = "Category ID") @PathVariable Long id)
+	@GetMapping("/{id}")
+	public ResponseEntity<ApiResponse<ProductResponseDto>> getProductsByIdWithCategory(
+			@Parameter(description = "Product ID") @PathVariable Long id)
 	{
-		PageResponse<ProductResponseDto> pageResponse=productService.getProductByCategoryId(filter,id);
+		ProductResponseDto product=productService.getProductByIdWithCategory(id);
 		String message = appTranslator.getTranslatedAction("success.retrieved", ENTITY_KEY);
-		ApiResponse<PageResponse<ProductResponseDto>> apiResponse=ApiResponse.success(pageResponse, message);
+		ApiResponse<ProductResponseDto> apiResponse=ApiResponse.success(product, message);
 		return ResponseEntity.ok(apiResponse); // 200
 	}
-		
+	
 	///////////////////////////////////
 	// GET BY NAME
 	@Operation(summary = "Get Product By Name",
@@ -150,7 +136,8 @@ public class ProductController {
 	@Operation(summary = "Hard Delete Product (DANGER)",
 			description = "Permanently deletes the product from the database AND removes its image from Cloudinary.")
 	@DeleteMapping("/{id}/force")
-	public ResponseEntity<ApiResponse<Void>> forceProductCategory(
+	@Transactional
+	public ResponseEntity<ApiResponse<Void>> forceDeleteProductCategory(
 			@Parameter(description = "Product ID to hard-delete") @PathVariable Long id
 	)
 	{

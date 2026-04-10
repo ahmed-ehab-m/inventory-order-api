@@ -5,13 +5,15 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.global.order_api.core.base.BaseRepo;
 
-public interface ProductRepo extends BaseRepo<ProductEntity,Long>{
+// JPA specification executor => to build SQL statement step by step for Advanced Search Filters
+public interface ProductRepo extends BaseRepo<ProductEntity,Long> ,JpaSpecificationExecutor<ProductEntity>{
 	
 	/// READ METHODS 
 	

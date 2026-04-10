@@ -8,5 +8,4 @@ import lombok.Setter;
 @Getter
 @Setter
 public class CategoryFilterRequestDto extends BaseFilterRequestDto {
-	private String searchKeyword;
 }

@@ -7,6 +7,7 @@ import lombok.Setter;
 @Setter
 public class BaseFilterRequestDto {
 	
+	private String searchKeyword;
 	private int page=0;
 	private int size=10;
 	private String sortBy="createdAt";

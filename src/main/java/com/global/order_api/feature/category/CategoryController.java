@@ -11,6 +11,7 @@ import com.global.order_api.core.utils.AppTranslator;
 import io.swagger.v3.core.jackson.ApiResponsesSerializer;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -95,6 +96,7 @@ public class CategoryController {
 			description = "Creates a new category in the system. The category name must be unique."
 		)
 	@PostMapping("")
+	@Transactional
 	public ResponseEntity<ApiResponse<CategoryResponseDto>> createCategory(
 			@Valid @RequestBody CategoryRequestDto request
 			) {
@@ -112,6 +114,7 @@ public class CategoryController {
 			description = "Updates the details of an existing category by its ID. Validates unique name constraints."
 		)
 	@PutMapping("/{id}")
+	@Transactional
 	public ResponseEntity<ApiResponse<CategoryResponseDto>> updateCategory(
 		@PathVariable Long id,
 		@Valid @RequestBody CategoryRequestDto request
@@ -134,6 +137,7 @@ public class CategoryController {
 	@DeleteMapping("/{id}")
 	// Void => Generics must take reference types
 	// Void means null
+	@Transactional
 	public ResponseEntity<ApiResponse<Void>> deleteCategory(
 		@PathVariable Long id
 	)
@@ -147,6 +151,7 @@ public class CategoryController {
 	
 	///HARD DELETE METHODS
 	@DeleteMapping("/{id}/force")
+	@Transactional
 	public ResponseEntity<ApiResponse<Void>> forceDeleteCategory(
 		@PathVariable Long id
 	)
