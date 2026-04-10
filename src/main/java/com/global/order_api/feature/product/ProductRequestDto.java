@@ -29,8 +29,9 @@ public class ProductRequestDto {
 	@Positive(message = "{validation.field.positive}")
 	private BigDecimal price;
 	
+	@NotNull(message = "{validation.field.required}")
 	@Min(value = 0,message = "{validation.field.equalsOrGreaterThanZero}")
-	private int stockCount;
+	private Integer stockCount;
 	
 	@NotNull(message = "{validation.field.required}")
 	private Long categoryId;
