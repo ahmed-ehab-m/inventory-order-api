@@ -103,7 +103,7 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 	}
 	
 	////////////////////////////
-	//soft delete method and move products into Uncategorized
+	//hard delete method and move products into Uncategorized
 	@Transactional
 	public void deleteCategory(Long id) {
 		Long DEFAULT_CATEGORY_ID=999L;
@@ -121,9 +121,9 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 	    delete(id);
     }
 	
-	/////////HARD DELETE METHOD
-	@Transactional
-	public void forceDeleteCategory(Long id) {
-		categoryRepo.hardDeleteCategory(id);
-	}
+//	/////////HARD DELETE METHOD
+//	@Transactional
+//	public void forceDeleteCategory(Long id) {
+//		categoryRepo.hardDeleteCategory(id);
+//	}
 }

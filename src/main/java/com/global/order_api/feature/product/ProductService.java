@@ -69,6 +69,20 @@ public class ProductService extends BaseService<ProductEntity, Long> {
 		List<ProductResponseDto> dtoList=productMapper.mapToDtoList(productPage.getContent());
 		return PageResponse.from(productPage, dtoList);      
 	}
+	////////////////////////
+	public PageResponse<ProductResponseDto>  getDeletedProducts(ProductFilterRequest filter)
+	{
+		Sort sort=Sort.by(Sort.Direction.fromString(filter.getSortDirection()),filter.getSortBy());
+		//Pageable => take all user input 
+		// will be translated to SQL 
+		Pageable pageable=PageRequest.of(filter.getPage(), filter.getSize(), sort);
+		// holds data + meta data about it
+		Specification<ProductEntity> spec = ProductSpecification.buildFilter(filter);
+		Page<ProductEntity> productPage = productRepo.findAllDeletedProducts(spec,pageable);
+		List<ProductResponseDto> dtoList=productMapper.mapToDtoList(productPage.getContent());
+		return PageResponse.from(productPage, dtoList); 
+	}
+	////////////
 	
 	////////////////////
 	///WRITE METHODS
@@ -114,7 +128,11 @@ public class ProductService extends BaseService<ProductEntity, Long> {
 		productMapper.updateEntityFromDto(requestDto, existingEntity);
 		return productMapper.mapToDto(save(existingEntity));
 	}
-	
+	////////////////
+	public void restoreProduct(Long id)
+	{
+		productRepo.restoreProduct(id);
+	}
 	///DELETE METHODS
 	@Transactional
 	public void deleteProduct(Long id) {
@@ -131,5 +149,7 @@ public class ProductService extends BaseService<ProductEntity, Long> {
 		} 	
 		productRepo.hardDeleteProduct(id);
 	}
+	
+	
 	
 }

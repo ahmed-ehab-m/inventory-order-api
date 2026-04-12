@@ -2,6 +2,7 @@ package com.global.order_api.feature.category;
 
 import org.hibernate.annotations.SQLDelete;
 
+import com.global.order_api.core.base.BaseEntity;
 import com.global.order_api.core.base.SoftDeletableEntity;
 
 import jakarta.persistence.Column;
@@ -27,8 +28,8 @@ import lombok.experimental.SuperBuilder;
 @Builder
 // to enable softdelete
 // tell hibernate that => any delete method called
-@SQLDelete(sql="UPDATE categories SET is_deleted=true WHERE ID=?")
-public class CategoryEntity extends SoftDeletableEntity<Long>{
+//@SQLDelete(sql="UPDATE categories SET is_deleted=true WHERE ID=?")
+public class CategoryEntity extends BaseEntity<Long>{
 	
 	@Column(name = "name",nullable = false ,unique = true, length = 255)
 	private String name;		

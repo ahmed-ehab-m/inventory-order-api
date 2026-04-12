@@ -1,9 +1,7 @@
 CREATE TABLE categories (
 	id BIGINT AUTO_INCREMENT PRIMARY KEY,
 	name VARCHAR(255) NOT NULL UNIQUE,
-	description TEXT,
-	is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
-	
+	description TEXT,	
 	    -- from BaseEntity
     created_at  DATETIME, 
     updated_at  DATETIME,

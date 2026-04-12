@@ -1,5 +1,8 @@
 package com.global.order_api.feature.product;
 
+import java.util.List;
+
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -54,17 +57,18 @@ public class ProductController {
 		return ResponseEntity.ok(apiResponse); // 200
 	}
 	///////////////////////////////////
+	///////////////////////////////////
 	// GET BY PRODUCT ID WITH CATEGROY DETAILS
-	@Operation(summary = "Get Products By Product Id With Category",
-			description = "Retrieves a paginated list of products belonging to a specific category.")
+	@Operation(summary = "Get Product By ID",
+	description = "Retrieves a single product along with its category details.") // 🌟 الوصف اتصلح
 	@GetMapping("/{id}")
 	public ResponseEntity<ApiResponse<ProductResponseDto>> getProductsByIdWithCategory(
-			@Parameter(description = "Product ID") @PathVariable Long id)
+	@Parameter(description = "Product ID") @PathVariable Long id)
 	{
-		ProductResponseDto product=productService.getProductByIdWithCategory(id);
-		String message = appTranslator.getTranslatedAction("success.retrieved", ENTITY_KEY);
-		ApiResponse<ProductResponseDto> apiResponse=ApiResponse.success(product, message);
-		return ResponseEntity.ok(apiResponse); // 200
+	ProductResponseDto product=productService.getProductByIdWithCategory(id);
+	String message = appTranslator.getTranslatedAction("success.retrieved", ENTITY_KEY);
+	ApiResponse<ProductResponseDto> apiResponse=ApiResponse.success(product, message);
+	return ResponseEntity.ok(apiResponse); 
 	}
 	
 	///////////////////////////////////
@@ -79,6 +83,18 @@ public class ProductController {
 		String message = appTranslator.getTranslatedAction("success.retrieved", ENTITY_KEY);
 		ApiResponse<ProductResponseDto> apiResponse=ApiResponse.success(productDto, message);
 		return ResponseEntity.ok(apiResponse); // 200
+	}
+		
+	/////////////////
+	/// GET SOFT DELETED PRODUCTS
+	@GetMapping("/deletedProducts")
+	public ResponseEntity<ApiResponse<PageResponse<ProductResponseDto>>> getDeletedProducts(
+			@ModelAttribute ProductFilterRequest filter)
+	{
+	PageResponse<ProductResponseDto> pageResponse=productService.getDeletedProducts(filter);
+	String message = appTranslator.getTranslatedAction("success.deleted_retrieved", ENTITY_KEY);
+	ApiResponse<PageResponse<ProductResponseDto>> apiResponse=ApiResponse.success(pageResponse, message);
+	return ResponseEntity.ok(apiResponse); // 200
 	}
 	/////////////////////////////////////
 	/// WRITE METHODS
@@ -136,7 +152,6 @@ public class ProductController {
 	@Operation(summary = "Hard Delete Product (DANGER)",
 			description = "Permanently deletes the product from the database AND removes its image from Cloudinary.")
 	@DeleteMapping("/{id}/force")
-	@Transactional
 	public ResponseEntity<ApiResponse<Void>> forceDeleteProductCategory(
 			@Parameter(description = "Product ID to hard-delete") @PathVariable Long id
 	)
@@ -146,4 +161,20 @@ public class ProductController {
 		ApiResponse<Void> apiResponse=ApiResponse.success(null,message);
 		return new ResponseEntity<>(apiResponse, HttpStatus.OK); // 200
 		}
+	
+	////////////
+	////////////
+	/// RESTORE SOFT DELETED PRODUCTS
+	@Operation(summary = "Restore Deleted Product",
+			description = "Restores a soft-deleted product back to the active products list.")
+	@PutMapping("/{id}/restore") 
+	public ResponseEntity<ApiResponse<Void>> restoreProduct(
+			@Parameter(description = "Product ID to restore") @PathVariable Long id)
+	{
+		productService.restoreProduct(id);
+		String message = appTranslator.getTranslatedAction("success.restored", ENTITY_KEY);
+		ApiResponse<Void> apiResponse=ApiResponse.success(null, message);
+		return ResponseEntity.ok(apiResponse); 
+	}
+	
 }

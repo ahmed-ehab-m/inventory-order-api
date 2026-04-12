@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -64,4 +65,13 @@ public interface ProductRepo extends BaseRepo<ProductEntity,Long> ,JpaSpecificat
 	@Modifying
     @Query(value = "DELETE FROM products WHERE id = :id", nativeQuery = true)
     void hardDeleteProduct(@Param("id") Long id);
+	
+	///////////////////////////////////////////
+	/// DELETED PRODUCTS
+	@Query(value = "SELECT * FROM products WHERE is_deleted=true",nativeQuery = true)
+	Page<ProductEntity> findAllDeletedProducts( Specification<ProductEntity> spec,Pageable pageable);
+	
+	@Modifying
+	@Query(value = "UPDATE products SET is_deleted=false WHERE id= :id",nativeQuery = true)
+	void restoreProduct(@Param("id") Long id);
 }

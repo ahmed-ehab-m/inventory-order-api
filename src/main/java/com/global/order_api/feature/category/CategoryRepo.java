@@ -32,8 +32,8 @@ public interface CategoryRepo extends BaseRepo<CategoryEntity, Long> {
 	// Pageable =>holds = pageNumber ,pageSize , sort(option)
 	Page<CategoryEntity> findByNameContainingIgnoreCase(String keyword,Pageable pageable);
 	
-	//HARD DELETE METHODS
-	@Modifying
-    @Query(value = "DELETE FROM categories WHERE id = :id", nativeQuery = true)
-    void hardDeleteCategory(@Param("id") Long id);
+//	//HARD DELETE METHODS
+//	@Modifying
+//    @Query(value = "DELETE FROM categories WHERE id = :id", nativeQuery = true)
+//    void hardDeleteCategory(@Param("id") Long id);
 }

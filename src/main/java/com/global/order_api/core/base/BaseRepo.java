@@ -23,7 +23,7 @@ public interface BaseRepo<T extends BaseEntity<ID> ,ID extends Number> extends J
 		// add it into array of object because id is a generic 
 	}
 	
-	@Override
-	@Query("SELECT e FROM #{#entityName} e WHERE e.isDeleted = false")
-	Page<T> findAll(Pageable pageable);
+//	@Override
+//	@Query("SELECT e FROM #{#entityName} e WHERE e.isDeleted = false")
+//	Page<T> findAll(Pageable pageable);
 }
