@@ -60,7 +60,7 @@ public class ProductController {
 	///////////////////////////////////
 	// GET BY PRODUCT ID WITH CATEGROY DETAILS
 	@Operation(summary = "Get Product By ID",
-	description = "Retrieves a single product along with its category details.") // 🌟 الوصف اتصلح
+	description = "Retrieves a single product along with its category details.") //
 	@GetMapping("/{id}")
 	public ResponseEntity<ApiResponse<ProductResponseDto>> getProductsByIdWithCategory(
 	@Parameter(description = "Product ID") @PathVariable Long id)
