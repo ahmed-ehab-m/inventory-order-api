@@ -2,6 +2,7 @@ package com.global.order_api.core.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
 
-    private JwtService jwtService;
+    private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
 
     @Override
@@ -31,18 +32,36 @@ public class JwtFilter extends OncePerRequestFilter {
             HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
             final String authHeader=request.getHeader("Authorization");
-            final String jwtToken;
-            final String userEmail;
+             String jwtToken=null;
+             String userEmail=null;
 
-            /// first time
-            if(authHeader==null || !authHeader.startsWith("bearer"))
+             /// reading from header (for Mobile , PostMan)
+             if(authHeader !=null && authHeader.startsWith("Bearer"))
+             {
+                 /// get token
+                 jwtToken=authHeader.substring(7);
+             }
+
+             /// reading from cookies (for web)
+            if(jwtToken==null && request.getCookies() !=null)
+            {
+                for(Cookie cookie : request.getCookies())
+                {
+                    if("jwt_token".equals(cookie.getName()))
+                    {
+                        jwtToken=cookie.getValue();
+                        break;
+                    }
+                }
+            }
+            /// user login first time
+            if(jwtToken ==null)
             {
                 /// request go to log in controller
                 filterChain.doFilter(request, response);
                 return;
             }
 
-            jwtToken=authHeader.substring(7);
             userEmail= jwtService.extractUserEmail(jwtToken);
             /// check the token is valid
             /// SecurityContextHolder => temp memory of spring
@@ -83,6 +102,5 @@ public class JwtFilter extends OncePerRequestFilter {
             }
         /// here filter done his work to go to another filters
         filterChain.doFilter(request, response);
-
     }
 }
