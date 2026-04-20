@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 @NoArgsConstructor // for mapstruct and jackson library to create empty constructor then add values using 
 //setters or all args constructor or reflection
@@ -15,6 +16,7 @@ import lombok.Setter;
 @Getter
 // no setters because this reading only dto
 @Setter // for map struct
+@SuperBuilder
 public abstract class BaseResponseDto<ID> {
 	private ID id;
 	private LocalDateTime createdAt;	

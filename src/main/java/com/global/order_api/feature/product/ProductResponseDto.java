@@ -3,6 +3,7 @@ package com.global.order_api.feature.product;
 import java.math.BigDecimal;
 
 
+import com.global.order_api.core.base.BaseResponseDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,9 +13,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class ProductResponseDto {
-	
-	private Long id; // important for front-end
+public class ProductResponseDto extends BaseResponseDto<Long> {
 	private String name;
 	private String description;
 	private String image;
