@@ -20,7 +20,6 @@ public class AdminSeederConfig implements CommandLineRunner {
 
     private final UserRepo userRepo;
     private  final PasswordEncoder passwordEncoder;
-
     @Value("${app.admin.email}")
     private String adminEmail;
     @Value("${app.admin.password}")

@@ -7,6 +7,7 @@ import java.util.Random;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import com.github.javafaker.Faker;
@@ -22,6 +23,7 @@ import lombok.extern.log4j.Log4j2;
 @Profile("dev") // Environment-based
 @RequiredArgsConstructor
 @Log4j2
+@Order(2)
 //feature-toggle => used in seeder , sms because when i want to turn of i have not to change
 // the whole environment
 @ConditionalOnProperty(name = "app.seeder.enabled", havingValue = "true") 
