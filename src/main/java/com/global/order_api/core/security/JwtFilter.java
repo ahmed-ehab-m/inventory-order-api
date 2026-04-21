@@ -57,7 +57,10 @@ public class JwtFilter extends OncePerRequestFilter {
             /// user login first time
             if(jwtToken ==null)
             {
-                /// request go to log in controller
+                //// Request go to next filter but not authenticated
+                //// if request go to login or register endpoint
+                //// will go direct to controller
+                //// else 401 Unauthorized
                 filterChain.doFilter(request, response);
                 return;
             }
