@@ -41,6 +41,15 @@ public class UserService extends BaseService<UserEntity,Long> {
     }
     /////////////////////////
     /// READ METHODS
+
+    /// GET BY ID FOR FRONT-END
+    public UserResponseDto getUserById(Long id)
+    {
+        /// from base Service
+        UserEntity userEntity = findById(id);
+        return userMapper.mapToDto(userEntity);
+    }
+
     /// GET BY EMAIL
     public UserResponseDto findByEmail(String email)
     {
@@ -176,7 +185,7 @@ public class UserService extends BaseService<UserEntity,Long> {
     }
     /// HARD DELETE METHODS
     @Transactional
-    public  void hardDeleteMethod(Long id)
+    public  void hardDeleteUser(Long id)
     {
         if(!userRepo.existsById(id))
         {
