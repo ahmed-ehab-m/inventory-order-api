@@ -129,7 +129,7 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(NoResourceFoundException.class)
 	public ResponseEntity<?> handleNoStaticResourceFound(NoResourceFoundException ex) {
 		log.warn("Static resource not found: {}", ex.getResourcePath());
-		String message = appTranslator.translateMessage("error.resource.not_found", null); // لو عندك ترجمة
+		String message = appTranslator.translateMessage("error.resource.not.found", null); // لو عندك ترجمة
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(message != null ? message : "Resource not found"));
 	}
 

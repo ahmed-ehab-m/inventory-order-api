@@ -171,6 +171,12 @@
             <version>0.13.0</version>
             <scope>runtime</scope>
         </dependency>
+        <!-- ===== GOOGLE AUTH ===== -->
+        <dependency>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client</artifactId>
+            <version>2.2.0</version>
+        </dependency>
         <!-- ===== Testing ===== -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

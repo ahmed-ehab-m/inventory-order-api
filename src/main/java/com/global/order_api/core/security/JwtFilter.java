@@ -1,5 +1,9 @@
 package com.global.order_api.core.security;
 
+import com.global.order_api.core.response.ApiResponse;
+import com.global.order_api.core.utils.AppTranslator;
+import com.nimbusds.jwt.proc.ExpiredJWTException;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -11,10 +15,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 
@@ -26,6 +32,8 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private  final AppTranslator appTranslator;
+    private final ObjectMapper mapper;
 
     @Override
     protected void doFilterInternal(
@@ -36,7 +44,7 @@ public class JwtFilter extends OncePerRequestFilter {
              String userEmail=null;
 
              /// reading from header (for Mobile , PostMan)
-             if(authHeader !=null && authHeader.startsWith("Bearer"))
+             if(authHeader !=null && authHeader.startsWith("Bearer "))
              {
                  /// get token
                  jwtToken=authHeader.substring(7);
@@ -65,6 +73,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 return;
             }
 
+        try {
             userEmail= jwtService.extractUserEmail(jwtToken);
             /// check the token is valid
             /// SecurityContextHolder => temp memory of spring
@@ -103,6 +112,28 @@ public class JwtFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
+        } catch (ExpiredJwtException ex) {
+            /// HttpServletResponse => because jwt filter work in
+        /// web container means that request doesn't come to spring mvc yet
+        /// so we can't use Response Entity
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8"); /// for arabic
+            String message=appTranslator.translateMessage("error.token.expired");
+            ApiResponse<Void> apiResponse=ApiResponse.error(message);
+            String jsonResponse=mapper.writeValueAsString(apiResponse);
+            response.getWriter().write(jsonResponse);
+            return; /// to stop filter
+        } catch (Exception ex) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            String message=appTranslator.translateMessage("error.token.invalid");
+            ApiResponse<Void> apiResponse=ApiResponse.error(message);
+
+            response.getWriter().write(mapper.writeValueAsString(apiResponse));
+            return;
+        }
         /// here filter done his work to go to another filters
         filterChain.doFilter(request, response);
     }
