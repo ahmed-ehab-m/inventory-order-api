@@ -7,6 +7,11 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
  import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -25,8 +30,26 @@ public class GlobalExceptionHandler {
 	
 	// to read messages properties files
 	private final AppTranslator appTranslator;
-	
-	// DataBase and JPA Exceptions  
+
+	@ExceptionHandler({AuthorizationDeniedException.class, AccessDeniedException.class})
+	public ResponseEntity<ApiResponse<Void>> handleAccessDeniedException(Exception ex) {
+		String message =appTranslator.translateMessage("error.forbidden",null);
+		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.error(message));
+	}
+	/// Wrong Password
+	@ExceptionHandler(BadCredentialsException.class)
+	public ResponseEntity<ApiResponse<Void>> handleBadCredentialsException(BadCredentialsException ex) {
+		String message =appTranslator.translateMessage("error.invalid.credentials",null);
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error(message));
+	}
+	/// Email not found
+	@ExceptionHandler(InternalAuthenticationServiceException.class)
+	public ResponseEntity<ApiResponse<Void>> handleInternalAuthenticationServiceException(InternalAuthenticationServiceException ex) {
+		String message =appTranslator.translateMessage("error.invalid.credentials",null);
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error(message));
+	}
+
+	// DataBase and JPA Exceptions
 	@ExceptionHandler(DataIntegrityViolationException.class)
 	public ResponseEntity<?> handleDataBaseExceptions(DataIntegrityViolationException ex)
 	{
@@ -48,7 +71,8 @@ public class GlobalExceptionHandler {
         	errors.add(errorMessage);
         }
             );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error("error.validation", errors));
+		String titleMessage =appTranslator.translateMessage("error.validation");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(titleMessage, errors));
     }
 	
 	//////////////////////////////////////////
@@ -67,7 +91,7 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<?> handleDuplicateRecordException(DuplicateRecordException ex)
 	{
 		String message =appTranslator.translateMessage(ex.getMessageKey(), ex.getArgs());
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(message));
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.error(message));
 	}
 	
 	// 400 Bad Request (user exceptions)
@@ -103,10 +127,19 @@ public class GlobalExceptionHandler {
 	
 	// for resource favicon (actuator)
 	@ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<?> handleNoStaticResourceFound(NoResourceFoundException ex) {
-        log.warn("Static resource not found: {}", ex.getResourcePath());
-        
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Resource not found");
-    }
+	public ResponseEntity<?> handleNoStaticResourceFound(NoResourceFoundException ex) {
+		log.warn("Static resource not found: {}", ex.getResourcePath());
+		String message = appTranslator.translateMessage("error.resource.not_found", null); // لو عندك ترجمة
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(message != null ? message : "Resource not found"));
+	}
+
+
+	/// JSON SYNTAX ERROR
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	public ResponseEntity<ApiResponse<Void>> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+		String message = appTranslator.translateMessage("error.malformed.json", null);
+		// أو اكتبها صريحة: "Malformed JSON request. Please check your request body."
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(message != null ? message : "Malformed JSON request"));
+	}
 			
 }

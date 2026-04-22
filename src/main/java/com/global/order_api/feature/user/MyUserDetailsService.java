@@ -1,5 +1,6 @@
 package com.global.order_api.feature.user;
 
+import com.global.order_api.core.exception.ResourceNotFoundException;
 import com.global.order_api.core.utils.AppTranslator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.User;
@@ -18,11 +19,11 @@ public class MyUserDetailsService  implements UserDetailsService {
 
 
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String email) throws ResourceNotFoundException {
         /// talk to our repo to get user details using our unique field (email not name)
         String message=appTranslator.translateMessage("error.user.not.found",email);
         UserEntity myUser=userRepo.findByEmail(email)
-                .orElseThrow(()-> new UsernameNotFoundException(message));
+                .orElseThrow(()-> new ResourceNotFoundException(message));
 
         /// convert UserEntity to UserDetails which Spring Security understands
         return new UserPrincipal(myUser);

@@ -17,5 +17,5 @@ public class UserResponseDto extends BaseResponseDto<Long> {
     private String email;
     private  String location;
     private  String phone;
-    private UserRole userRole;
+    private UserRole role;
 }

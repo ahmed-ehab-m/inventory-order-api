@@ -24,7 +24,8 @@ public class AuthController
 
     /// Auth METHODS
     @PostMapping("/register")
-    @Operation(summary = "Register New User", description = "Creates a new user account and returns a JWT token. Public access.")    public ResponseEntity<ApiResponse<AuthResponseDto>> register(@RequestBody UserRequestDto user)
+    @Operation(summary = "Register New User", description = "Creates a new user account and returns a JWT token. Public access.")
+    public ResponseEntity<ApiResponse<AuthResponseDto>> register(@RequestBody UserRequestDto user)
     {
         AuthResponseDto authResponseDto=userService.register(user);
         String message=appTranslator.getTranslatedAction("success.created", ENTITY_KEY);

@@ -1,9 +1,7 @@
 package com.global.order_api.feature.user;
 
 import com.global.order_api.core.base.SoftDeletableEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
@@ -28,6 +26,7 @@ public class UserEntity extends SoftDeletableEntity<Long> {
     @Column(name = "password",nullable = false,length = 255)
     private String password;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "role",nullable = false,length = 50)
     private UserRole role;
 
