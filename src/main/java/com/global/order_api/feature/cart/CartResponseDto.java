@@ -12,7 +12,7 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
-public class CartResponseDto extends BaseResponseDto<Long> {
+public class CartResponseDto extends BaseResponseDto<Long>  {
     private List<CartItemResponseDto> cartItems;
     private Double totalCartPrice;
 }
