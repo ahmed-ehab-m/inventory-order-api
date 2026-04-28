@@ -12,7 +12,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class CartItemResponseDto extends BaseResponseDto<Long> {
-    private Long product_id;
+    private Long productId;
     private String productName;
     private String productPrice;
     private Integer quantity;

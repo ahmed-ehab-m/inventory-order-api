@@ -4,12 +4,9 @@ import com.global.order_api.core.base.BaseMapper;
 import com.global.order_api.feature.product.ProductEntity;
 import com.global.order_api.feature.product.ProductResponseDto;
 import org.aspectj.lang.annotation.After;
-import org.mapstruct.AfterMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
+import org.mapstruct.*;
 
-@Mapper
+@Mapper(builder = @Builder(disableBuilder = true))
 public interface CartItemMapper extends BaseMapper<CartItemEntity,CartItemRequestDto,CartItemResponseDto> {
 
     @Mapping(target = "product",ignore = true) /// service will get product from db
