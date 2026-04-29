@@ -1,5 +1,6 @@
 package com.global.order_api.feature.order;
 
+import com.global.order_api.core.base.BaseFilterRequestDto;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,8 +9,7 @@ import java.time.LocalDate;
 
 @Getter
 @Setter
-public class OrderFilterRequest {
-    private String keyWord;  // user name - email -phone - location - product name
+public class OrderFilterRequest extends BaseFilterRequestDto {
     private OrderStatus status;
     private BigDecimal minPrice;
     private BigDecimal maxPrice;

@@ -17,8 +17,8 @@ public class OrderSpecification {
             List<Predicate> predicates = new ArrayList<>();
             /////////////////
             ///  1=>get the keyword
-            if (StringUtils.hasText(filter.getKeyWord())) {
-                String keyWord = filter.getKeyWord();
+            if (StringUtils.hasText(filter.getSearchKeyword())) {
+                String keyWord = filter.getSearchKeyword();
                 String likePattern = "%" + keyWord + "%";
 
                 List<Predicate> keywordPredicates = new ArrayList<>();

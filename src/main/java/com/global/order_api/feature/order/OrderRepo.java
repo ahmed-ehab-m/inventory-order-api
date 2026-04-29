@@ -8,15 +8,21 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import java.util.Optional;
+
+@Repository
 public interface OrderRepo extends BaseRepo<OrderEntity,Long> , JpaSpecificationExecutor<OrderEntity> {
 
 
     //// GET METHODS
     /// we comment findAll because => we extends JpaSpecificationExecutor
     //// which make findAll work as pagination function
+    Optional<OrderEntity> findByIdAndUserId(Long id, Long userId);
 
+    /// WRITING METHODS
     /// Hard Delete
     @Modifying
     @Query(value = "DELETE from orders where id = :id",nativeQuery = true)
