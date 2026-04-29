@@ -37,6 +37,17 @@ public class SecurityConfig {
                 /// Disable CSRF FILTER because i will not depend on JWT Filter
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/docs",
+                                "/docs/**",
+                                "/api-docs-json",
+                                "/api-docs-json/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/swagger-resources/**",
+                                "/webjars/**"
+                        ).permitAll()
                         /// any one can login or sign up
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         /// any another endpoint must be authenticated

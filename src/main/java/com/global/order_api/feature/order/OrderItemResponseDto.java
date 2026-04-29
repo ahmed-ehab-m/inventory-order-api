@@ -14,7 +14,7 @@ public class OrderItemResponseDto extends BaseResponseDto<Long> {
     private String productName;
     private BigDecimal price;
     private Integer quantity;
-    private BigDecimal subtotal; // price * quantity
+    private BigDecimal subTotal; // price * quantity
 
 }
 
