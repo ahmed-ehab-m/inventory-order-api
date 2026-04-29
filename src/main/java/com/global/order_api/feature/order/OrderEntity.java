@@ -3,10 +3,9 @@ package com.global.order_api.feature.order;
 import com.global.order_api.core.base.SoftDeletableEntity;
 import com.global.order_api.feature.user.UserEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -18,6 +17,9 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 @Table(name = "orders")
+@Builder
+@SQLDelete(sql = "UPDATE users SET is_deleted=true WHERE id=?")
+@SQLRestriction("is_deleted=false") // when use find all excluding deleted users
 public class OrderEntity extends SoftDeletableEntity<Long> {
 
     @Enumerated(EnumType.STRING)
