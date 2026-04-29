@@ -15,4 +15,5 @@ public class OrderFilterRequest {
     private BigDecimal maxPrice;
     private LocalDate fromDate;
     private LocalDate toDate;
+    private Boolean isDeleted = false;
 }

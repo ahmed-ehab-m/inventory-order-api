@@ -25,7 +25,7 @@ public class OrderSpecification {
 
                 /// order id
                 if (keyWord.matches("\\d+")) {
-                    keywordPredicates.add(criteriaBuilder.equal(root.get("id"), Long.valueOf(keyWord)))
+                    keywordPredicates.add(criteriaBuilder.equal(root.get("id"), Long.valueOf(keyWord)));
                 }
                 /// user details
                 /// join operations => because search in 2 tables User ,Order
@@ -83,6 +83,11 @@ public class OrderSpecification {
                 predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("createdAt"),
                         ///  2026-04-28 23:59:59 last second of day
                         filter.getToDate().atTime(23, 59, 59)));
+            }
+            if (filter.getIsDeleted() != null) {
+                predicates.add(criteriaBuilder.equal(root.get("isDeleted"), filter.getIsDeleted()));
+            } else {
+                predicates.add(criteriaBuilder.equal(root.get("isDeleted"), false));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));

@@ -29,6 +29,12 @@ public class OrderEntity extends SoftDeletableEntity<Long> {
     @Column(name = "total_price",nullable = false)
     private BigDecimal totalPrice;
 
+    @Column(name = "shipping_address",length = 500)
+    private String shippingAddress;
+
+    @Column(name = "order_notes",nullable = true,length = 500)
+    private String orderNotes;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private UserEntity user;

@@ -1,16 +1,31 @@
 package com.global.order_api.feature.order;
 
 import com.global.order_api.core.base.BaseRepo;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.web.bind.annotation.PathVariable;
 
 public interface OrderRepo extends BaseRepo<OrderEntity,Long> , JpaSpecificationExecutor<OrderEntity> {
 
-    /// Get Methods
-    /// Get All Orders + pagination + sort by time , price ,status
-    /// Get by user id
-    /// Writing Methods
-    /// create order
-    /// cancel order
-    /// soft delete
-    /// hard delete
+
+    //// GET METHODS
+    /// we comment findAll because => we extends JpaSpecificationExecutor
+    //// which make findAll work as pagination function
+
+    /// Hard Delete
+    @Modifying
+    @Query(value = "DELETE from orders where id = :id",nativeQuery = true)
+    void hardDelete(@Param("id")Long id);
+
+    /// Restore Order
+    @Modifying
+    @Query(value = "UPDATE orders set is_deleted=false where id = :id",nativeQuery = true)
+    void restoreOrder(@Param("id")Long id);
+
 }
+
