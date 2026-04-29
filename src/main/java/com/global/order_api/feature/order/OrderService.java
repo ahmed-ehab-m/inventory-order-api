@@ -201,6 +201,7 @@ public class OrderService extends BaseService<OrderEntity,Long> {
 
     }
 
+    /// hard-delete
     @Transactional
     public void hardDeleteOrder(Long orderId) {
         OrderEntity orderEntity = orderRepo.findById(orderId)
@@ -209,7 +210,6 @@ public class OrderService extends BaseService<OrderEntity,Long> {
         if (orderEntity.getStatus() != OrderStatus.CANCELLED) {
             throw new BusinessLogicException("error.order.hard.delete");
         }
-
         orderRepo.delete(orderEntity);
     }
 

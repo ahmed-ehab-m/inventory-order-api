@@ -86,7 +86,7 @@ public class CartController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    /// Remove Cart Item
+    /// Remove Cart
     @Operation(summary = "Clear Cart",
             description = "Removes all items from the user's cart")
     @DeleteMapping("/remove-cart")
