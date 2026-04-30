@@ -22,8 +22,19 @@ public interface OrderRepo extends BaseRepo<OrderEntity,Long> , JpaSpecification
     //// which make findAll work as pagination function
     Optional<OrderEntity> findByIdAndUserId(Long id, Long userId);
 
+    /// get order even if soft-delete true
+    /// check status and to make hibernate return entity even if soft-deleted
+    @Query(value = "SELECT status FROM orders WHERE id = :id", nativeQuery = true)
+    Optional<String> findOrderStatusByIdIncludingDeleted(@Param("id") Long id);
+//    @Query(value = "SELECT * FROM orders WHERE id = :id",nativeQuery = true)
+//    Optional<OrderEntity>findByIdIncludingDeleted(@Param("id") Long id);
     /// WRITING METHODS
     /// Hard Delete
+    @Modifying
+    @Query(value = "DELETE FROM order_item WHERE order_id = :id", nativeQuery = true)
+    void hardDeleteOrderItems(@Param("id") Long id);
+
+
     @Modifying
     @Query(value = "DELETE from orders where id = :id",nativeQuery = true)
     void hardDelete(@Param("id")Long id);

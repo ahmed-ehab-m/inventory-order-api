@@ -18,7 +18,7 @@ import java.util.List;
 @Entity
 @Table(name = "orders")
 @Builder
-@SQLDelete(sql = "UPDATE users SET is_deleted=true WHERE id=?")
+@SQLDelete(sql = "UPDATE orders SET is_deleted=true WHERE id=?")
 @SQLRestriction("is_deleted=false") // when use find all excluding deleted users
 public class OrderEntity extends SoftDeletableEntity<Long> {
 
@@ -44,6 +44,9 @@ public class OrderEntity extends SoftDeletableEntity<Long> {
 
     public void addOrderItem(OrderItemEntity orderItemEntity)
     {
+        if (this.orderItems == null) {
+            this.orderItems = new ArrayList<>();
+        }
         orderItems.add(orderItemEntity);
         orderItemEntity.setOrder(this);
     }

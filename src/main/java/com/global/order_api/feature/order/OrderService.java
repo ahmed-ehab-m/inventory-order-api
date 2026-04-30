@@ -14,6 +14,7 @@ import com.global.order_api.feature.product.ProductRepo;
 import com.global.order_api.feature.user.UserEntity;
 import com.global.order_api.feature.user.UserRepo;
 import com.global.order_api.feature.user.UserSpecification;
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -77,8 +78,10 @@ public class OrderService extends BaseService<OrderEntity,Long> {
         //// user get only his orders
         Specification<OrderEntity> userSpec= (root,query,cb)->
                 cb.equal(root.get("user").get("id"),userId);
-        Specification<OrderEntity> finalSpec= OrderSpecification.buildFilter(filter);
-        Page<OrderEntity> orderEntityPage=orderRepo.findAll(finalSpec,pageable);
+
+        Specification<OrderEntity> orderSpec= OrderSpecification.buildFilter(filter);
+        Specification<OrderEntity> combinedSpec=orderSpec.and(userSpec);
+        Page<OrderEntity> orderEntityPage=orderRepo.findAll(combinedSpec,pageable);
         List<OrderResponseDto> orderResponseDtoList=orderMapper.mapToDtoList(orderEntityPage.getContent());
         return PageResponse.from(orderEntityPage,orderResponseDtoList);
     }
@@ -204,13 +207,16 @@ public class OrderService extends BaseService<OrderEntity,Long> {
     /// hard-delete
     @Transactional
     public void hardDeleteOrder(Long orderId) {
-        OrderEntity orderEntity = orderRepo.findById(orderId)
+        /// 1=> get status
+        String orderStatus = orderRepo.findOrderStatusByIdIncludingDeleted(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
 
-        if (orderEntity.getStatus() != OrderStatus.CANCELLED) {
+        /// 2=> Business Logic Check
+        if (!orderStatus.equals("CANCELLED")) {
             throw new BusinessLogicException("error.order.hard.delete");
         }
-        orderRepo.delete(orderEntity);
+        orderRepo.hardDeleteOrderItems(orderId);
+        orderRepo.hardDelete(orderId);
     }
 
 }
