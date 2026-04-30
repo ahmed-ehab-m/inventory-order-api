@@ -1,16 +1,15 @@
-package com.global.order_api.feature.user;
+package com.global.order_api.feature.auth;
 
 import com.global.order_api.core.response.ApiResponse;
 import com.global.order_api.core.utils.AppTranslator;
+import com.global.order_api.feature.user.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

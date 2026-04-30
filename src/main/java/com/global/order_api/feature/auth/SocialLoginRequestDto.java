@@ -1,4 +1,4 @@
-package com.global.order_api.feature.user;
+package com.global.order_api.feature.auth;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;

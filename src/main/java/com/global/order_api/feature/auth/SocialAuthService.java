@@ -1,6 +1,10 @@
-package com.global.order_api.feature.user;
+package com.global.order_api.feature.auth;
 
 import com.global.order_api.core.security.JwtService;
+import com.global.order_api.feature.user.UserEntity;
+import com.global.order_api.feature.user.UserPrincipal;
+import com.global.order_api.feature.user.UserRepo;
+import com.global.order_api.feature.user.UserRole;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
