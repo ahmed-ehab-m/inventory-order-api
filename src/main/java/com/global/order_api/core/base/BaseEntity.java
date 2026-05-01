@@ -1,0 +1,57 @@
+package com.global.order_api.core.base;
+
+import java.time.LocalDateTime;
+
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
+
+// auditing	
+@Getter
+@Setter
+@MappedSuperclass // tell hibernate that this entity not a table in db 
+// this only a parent class 
+@SuperBuilder
+@NoArgsConstructor // for inheritance
+
+@EntityListeners(AuditingEntityListener.class) // tell SB if any data added into the table 
+// add time , user automatic
+// abstract to prevent any developer take an object by mistake
+public abstract class BaseEntity<ID>{
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private ID id;
+	
+	@CreatedDate
+	@Column(name ="created_at",updatable = false)
+	private LocalDateTime createdAt;
+	
+	@LastModifiedDate
+	@Column(name = "updated_at")
+	private LocalDateTime updatedAt;
+	
+	@CreatedBy
+	@Column(name = "created_by", updatable = false)
+	private String createdBy;
+	
+	@LastModifiedBy
+	@Column(name = "updated_by")
+	private String updatedBy;
+	
+}
+
