@@ -37,13 +37,19 @@ This diagram illustrates the overall data flow, including the interaction betwee
 
 <img width="601" height="512" alt="Untitled Diagram drawio" src="https://github.com/user-attachments/assets/b9a54e17-0c0a-4b6e-94e0-5cfc4b3c2936" />
 
+### 2. Low-Level System Architecture
+This detailed layer diagram illustrates the internal architecture of the Spring Boot application. It maps the complete request-response lifecycle, showcasing the role of the Security Filter Chain (JWT & OAuth2), business logic execution, data transfer mechanisms (DTOs & JPA Entities), and the precise protocols (e.g., JDBC, Multipart/form-data) used for database operations and external API integrations.
 
-### 2. Entity Relationship Diagram (ERD)
+<img width="1531" height="725" alt="Untitled Diagram drawio (3)" src="https://github.com/user-attachments/assets/4b3dae46-020a-4e9b-80c7-c87a0617ca45" />
+
+
+
+### 3. Entity Relationship Diagram (ERD)
 The ERD shows the database schema, illustrating the relationships between Users, Products, Carts, Cart Items, Orders, and Order Items.
 
 <img width="1500" height="1016" alt="inventory-order-api-ERD" src="https://github.com/user-attachments/assets/eb3e7ce4-d638-4406-9066-550b1525634e" />
 
 
-### 3. Use Case Diagram
+### 4. Use Case Diagram
 This diagram outlines the system's core functionalities from the perspective of different actors (e.g., Customer, Admin).
 <img width="664" height="581" alt="inventory-order-api-UseCase" src="https://github.com/user-attachments/assets/3eda0995-a37c-462c-8e46-d7a94d7e5052" />
