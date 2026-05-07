@@ -33,7 +33,7 @@ public class CategoryController {
 	@Operation(summary = "Get all categories")
 	@GetMapping("")
 	public ResponseEntity<ApiResponse<PageResponse<CategoryResponseDto>>> getCategoriesPage(
-			@ModelAttribute CategoryFilterRequestDto filter)
+			@Valid @ModelAttribute CategoryFilterRequestDto filter)
 	{
 		PageResponse<CategoryResponseDto> pageResponse=categoryService.getCategoriesPage(filter);
 		String message = appTranslator.getTranslatedAction("success.retrieved", ENTITY_KEY);

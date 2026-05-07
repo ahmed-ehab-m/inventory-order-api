@@ -12,7 +12,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CategoryRequestDto {
-    @NotBlank(message = "{validation.name.required}")
+    @NotBlank(message = "{validation.field.required}")
     @Size(max = 255)
 	private String name;
 	private String description;
