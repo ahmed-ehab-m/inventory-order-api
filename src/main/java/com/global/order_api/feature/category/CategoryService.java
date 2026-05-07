@@ -115,10 +115,10 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 		{
 			throw new IllegalArgumentException("{validation.category.default}");
 		}
-		categoryRepo.findByIdOrThrow(id);
+		CategoryEntity existingEntity = categoryRepo.findByIdOrThrow(id);
 		// move here
 		productRepo.moveProductsToDefaultCategory(id);
-	    delete(id);
+	    categoryRepo.delete(existingEntity);
     }
 	
 //	/////////HARD DELETE METHOD
