@@ -40,7 +40,11 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 		CategoryEntity entity =categoryRepo.findByIdOrThrow(id);
 		return categoryMapper.mapToDto(entity);
 	}
-	
+
+	/// to get the identical name not containing
+	/// for internal logic => if i want to get the category to link product
+	/// for front-end go to mobiles page
+	/// so front-end should send the identical name
 	public CategoryResponseDto findCategoryByName(String name)
 	{
 		CategoryEntity entity =categoryRepo.findByName(name)
@@ -48,9 +52,10 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 		return categoryMapper.mapToDto(entity);
 	}
 	
-	// smart method for pagination
-	// take filter => smart object contains page number , size ,sort type , keyword
-	// return pageResponse we created in core folder
+	/// smart method for pagination
+	///  take filter => smart object contains page number , size ,sort type , keyword
+	/// return pageResponse we created in core folder
+	/// for Advanced Search Bar and Filters
 	public PageResponse<CategoryResponseDto> getCategoriesPage(CategoryFilterRequestDto filter) {
 		// take user input => "ASC" OR "DESC" from headers
 	       Sort sort=Sort.by(Sort.Direction.fromString(filter.getSortDirection()),filter.getSortBy());
