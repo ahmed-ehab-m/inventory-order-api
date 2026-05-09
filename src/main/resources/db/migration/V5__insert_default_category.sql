@@ -1,2 +1,2 @@
 INSERT INTO categories (id,name,description)
-VALUES (999,"Ucategorized","Default categroy for orphaned products")
+VALUES (999,'Uncategorized','Default category for orphaned products')

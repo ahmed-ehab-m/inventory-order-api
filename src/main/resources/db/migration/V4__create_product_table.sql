@@ -10,8 +10,8 @@ CREATE TABLE products(
 	is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
 	
 		 -- from BaseEntity
-	created_at  DATETIME, 
-    updated_at  DATETIME,
+	created_at  TIMESTAMP,
+    updated_at  TIMESTAMP,
     created_by  VARCHAR(255),
     updated_by  VARCHAR(255),
     
