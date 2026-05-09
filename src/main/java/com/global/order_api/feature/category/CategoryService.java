@@ -42,9 +42,9 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 	}
 
 	/// to get the identical name not containing
-	/// for internal logic => if i want to get the category to link product
-	/// for front-end go to mobiles page
-	/// so front-end should send the identical name
+	/// to enhance SEO or if reading from Excel sheet so i read names not IDs
+	/// or Third-Party Integrations Like Odoo or SAP because they may send requests
+	/// using name not IDs
 	public CategoryResponseDto findCategoryByName(String name)
 	{
 		CategoryEntity entity =categoryRepo.findByName(name)

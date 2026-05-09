@@ -15,10 +15,14 @@ import com.global.order_api.core.base.BaseRepo;
 @Repository
 public interface CategoryRepo extends BaseRepo<CategoryEntity, Long> {
 	
-	// READ METHODS
-	// check if this category existed before insert
-	// catch exception early and provide simple message to front-end
-	// better performance
+	/// READ METHODS
+	/// check if this category existed before insert
+	/// catch exception early and provide simple message to front-end
+	/// for internal logic
+	/// better performance => short circuit => SELECT 1 FROM category WHERE name = 'Electronics' LIMIT 1;
+	/// if db found one record include this name then stop search and return true
+	/// hibernate take 1 or 0 from DB so he doesn't create object  (save resources)
+	/// save Network BandWidth because DB send only one bit 0 or 1 not full record
 	boolean	existsByName(String name);
 	
 	// to find by direct name only for backend logic and validation during insert 

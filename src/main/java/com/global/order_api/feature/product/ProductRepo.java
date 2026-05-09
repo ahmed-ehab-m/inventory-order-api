@@ -32,7 +32,7 @@ public interface ProductRepo extends BaseRepo<ProductEntity,Long> ,JpaSpecificat
 	Optional<ProductEntity> findByIdWithCategory(@Param("id") Long id);
 	
 	////////////////////////////////////////////////
-	// entity graph => when hibernate go to to db to execute
+	// entity graph => when hibernate go to db to execute
 	// generated sql , i tell him to get data of category too 
 	// to solve n+1 problem
 	// without writing sql because using JOIN FETCH may cause performance problems
