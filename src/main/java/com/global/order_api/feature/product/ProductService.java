@@ -143,10 +143,8 @@ public class ProductService extends BaseService<ProductEntity, Long> {
 	// HARD DELETE
 	public void forceDeleteProduct(Long id)
 	{
-		String imageUrl=productRepo.getImageUrlByIdEvenIfDeleted(id);
-		if (imageUrl != null) {
-			fileUploadService.deleteImage(imageUrl);
-		} 	
+		productRepo.getImageUrlByIdEvenIfDeleted(id)
+						.ifPresent(imageUrl -> fileUploadService.deleteImage(imageUrl));
 		productRepo.hardDeleteProduct(id);
 	}
 	

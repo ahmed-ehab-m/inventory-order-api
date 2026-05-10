@@ -18,15 +18,15 @@ public interface ProductRepo extends BaseRepo<ProductEntity,Long> ,JpaSpecificat
 	
 	/// READ METHODS 
 	
-	@Override // because we add EntityGraph
-	@EntityGraph(attributePaths = {"category"})
-	// for better performance using SELECT * 
-	// sort by name ,price ,created at
-	Page<ProductEntity> findAll(Pageable pageable);
-	
-	////////////////////////////////////////////////////
-	
+//	@Override // because we add EntityGraph
+//	@EntityGraph(attributePaths = {"category"})
+//	// for better performance using SELECT *
+//	// sort by name ,price ,created at
+//	Page<ProductEntity> findAll(Pageable pageable);
+
 	// for show only
+	/// get full category not using projection
+	/// because category table not large
 	@EntityGraph(attributePaths = {"category"}) // JOIN operation 
 	@Query("SELECT p FROM ProductEntity p WHERE p.id = :id") // because sb can't translate WithCategory
 	Optional<ProductEntity> findByIdWithCategory(@Param("id") Long id);
@@ -61,7 +61,7 @@ public interface ProductRepo extends BaseRepo<ProductEntity,Long> ,JpaSpecificat
 	////HARD DELETE METHODS
 	/// 
 	@Query(value = "SELECT image FROM products WHERE id = :id", nativeQuery = true)
-    String getImageUrlByIdEvenIfDeleted(@Param("id") Long id);
+    Optional<String> getImageUrlByIdEvenIfDeleted(@Param("id") Long id);
 	@Modifying
     @Query(value = "DELETE FROM products WHERE id = :id", nativeQuery = true)
     void hardDeleteProduct(@Param("id") Long id);
@@ -69,7 +69,7 @@ public interface ProductRepo extends BaseRepo<ProductEntity,Long> ,JpaSpecificat
 	///////////////////////////////////////////
 	/// DELETED PRODUCTS
 	@Query(value = "SELECT * FROM products WHERE is_deleted=true",nativeQuery = true)
-	Page<ProductEntity> findAllDeletedProducts( Specification<ProductEntity> spec,Pageable pageable);
+	Page<ProductEntity> findAllDeletedProducts(Specification<ProductEntity> spec,Pageable pageable);
 	
 	@Modifying
 	@Query(value = "UPDATE products SET is_deleted=false WHERE id= :id",nativeQuery = true)
