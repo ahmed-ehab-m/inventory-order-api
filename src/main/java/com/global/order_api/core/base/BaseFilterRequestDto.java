@@ -8,6 +8,7 @@ import lombok.Setter;
 public class BaseFilterRequestDto {
 	
 	private String searchKeyword;
+	/// Default values to avoid NullPointerException
 	private int page=0;
 	private int size=10;
 	private String sortBy="createdAt";
