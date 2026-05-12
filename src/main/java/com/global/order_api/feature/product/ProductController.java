@@ -89,6 +89,9 @@ public class ProductController {
 	@Operation(summary = "Create a New Product")
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
+	/// @RequestPart => Multi part/form-data => request is separate to
+	/// part holds image
+	/// part holds json "data"
 	public ResponseEntity<ApiResponse<ProductResponseDto>> createProduct(
 			@Parameter(description = "Product Details (JSON format)") @Valid @RequestPart("data") ProductRequestDto request ,
 			@Parameter(description = "Product Image File") @RequestPart(value = "image",required = false) MultipartFile image

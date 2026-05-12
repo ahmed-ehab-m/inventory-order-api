@@ -109,7 +109,7 @@ public class GlobalExceptionHandler {
         
 		log.error("File Storage Error", ex);
         String message = appTranslator.translateMessage(ex.getMessageKey(), ex.getArgs());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error(message));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(message));
     }
 	
 	// 500 Internal Server Error

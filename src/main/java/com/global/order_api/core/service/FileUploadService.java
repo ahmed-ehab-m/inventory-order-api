@@ -73,11 +73,11 @@ public class FileUploadService {
 	{
 		if(file.isEmpty())
 		{
-			throw new IllegalArgumentException("الملف فارغ لا يمكن رفعه");	
+			throw new FileStorageException("error.file.empty");
 		}
 		// IMAGE SIZE
 		if (file.getSize() > MAX_FILE_SIZE) {
-			throw new IllegalArgumentException("حجم الصورة يجب ألا يتعدى 5 ميجا بايت");
+			throw new FileStorageException("error.file.size.exceeded");
 		}
 		// IMAGE TYPE
 		// getcontenttype not getExtension for more security
@@ -85,7 +85,7 @@ public class FileUploadService {
 		// but here we read MIME Type
 		//
 		if (!ALLOWED_IMAGE_TYPES.contains(file.getContentType())) {
-			throw new IllegalArgumentException("النوع غير مدعوم! مسموح فقط بـ (JPG, PNG, WEBP)");
+			throw new FileStorageException("error.file.type.unsupported");
 		}
 	}
 }

@@ -25,7 +25,7 @@ public class AppTranslator {
 			// return the same message key for me to know me that this key not found in messages files
 			return messageKey;
 		}
-			
+
 	}
 	// custom for entity name
     public String getTranslatedAction(String actionCode, String entityCode) {
