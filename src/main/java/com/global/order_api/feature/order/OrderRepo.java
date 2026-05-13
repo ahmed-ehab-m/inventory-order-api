@@ -30,17 +30,17 @@ public interface OrderRepo extends BaseRepo<OrderEntity,Long> , JpaSpecification
 //    Optional<OrderEntity>findByIdIncludingDeleted(@Param("id") Long id);
     /// WRITING METHODS
     /// Hard Delete
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query(value = "DELETE FROM order_item WHERE order_id = :id", nativeQuery = true)
     void hardDeleteOrderItems(@Param("id") Long id);
 
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query(value = "DELETE from orders where id = :id",nativeQuery = true)
     void hardDelete(@Param("id")Long id);
 
     /// Restore Order
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query(value = "UPDATE orders set is_deleted=false where id = :id",nativeQuery = true)
     void restoreOrder(@Param("id")Long id);
 
