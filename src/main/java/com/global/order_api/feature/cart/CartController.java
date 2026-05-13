@@ -21,10 +21,12 @@ public class CartController {
     private final CartService cartService;
     private final AppTranslator appTranslator;
     private static final String ENTITY_KEY = "entity.cart";
+    private static final String CART_ITEM_ENTITY_KEY = "entity.cart_item"; // ده للعناصر
+
     ///////////////////////////////////////
     ///GET METHODS
     @Operation(summary = "Get User Cart",
-            description = "Retrieves the cart and all its items for a specific user")
+            description = "Retrieves the cart andupdateQuantity all its items for a specific user")
     @TrackExecutionTime
     @GetMapping("")
     public ResponseEntity<ApiResponse<CartResponseDto>> getUserCart()
@@ -49,7 +51,7 @@ public class CartController {
     {
         Long userId = SecurityUtils.getCurrentUserId();
         CartResponseDto cartResponseDto=cartService.addCartItem(userId,cartItemRequestDto);
-        String message = appTranslator.getTranslatedAction("success.created", ENTITY_KEY);
+        String message = appTranslator.getTranslatedAction("success.added", CART_ITEM_ENTITY_KEY);
         ApiResponse<CartResponseDto> apiResponse=ApiResponse.success(cartResponseDto,message);
         return ResponseEntity.ok(apiResponse);
     }
@@ -58,15 +60,15 @@ public class CartController {
     @Operation(summary = "Update Item Quantity",
             description = "Directly updates the quantity of a specific item in the cart")
     @PutMapping("/update-cart-item")
-    public ResponseEntity<ApiResponse<Void>> updateQuantity(
+    public ResponseEntity<ApiResponse<CartResponseDto>> updateQuantity(
             @RequestParam Long cartItemId,
             @RequestParam Integer quantity
     )
     {
         Long userId = SecurityUtils.getCurrentUserId();
         CartResponseDto cartResponseDto= cartService.updateItemQuantity(userId,cartItemId,quantity);
-        String message = appTranslator.getTranslatedAction("success.updated", ENTITY_KEY);
-        ApiResponse<Void>apiResponse=ApiResponse.success(null,message);
+        String message = appTranslator.getTranslatedAction("success.updated", CART_ITEM_ENTITY_KEY);
+        ApiResponse<CartResponseDto>apiResponse=ApiResponse.success(cartResponseDto,message);
         return ResponseEntity.ok(apiResponse);
     }
 
@@ -81,7 +83,7 @@ public class CartController {
     {
         Long userId = SecurityUtils.getCurrentUserId();
         cartService.removeCartItem(userId,cartItemId);
-        String message = appTranslator.getTranslatedAction("success.deleted", ENTITY_KEY);
+        String message = appTranslator.getTranslatedAction("success.deleted", CART_ITEM_ENTITY_KEY);
         ApiResponse<Void>apiResponse=ApiResponse.success(null,message);
         return ResponseEntity.ok(apiResponse);
     }
