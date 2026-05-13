@@ -33,8 +33,6 @@ public class OrderService extends BaseService<OrderEntity,Long> {
     private final OrderMapper orderMapper;
     private final OrderRepo orderRepo;
     private final UserRepo userRepo;
-    private final ProductRepo productRepo;
-    private final CartService cartService;
     private final CartRepo cartRepo;
 
     public OrderService(BaseRepo<OrderEntity, Long> baseRepo, OrderMapper orderMapper, OrderRepo orderRepo, UserRepo userRepo, ProductRepo productRepo, CartService cartService, CartRepo cartRepo) {
@@ -42,8 +40,6 @@ public class OrderService extends BaseService<OrderEntity,Long> {
         this.orderMapper = orderMapper;
         this.orderRepo = orderRepo;
         this.userRepo = userRepo;
-        this.productRepo = productRepo;
-        this.cartService = cartService;
         this.cartRepo = cartRepo;
     }
 
