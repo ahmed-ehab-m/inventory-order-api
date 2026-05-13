@@ -19,17 +19,15 @@ import java.util.Optional;
 public class CartService extends BaseService<CartEntity,Long> {
 
     private final CartRepo cartRepo;
-    private final CartItemRepo cartItemRepo;
     private final CartMapper cartMapper;
     private final CartItemMapper cartItemMapper;
     private final UserRepo userRepo;
     private final ProductRepo productRepo;
 
-    public CartService(BaseRepo<CartEntity, Long> baseRepo,
-                       CartRepo cartRepo, CartItemRepo cartItemRepo, CartMapper cartMapper, CartItemMapper cartItemMapper, UserRepo userRepo, ProductRepo productRepo) {
-        super(baseRepo);
+    public CartService(
+                       CartRepo cartRepo, CartMapper cartMapper, CartItemMapper cartItemMapper, UserRepo userRepo, ProductRepo productRepo) {
+        super(cartRepo);
         this.cartRepo=cartRepo;
-        this.cartItemRepo = cartItemRepo;
         this.cartMapper = cartMapper;
         this.cartItemMapper = cartItemMapper;
         this.userRepo = userRepo;
@@ -43,7 +41,7 @@ public class CartService extends BaseService<CartEntity,Long> {
     {
 
         Optional<CartEntity> optionalCart= cartRepo.findByUserId(userId);
-        /// if user doesn't  have cart
+        /// if user doesn't  have cart then create new cart don't throw exception
         if (optionalCart.isEmpty()) {
             CartResponseDto emptyCart = new CartResponseDto();
             emptyCart.setCartItems(new ArrayList<>());
@@ -95,6 +93,13 @@ public class CartService extends BaseService<CartEntity,Long> {
         }
         else
         {
+            /// check stock count
+            if (cartItemRequestDto.getQuantity() > product.getStockCount()) {
+                throw new BusinessLogicException(
+                        "error.insufficient.stock",
+                        new Object[]{cartItemRequestDto.getQuantity(), product.getStockCount()}
+                );
+            }
             CartItemEntity newItem=cartItemMapper.mapToEntity(cartItemRequestDto);
             /// add the product
             newItem.setProduct(product);
