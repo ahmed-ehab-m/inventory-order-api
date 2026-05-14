@@ -37,7 +37,7 @@ public class OrderController {
     @Operation(summary = "Get All Orders (Admin)",
             description = "Retrieves a paginated list of all orders in the system with filtering. Accessible only by Admins.")
     public ResponseEntity<ApiResponse<PageResponse<OrderResponseDto>>> getAllOrders(
-            @ModelAttribute OrderFilterRequest filter
+            @Valid @ModelAttribute OrderFilterRequest filter
     )
     {
         PageResponse<OrderResponseDto> pageResponse=orderService.getAllOrders(filter);
