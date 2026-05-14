@@ -7,6 +7,7 @@ import com.global.order_api.core.response.ApiResponse;
 import com.global.order_api.core.utils.AppTranslator;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -55,29 +56,13 @@ public class UserController {
         return  ResponseEntity.ok(apiResponse);
     }
 
-//    /// GET SoftDelete USERS
-//
-//    @GetMapping("/soft-delete-users")
-//    @Operation(summary = "Get Soft Deleted Users", description = "Retrieves a paginated list of softly deleted users. Admin only.")
-//    @PreAuthorize("hasRole('ADMIN')")
-//    public ResponseEntity<ApiResponse<PageResponse<UserResponseDto>>> getSoftDeleteUsersPage
-//    (
-//            @ModelAttribute UserFilterRequest filter
-//    )
-//    {
-//        PageResponse<UserResponseDto> pageResponse=userService.getDeletedUsersPage(filter);
-//        String message=appTranslator.getTranslatedAction("success.deleted_retrieved", ENTITY_KEY);
-//        ApiResponse<PageResponse<UserResponseDto>> apiResponse=ApiResponse.success(pageResponse,message);
-//        return  ResponseEntity.ok(apiResponse);
-//    }
-
     /// WRITE METHODS
     @PutMapping("/{id}")
     @Operation(summary = "Update User Profile", description = "Updates user information. User can only update their own profile, Admin can update any.")
     @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
     public ResponseEntity<ApiResponse<UserResponseDto>> updateUser(
             @PathVariable Long id,
-            @RequestBody UserRequestDto updateRequest)
+            @Valid @RequestBody UserRequestDto updateRequest)
     {
         UserResponseDto updatedUser = userService.updateUser(id, updateRequest);
         String message = appTranslator.getTranslatedAction("success.updated", ENTITY_KEY);
