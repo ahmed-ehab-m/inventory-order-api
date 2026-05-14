@@ -22,13 +22,14 @@ public class AuthController
     private  final AppTranslator appTranslator;
     private static  final String ENTITY_KEY="entity.user";
     private final SocialAuthService socialAuthService;
+    private final AuthService authService;
 
     /// Auth METHODS
     @PostMapping("/register")
     @Operation(summary = "Register New User", description = "Creates a new user account and returns a JWT token. Public access.")
     public ResponseEntity<ApiResponse<AuthResponseDto>> register(@RequestBody UserRequestDto user)
     {
-        AuthResponseDto authResponseDto=userService.register(user);
+        AuthResponseDto authResponseDto=authService.register(user);
         String message=appTranslator.getTranslatedAction("success.created", ENTITY_KEY);
         ApiResponse<AuthResponseDto> apiResponse=ApiResponse.success(authResponseDto,message);
         return  ResponseEntity.ok(apiResponse);
@@ -38,7 +39,7 @@ public class AuthController
     @Operation(summary = "User Login", description = "Authenticates a user by email and password, and returns a JWT token. Public access.")
     public ResponseEntity<ApiResponse<AuthResponseDto>> login(@RequestBody UserRequestDto user)
     {
-        AuthResponseDto authResponseDto=userService.login(user);
+        AuthResponseDto authResponseDto=authService.login(user);
         String message=appTranslator.translateMessage("success.login");
         ApiResponse<AuthResponseDto> apiResponse=ApiResponse.success(authResponseDto,message);
         return  ResponseEntity.ok(apiResponse);

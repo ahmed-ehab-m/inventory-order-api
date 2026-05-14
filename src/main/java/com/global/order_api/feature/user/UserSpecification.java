@@ -28,6 +28,11 @@ public class UserSpecification {
                 predicates.add(criteriaBuilder.like(root.get("role"),
                         "%" + filter.getRole() + "%"));
             }
+
+            /// USER DELETED STATUS
+            if (filter.getIsDeleted() != null) {
+                predicates.add(criteriaBuilder.equal(root.get("isDeleted"), filter.getIsDeleted()));
+            }
             // and accept only Array not List
             // new Predicate[0] => because toArray() return object data type []
             // and we want Predicate so we only convert the type here

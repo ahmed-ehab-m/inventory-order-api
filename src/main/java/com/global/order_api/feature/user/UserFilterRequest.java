@@ -10,4 +10,5 @@ public class UserFilterRequest extends BaseFilterRequestDto {
     private String userName;
     private String location;
     private UserRole role;
+    private Boolean isDeleted;
 }

@@ -27,9 +27,7 @@ public interface UserRepo extends BaseRepo<UserEntity,Long>, JpaSpecificationExe
 //    @Override
 //    Page<UserEntity> findAll(Specification<UserEntity> spec ,Pageable pageable);
 
-    /// use jpql to work with spec
-    @Query(value = "select u from UserEntity u where u.isDeleted=true")
-    Page<UserEntity> findAllDeletedUsers(Specification<UserEntity> spec, Pageable pageable);
+
 
     //// HARD DELETE
     @Modifying

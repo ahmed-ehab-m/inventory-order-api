@@ -5,7 +5,6 @@ import com.global.order_api.core.base.PageResponse;
 import com.global.order_api.core.exception.DuplicateRecordException;
 import com.global.order_api.core.exception.ResourceNotFoundException;
 import com.global.order_api.core.security.JwtService;
-import com.global.order_api.feature.auth.AuthResponseDto;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -13,7 +12,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -26,16 +24,12 @@ public class UserService extends BaseService<UserEntity,Long> {
     private  final UserRepo userRepo;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
-    private  final AuthenticationManager authenticationManager;
-    private final JwtService jwtService;
 
-    public UserService(UserRepo userRepo, UserMapper userMapper, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtService jwtService) {
+    public UserService(UserRepo userRepo, UserMapper userMapper, PasswordEncoder passwordEncoder) {
         super(userRepo);
         this.userRepo=userRepo;
         this.userMapper=userMapper;
         this.passwordEncoder = passwordEncoder;
-        this.authenticationManager = authenticationManager;
-        this.jwtService = jwtService;
     }
     /////////////////////////
     /// READ METHODS
@@ -75,78 +69,6 @@ public class UserService extends BaseService<UserEntity,Long> {
         List<UserResponseDto> dtos=userMapper.mapToDtoList(userEntityPage.getContent());
         return  PageResponse.from(userEntityPage,dtos);
     }
-    //// GET DELETED USERS
-    public PageResponse<UserResponseDto> getDeletedUsersPage(UserFilterRequest filter)
-    {
-        ///// 1=> take user input => "ASC" OR "DESC" from headers
-        Sort sort=Sort.by(Sort.Direction.fromString(filter.getSortDirection()),filter.getSortBy());
-
-        ////// 2=> Pageable => take all user input
-        ///// will be translated to SQL
-        Pageable pageable= PageRequest.of(filter.getPage(),filter.getSize(),sort);
-        ///// holds data + meta data about it
-        Specification<UserEntity> spec=UserSpecification.buildFilter(filter);
-        //// 3=> call Repo
-        Page<UserEntity> userEntityPage=userRepo.findAllDeletedUsers(spec,pageable);
-        ///// map Entities to Dtos
-        List<UserResponseDto> dtos=userMapper.mapToDtoList(userEntityPage.getContent());
-        return  PageResponse.from(userEntityPage,dtos);
-    }
-    ////////////////////////////////////
-    /// WRITE METHODS
-    //// REGISTER USER
-    @Transactional
-    public AuthResponseDto register(UserRequestDto user)
-    {
-        //// 1=>  check email first
-        if(userRepo.existsByEmail(user.getEmail()))
-        {
-            throw new DuplicateRecordException("User", "email", user.getEmail());
-        }
-        //// 2=> map to Dto
-        UserEntity userEntity=userMapper.mapToEntity(user);
-
-        //// 3=> encoding password
-        userEntity.setPassword(passwordEncoder.encode(user.getPassword()));
-
-        //// 4=> Set Role
-        userEntity.setRole(UserRole.USER);
-
-        //// 5=> save in DB
-        UserEntity savedUser= userRepo.save(userEntity);
-
-        /// 6=> Auto Login => Generate token for new user
-        /// to go home page direct not login page to take token
-        String token=jwtService.generateToken(new UserPrincipal(savedUser));
-
-        /// 7=> map to dto
-        UserResponseDto userResponseDto=userMapper.mapToDto(savedUser);
-
-        /// 8=> return token + user data
-        return new AuthResponseDto(token,userResponseDto);
-
-    }
-
-    //// LOGIN USER
-    public AuthResponseDto login(UserRequestDto user)
-    {
-        //// 1=>  check email and password
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(user.getEmail(),user.getPassword())
-        );
-        //// 2=> get user from db
-        UserEntity userEntity=userRepo.findByEmail(user.getEmail()).orElseThrow();
-
-        //// 3=> generate jwt token
-        String token =jwtService.generateToken(new UserPrincipal(userEntity));
-
-        //// 4=> Map Entity to DTO
-        UserResponseDto userResponseDto=userMapper.mapToDto(userEntity);
-
-        /// return user data +token
-        return new AuthResponseDto(token,userResponseDto);
-    }
-
     //// UPDATE USER
     @Transactional
     public UserResponseDto updateUser(Long id , UserRequestDto updateRequest)
