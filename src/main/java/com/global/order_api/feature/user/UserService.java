@@ -105,18 +105,18 @@ public class UserService extends BaseService<UserEntity,Long> {
     }
     /// HARD DELETE METHODS
     @Transactional
-    public  void hardDeleteUser(Long id)
-    {
-        if(!userRepo.existsById(id))
-        {
+    public  void hardDeleteUser(Long id) {
+        if (!userRepo.existsById(id)) {
             throw new ResourceNotFoundException("User", "id", id);
         }
         userRepo.hardDeleteUser(id);
     }
     //// RESTORE USER
     @Transactional
-    public  void restoreUser(Long id)
-    {
+    public void restoreUser(Long id) {
+        if (!userRepo.existsById(id)) {
+            throw new ResourceNotFoundException("User", "id", id);
+        }
         userRepo.restoreUser(id);
     }
 }

@@ -7,7 +7,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -20,9 +19,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,207 +38,255 @@ class UserServiceTest {
     @InjectMocks
     private UserService userService;
 
-    ///////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// READING METHODS ////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////READING METHODS////////////////////////////////////
 
     @Nested
-    @DisplayName("1. Get User Tests (GET)")
-    class GetUserTests {
+    @DisplayName("1. Get Users Tests (GET)")
+    class GetUsersTests {
 
+        ///// Get User By Id - RETURN DTO
         @Test
         void getUserById_WhenUserExists_ShouldReturnDto() {
-            // Arrange
+            // 1. Arrange
             Long userId = 1L;
             UserEntity userEntity = new UserEntity();
             userEntity.setId(userId);
-            UserResponseDto expectedDto = new UserResponseDto();
-            expectedDto.setId(userId);
 
-            // Assuming BaseService calls userRepo.findById
-            when(userRepo.findById(userId)).thenReturn(Optional.of(userEntity));
-            when(userMapper.mapToDto(userEntity)).thenReturn(expectedDto);
+            UserResponseDto responseDto = new UserResponseDto();
+            responseDto.setId(userId);
 
-            // Act
+            // BaseService calls findByIdOrThrow
+            when(userRepo.findByIdOrThrow(userId)).thenReturn(userEntity);
+            when(userMapper.mapToDto(userEntity)).thenReturn(responseDto);
+
+            // 2. Act
             UserResponseDto result = userService.getUserById(userId);
 
-            // Assert
-            assertThat(result).isNotNull();
-            assertThat(result.getId()).isEqualTo(userId);
-            verify(userRepo).findById(userId);
+            // 3. Assert
+            assertNotNull(result);
+            assertEquals(userId, result.getId());
+
+            verify(userRepo, times(1)).findByIdOrThrow(userId);
+            verify(userMapper, times(1)).mapToDto(userEntity);
         }
 
+        ///// Get User By Id - Does Not Exist - THROW EXCEPTION
+        @Test
+        void getUserById_WhenUserDoesNotExist_ShouldThrowException() {
+            Long userId = 999L;
+
+            when(userRepo.findByIdOrThrow(userId))
+                    .thenThrow(new ResourceNotFoundException("User", "id", userId));
+
+            assertThrows(ResourceNotFoundException.class, () -> userService.getUserById(userId));
+
+            verify(userMapper, never()).mapToDto(any());
+        }
+
+        ///// Find By Email - RETURN DTO
         @Test
         void findByEmail_WhenUserExists_ShouldReturnDto() {
             String email = "test@company.com";
             UserEntity userEntity = new UserEntity();
             userEntity.setEmail(email);
-            UserResponseDto expectedDto = new UserResponseDto();
-            expectedDto.setEmail(email);
+
+            UserResponseDto responseDto = new UserResponseDto();
+            responseDto.setEmail(email);
 
             when(userRepo.findByEmail(email)).thenReturn(Optional.of(userEntity));
-            when(userMapper.mapToDto(userEntity)).thenReturn(expectedDto);
+            when(userMapper.mapToDto(userEntity)).thenReturn(responseDto);
 
             UserResponseDto result = userService.findByEmail(email);
 
-            assertThat(result).isNotNull();
-            assertThat(result.getEmail()).isEqualTo(email);
+            assertNotNull(result);
+            assertEquals(email, result.getEmail());
+            verify(userRepo, times(1)).findByEmail(email);
         }
 
+        ///// Find By Email - Does Not Exist - THROW EXCEPTION
         @Test
         void findByEmail_WhenUserDoesNotExist_ShouldThrowException() {
             String email = "notfound@company.com";
 
             when(userRepo.findByEmail(email)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> userService.findByEmail(email))
-                    .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessageContaining("User")
-                    .hasMessageContaining(email);
+            assertThrows(ResourceNotFoundException.class, () -> userService.findByEmail(email));
         }
 
+        ///// Get Users Page - RETURN PAGE RESPONSE
         @Test
-        void getUsersPage_ShouldReturnPagedResponse() {
-            // Arrange
+        void getUsersPage_ShouldReturnPagedUsers() {
             UserFilterRequest filter = new UserFilterRequest();
-            filter.setPage(0);
-            filter.setSize(10);
-            filter.setSortBy("id");
-            filter.setSortDirection("ASC");
 
-            UserEntity userEntity = new UserEntity();
-            UserResponseDto responseDto = new UserResponseDto();
+            UserEntity fakeEntity = new UserEntity();
+            Page<UserEntity> mockEntityPage = new PageImpl<>(List.of(fakeEntity));
 
-            Page<UserEntity> page = new PageImpl<>(List.of(userEntity));
-            List<UserResponseDto> dtoList = List.of(responseDto);
+            UserResponseDto fakeDto = new UserResponseDto();
 
-            when(userRepo.findAll(ArgumentMatchers.<Specification<UserEntity>>any(), ArgumentMatchers.any(Pageable.class)))
-                    .thenReturn(page);
-            when(userMapper.mapToDtoList(page.getContent())).thenReturn(dtoList);
+            when(userRepo.findAll(any(Specification.class), any(Pageable.class))).thenReturn(mockEntityPage);
+            when(userMapper.mapToDtoList(mockEntityPage.getContent())).thenReturn(List.of(fakeDto));
 
-            // Act
             PageResponse<UserResponseDto> result = userService.getUsersPage(filter);
 
-            // Assert
-            assertThat(result).isNotNull();
-            assertThat(result.getData().size()).isEqualTo(1);
-            assertThat(result.getTotalElements()).isEqualTo(1);
+            assertNotNull(result);
+            assertFalse(result.getData().isEmpty());
+
+            verify(userRepo, times(1)).findAll(any(Specification.class), any(Pageable.class));
+            verify(userMapper, times(1)).mapToDtoList(anyList());
+        }
+
+        ///// Get Users Page - No Users in DB - RETURN EMPTY PAGE
+        @Test
+        void getUsersPage_WhenNoUsersExist_ShouldReturnEmptyPage() {
+            UserFilterRequest filter = new UserFilterRequest();
+
+
+            Page<UserEntity> emptyMockPage = new PageImpl<>(List.of());
+
+            when(userRepo.findAll(any(Specification.class), any(Pageable.class))).thenReturn(emptyMockPage);
+            when(userMapper.mapToDtoList(emptyMockPage.getContent())).thenReturn(List.of());
+
+            PageResponse<UserResponseDto> result = userService.getUsersPage(filter);
+
+            assertNotNull(result);
+            assertTrue(result.getData().isEmpty());
+            assertEquals(0, result.getTotalElements());
         }
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// UPDATE METHODS ///////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////WRITING METHODS////////////////////////////////////
 
     @Nested
     @DisplayName("2. Update User Tests (PUT)")
     class UpdateUserTests {
 
+        ///// Update User - Valid Data - Should Update & Return DTO
         @Test
-        void updateUser_WithValidData_ShouldUpdateAndReturnDto() {
-            // Arrange
+        void updateUser_WithValidData_ShouldUpdateUser() {
+            // 1. Arrange
             Long userId = 1L;
-            UserRequestDto updateRequest = new UserRequestDto();
-            updateRequest.setEmail("new@company.com");
-            updateRequest.setName("New Name");
-            updateRequest.setPassword("newPass");
+            UserRequestDto requestDto = new UserRequestDto();
+            requestDto.setEmail("new@company.com");
+            requestDto.setName("New Name");
+            requestDto.setPassword("newPass");
 
             UserEntity existingUser = new UserEntity();
             existingUser.setId(userId);
-            existingUser.setEmail("old@company.com"); // Different email to test the check
+            existingUser.setEmail("old@company.com"); // Different email
 
-            UserEntity updatedUser = new UserEntity();
+            UserEntity savedUser = new UserEntity();
             UserResponseDto responseDto = new UserResponseDto();
+            responseDto.setEmail("new@company.com");
 
-            when(userRepo.findById(userId)).thenReturn(Optional.of(existingUser));
-            when(userRepo.existsByEmail(updateRequest.getEmail())).thenReturn(false); // Email is available
-            when(passwordEncoder.encode(updateRequest.getPassword())).thenReturn("encodedPass");
-            when(userRepo.save(existingUser)).thenReturn(updatedUser);
-            when(userMapper.mapToDto(updatedUser)).thenReturn(responseDto);
+            when(userRepo.findByIdOrThrow(userId)).thenReturn(existingUser);
+            when(userRepo.existsByEmail(requestDto.getEmail())).thenReturn(false); // Email not taken
+            when(passwordEncoder.encode(requestDto.getPassword())).thenReturn("hashedPass");
+            when(userRepo.save(existingUser)).thenReturn(savedUser);
+            when(userMapper.mapToDto(savedUser)).thenReturn(responseDto);
 
-            // Act
-            UserResponseDto result = userService.updateUser(userId, updateRequest);
+            // 2. Act
+            UserResponseDto result = userService.updateUser(userId, requestDto);
 
-            // Assert
-            assertThat(result).isNotNull();
-            verify(passwordEncoder).encode("newPass");
-            verify(userRepo).save(existingUser);
+            // 3. Assert
+            assertNotNull(result);
+            assertEquals("new@company.com", result.getEmail());
+
+            verify(passwordEncoder, times(1)).encode("newPass");
+            verify(userRepo, times(1)).save(existingUser);
         }
 
+        ///// Update User - Email Already Taken - Should Throw Exception
         @Test
-        void updateUser_WhenEmailIsTakenByAnotherUser_ShouldThrowException() {
-            // Arrange
+        void updateUser_WhenEmailIsTaken_ShouldThrowException() {
             Long userId = 1L;
-            UserRequestDto updateRequest = new UserRequestDto();
-            updateRequest.setEmail("taken@company.com");
+            UserRequestDto requestDto = new UserRequestDto();
+            requestDto.setEmail("taken@company.com");
 
             UserEntity existingUser = new UserEntity();
             existingUser.setId(userId);
             existingUser.setEmail("old@company.com");
 
-            when(userRepo.findById(userId)).thenReturn(Optional.of(existingUser));
-            when(userRepo.existsByEmail(updateRequest.getEmail())).thenReturn(true); // Email is taken!
+            when(userRepo.findByIdOrThrow(userId)).thenReturn(existingUser);
+            when(userRepo.existsByEmail(requestDto.getEmail())).thenReturn(true); // Email is taken!
 
-            // Act & Assert
-            assertThatThrownBy(() -> userService.updateUser(userId, updateRequest))
-                    .isInstanceOf(DuplicateRecordException.class)
-                    .hasMessageContaining(updateRequest.getEmail());
+            assertThrows(DuplicateRecordException.class, () -> userService.updateUser(userId, requestDto));
 
-            // Verify save is never called
-            verify(userRepo, never()).save(any(UserEntity.class));
+            verify(userRepo, never()).save(any());
         }
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// DELETE METHODS ///////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////DELETE METHODS////////////////////////////////////
 
     @Nested
-    @DisplayName("3. Delete User Tests (DELETE)")
+    @DisplayName("3. Delete & Restore User Tests (DELETE / PUT)")
     class DeleteUserTests {
 
+        ///// Soft Delete User
         @Test
         void softDeleteUser_ShouldCallBaseServiceDelete() {
             Long userId = 1L;
             UserEntity existingUser = new UserEntity();
             existingUser.setId(userId);
 
-            // BaseService delete() logic: findById -> setDeleted(true) -> save
-            when(userRepo.findById(userId)).thenReturn(Optional.of(existingUser));
+            // BaseService delete() logic -> findByIdOrThrow -> setDeleted(true) -> save
+            when(userRepo.findByIdOrThrow(userId)).thenReturn(existingUser);
 
             userService.softDeleteUser(userId);
 
-            verify(userRepo).findById(userId);
-            verify(userRepo).save(existingUser);
-            // If you have a getter for isDeleted, you can assert existingUser.isDeleted() is true here
+            verify(userRepo, times(1)).findByIdOrThrow(userId);
+            verify(userRepo, times(1)).deleteById(userId); // Verifies that BaseService called save
         }
 
+        ///// Hard Delete User - Exists - Should Hard Delete
         @Test
-        void hardDeleteUser_WhenUserExists_ShouldDelete() {
+        void hardDeleteUser_WhenUserExists_ShouldHardDelete() {
             Long userId = 1L;
+
             when(userRepo.existsById(userId)).thenReturn(true);
+            doNothing().when(userRepo).hardDeleteUser(userId);
 
-            assertDoesNotThrow(() -> userService.hardDeleteUser(userId));
+            userService.hardDeleteUser(userId);
 
-            verify(userRepo).hardDeleteUser(userId);
+            verify(userRepo, times(1)).hardDeleteUser(userId);
         }
 
+        ///// Hard Delete User - Not Exists - Should Throw Exception
         @Test
         void hardDeleteUser_WhenUserDoesNotExist_ShouldThrowException() {
             Long userId = 999L;
+
             when(userRepo.existsById(userId)).thenReturn(false);
 
-            assertThatThrownBy(() -> userService.hardDeleteUser(userId))
-                    .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessageContaining(userId.toString());
+            assertThrows(ResourceNotFoundException.class, () -> userService.hardDeleteUser(userId));
 
-            verify(userRepo, never()).hardDeleteUser(anyLong());
+            verify(userRepo, never()).hardDeleteUser(any());
         }
 
+        ///// Restore User
         @Test
         void restoreUser_ShouldCallRepoRestore() {
             Long userId = 1L;
 
-            assertDoesNotThrow(() -> userService.restoreUser(userId));
+            doNothing().when(userRepo).restoreUser(userId);
 
-            verify(userRepo).restoreUser(userId);
+            userService.restoreUser(userId);
+
+            verify(userRepo, times(1)).restoreUser(userId);
+        }
+        ///// Restore User - Not Exists - Should Throw Exception
+        @Test
+        void restoreUser_WhenUserDoesNotExist_ShouldThrowException() {
+            Long userId = 999L;
+
+            when(userRepo.existsById(userId)).thenReturn(false);
+
+            assertThrows(ResourceNotFoundException.class, () -> userService.restoreUser(userId));
+
+            verify(userRepo, never()).restoreUser(any());
         }
     }
 }

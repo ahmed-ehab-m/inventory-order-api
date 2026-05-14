@@ -55,21 +55,21 @@ public class UserController {
         return  ResponseEntity.ok(apiResponse);
     }
 
-    /// GET SoftDelete USERS
-
-    @GetMapping("/soft-delete-users")
-    @Operation(summary = "Get Soft Deleted Users", description = "Retrieves a paginated list of softly deleted users. Admin only.")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<PageResponse<UserResponseDto>>> getSoftDeleteUsersPage
-    (
-            @ModelAttribute UserFilterRequest filter
-    )
-    {
-        PageResponse<UserResponseDto> pageResponse=userService.getDeletedUsersPage(filter);
-        String message=appTranslator.getTranslatedAction("success.deleted_retrieved", ENTITY_KEY);
-        ApiResponse<PageResponse<UserResponseDto>> apiResponse=ApiResponse.success(pageResponse,message);
-        return  ResponseEntity.ok(apiResponse);
-    }
+//    /// GET SoftDelete USERS
+//
+//    @GetMapping("/soft-delete-users")
+//    @Operation(summary = "Get Soft Deleted Users", description = "Retrieves a paginated list of softly deleted users. Admin only.")
+//    @PreAuthorize("hasRole('ADMIN')")
+//    public ResponseEntity<ApiResponse<PageResponse<UserResponseDto>>> getSoftDeleteUsersPage
+//    (
+//            @ModelAttribute UserFilterRequest filter
+//    )
+//    {
+//        PageResponse<UserResponseDto> pageResponse=userService.getDeletedUsersPage(filter);
+//        String message=appTranslator.getTranslatedAction("success.deleted_retrieved", ENTITY_KEY);
+//        ApiResponse<PageResponse<UserResponseDto>> apiResponse=ApiResponse.success(pageResponse,message);
+//        return  ResponseEntity.ok(apiResponse);
+//    }
 
     /// WRITE METHODS
     @PutMapping("/{id}")
