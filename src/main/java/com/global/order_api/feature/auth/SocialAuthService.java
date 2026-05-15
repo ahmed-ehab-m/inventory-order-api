@@ -31,27 +31,24 @@ public class SocialAuthService {
 
     @Value("{spring.security.oauth2.client.registration.google.client-id}")
     private String googleClientId;
+    private final GoogleIdTokenVerifier googleVerifier;
 
     /// MOBILE GOOGLE SIGN IN
     public String loginWithGoogle(String googleToken)
     {
         try {
-            /// 1=> setup checking tool from google
-            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
-                    new NetHttpTransport(),new GsonFactory()
-            ).setAudience(Collections.singletonList(googleClientId))
-                    .build();
-            /// 2=> check the token
-        GoogleIdToken idToken=verifier.verify(googleToken);
-        /// 3=> if token is right
+
+            /// 1=> check the token
+        GoogleIdToken idToken=googleVerifier.verify(googleToken);
+        /// 2=> if token is right
         if(idToken !=null)
         {
-           /// 4 => get the data
+           /// 3 => get the data
             GoogleIdToken.Payload payload=idToken.getPayload();
             String email= payload.getEmail();
             String name=(String) payload.get("name");
 
-            /// 5=> get user from our db or create a new user
+            /// 4=> get user from our db or create a new user
             UserEntity user = userRepo.findByEmail(email)
                     .orElseGet(() -> {
                         UserEntity newUser = new UserEntity();
@@ -61,7 +58,7 @@ public class SocialAuthService {
                         newUser.setPassword("");
                         return userRepo.save(newUser);
                     });
-            /// 6=> generate jwt token
+            /// 5=> generate jwt token
             UserPrincipal userPrincipal=new UserPrincipal(user);
             return  jwtService.generateToken(userPrincipal);
         }
