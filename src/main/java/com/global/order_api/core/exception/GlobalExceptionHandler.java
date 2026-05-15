@@ -39,7 +39,7 @@ public class GlobalExceptionHandler {
 	/// Wrong Password
 	@ExceptionHandler(BadCredentialsException.class)
 	public ResponseEntity<ApiResponse<Void>> handleBadCredentialsException(BadCredentialsException ex) {
-		String message =appTranslator.translateMessage("error.invalid.credentials",null);
+		String message =appTranslator.translateMessage("BadCredentialsException",null);
 		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error(message));
 	}
 	/// Email not found
