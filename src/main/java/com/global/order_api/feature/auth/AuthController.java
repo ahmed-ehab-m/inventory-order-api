@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Auth Management",description = "APIs for managing Authentication")
 public class AuthController
 {
-    private final UserService userService;
     private  final AppTranslator appTranslator;
     private static  final String ENTITY_KEY="entity.user";
     private final SocialAuthService socialAuthService;
@@ -27,7 +26,8 @@ public class AuthController
     /// Auth METHODS
     @PostMapping("/register")
     @Operation(summary = "Register New User", description = "Creates a new user account and returns a JWT token. Public access.")
-    public ResponseEntity<ApiResponse<AuthResponseDto>> register(@RequestBody UserRequestDto user)
+    public ResponseEntity<ApiResponse<AuthResponseDto>> register(
+            @Valid @RequestBody UserRequestDto user)
     {
         AuthResponseDto authResponseDto=authService.register(user);
         String message=appTranslator.getTranslatedAction("success.created", ENTITY_KEY);
@@ -37,7 +37,8 @@ public class AuthController
 
     @PostMapping("/login")
     @Operation(summary = "User Login", description = "Authenticates a user by email and password, and returns a JWT token. Public access.")
-    public ResponseEntity<ApiResponse<AuthResponseDto>> login(@RequestBody UserRequestDto user)
+    public ResponseEntity<ApiResponse<AuthResponseDto>> login(
+            @Valid @RequestBody UserRequestDto user)
     {
         AuthResponseDto authResponseDto=authService.login(user);
         String message=appTranslator.translateMessage("success.login");
