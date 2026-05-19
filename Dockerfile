@@ -1,6 +1,8 @@
-# first we get our template
-# we get small linux system called trixie installed java 21
-FROM openjdk:21-ea-trixie
+# first we get our java template
+# temurin => different order of chars of runtime word
+# AdoptOpenJdk is open source project to provice free and stable java versions
+# so eclipse take it and rename it to eclipse-temurin
+FROM  eclipse-temurin:21-jdk
 
 # for more orgnaization
 # create new folder app and go into
