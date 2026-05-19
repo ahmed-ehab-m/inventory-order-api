@@ -1,0 +1,58 @@
+# version of compose
+version: "3.8"
+
+# containers which we want to use it
+services:
+  # first container => MY SQL DB
+  mysqldb:
+    # get mysql image from docker hub
+    image: mysql:latest
+    # setup data base environment
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: inventory_order_db
+    # 3307 because mysql workbench take 3306
+    ports:
+      - "3307:3306"
+    networks:
+      - s-network
+    volumes:
+      # path of storing data which my sql image use it
+      - mysql-s-data:/var/lib/mysql
+
+    # to wait db creating tables
+    # test => to make docker every little bit go into my sql container to execute this command
+    # mysqlAdmin => tool docker use it to send ping to localhost db =>(db of container)
+    # and db must return mysqldb is alive
+    # timeout => if db don't reply in 5s then is a fail try
+    # retries => loop again and if db doesn't reply then container status => unhealthy
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 5s
+      retries: 10
+
+  # second container => MY APPLICATION
+  app:
+    # . => the current folder there docker file , execute it to create an image
+    build: .
+    ports:
+      - "8080:8080"
+    # must make sure db container is running first then run app container
+    # and health check because may db container status is running
+    # but actually db is not ready yet to recieve requests
+    # so health check => to sure every thing is ok and make container status is healthy not just starting
+    depends_on:
+      mysqldb:
+        condition: service_healthy
+    networks:
+      - s-network
+
+# to link 2 containers and allow to talk to each other
+networks:
+  s-network:
+    # make a virtual switch or router to link 2 containers and allow internet
+    driver: bridge
+
+# folder name which container use to store data instead of temporary storage of container
+volumes:
+  mysql-s-data:
