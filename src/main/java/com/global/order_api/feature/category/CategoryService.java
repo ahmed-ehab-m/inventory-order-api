@@ -2,6 +2,8 @@ package com.global.order_api.feature.category;
 
 import java.util.List;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +37,8 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 	
 	////////////////////////////
 	// read Methods
+    ///
+    @Cacheable(value = "categories", key = "#id")
 	public CategoryResponseDto findCategoryById(Long id)
 	{
 		CategoryEntity entity =categoryRepo.findByIdOrThrow(id);
@@ -45,6 +49,7 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 	/// to enhance SEO or if reading from Excel sheet so i read names not IDs
 	/// or Third-Party Integrations Like Odoo or SAP because they may send requests
 	/// using name not IDs
+    @Cacheable(value = "categories", key = "#name")
 	public CategoryResponseDto findCategoryByName(String name)
 	{
 		CategoryEntity entity =categoryRepo.findByName(name)
@@ -91,7 +96,9 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 		CategoryEntity entity=categoryMapper.mapToEntity(requestDto);
 		return categoryMapper.mapToDto(save(entity));
 	}
-	
+
+    //// remove this category from cache memory using id
+    @CacheEvict(value = "categories",key = "#id")
 	@Transactional
 	public CategoryResponseDto updateCategory(CategoryRequestDto requestDto,Long id)
 	{
@@ -108,7 +115,9 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 	}
 	
 	////////////////////////////
-	//hard delete method and move products into Uncategorized
+    ///
+    @CacheEvict(value = "categories",key = "#id")
+    //hard delete method and move products into Uncategorized
 	@Transactional
 	public void deleteCategory(Long id) {
 		Long DEFAULT_CATEGORY_ID=999L;
