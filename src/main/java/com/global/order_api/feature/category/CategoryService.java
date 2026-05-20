@@ -41,6 +41,7 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
     @Cacheable(value = "categories", key = "#id")
 	public CategoryResponseDto findCategoryById(Long id)
 	{
+        System.out.println("go to data base not cache to get category id : "+id);
 		CategoryEntity entity =categoryRepo.findByIdOrThrow(id);
 		return categoryMapper.mapToDto(entity);
 	}
@@ -98,7 +99,7 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 	}
 
     //// remove this category from cache memory using id
-    @CacheEvict(value = "categories",key = "#id")
+    @CacheEvict(value = "categories",allEntries = true)
 	@Transactional
 	public CategoryResponseDto updateCategory(CategoryRequestDto requestDto,Long id)
 	{
@@ -116,7 +117,7 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 	
 	////////////////////////////
     ///
-    @CacheEvict(value = "categories",key = "#id")
+    @CacheEvict(value = "categories",allEntries = true)
     //hard delete method and move products into Uncategorized
 	@Transactional
 	public void deleteCategory(Long id) {

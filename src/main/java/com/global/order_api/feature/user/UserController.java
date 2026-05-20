@@ -5,12 +5,14 @@ import com.global.order_api.core.annotation.TrackExecutionTime;
 import com.global.order_api.core.base.PageResponse;
 import com.global.order_api.core.response.ApiResponse;
 import com.global.order_api.core.utils.AppTranslator;
+import com.global.order_api.feature.auth.ValidationGroups;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -62,7 +64,7 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
     public ResponseEntity<ApiResponse<UserResponseDto>> updateUser(
             @PathVariable Long id,
-            @Valid @RequestBody UserRequestDto updateRequest)
+            @Validated(ValidationGroups.OnUpdate.class) @RequestBody UserRequestDto updateRequest)
     {
         UserResponseDto updatedUser = userService.updateUser(id, updateRequest);
         String message = appTranslator.getTranslatedAction("success.updated", ENTITY_KEY);

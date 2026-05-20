@@ -1,7 +1,9 @@
     package com.global.order_api.feature.product;
     
     import java.util.List;
-    
+
+    import org.springframework.cache.annotation.CacheEvict;
+    import org.springframework.cache.annotation.Cacheable;
     import org.springframework.data.domain.Page;
     import org.springframework.data.domain.PageRequest;
     import org.springframework.data.domain.Pageable;
@@ -40,6 +42,7 @@
         ////////////////////////////
         /// READ METHODS
         ///////////////
+        @Cacheable(value = "products",key = "#id")
         public ProductResponseDto getProductByIdWithCategory(Long id)
         {
             ProductEntity productEntity = productRepo.findByIdWithCategory(id)
@@ -47,6 +50,7 @@
             return productMapper.mapToDto(productEntity);
         }
         //////////////////
+        @Cacheable(value = "products",key = "#name")
         public ProductResponseDto getProductByName(String name)
         {
             ProductEntity productEntity = productRepo.findByName(name)
@@ -100,7 +104,8 @@
             }
             return productMapper.mapToDto(save(entity));
         }
-        
+
+        @CacheEvict(value = "products",allEntries = true)
         @Transactional
         public ProductResponseDto updateProduct(ProductRequestDto requestDto,Long id ,MultipartFile newImage)
         {
@@ -129,17 +134,20 @@
             return productMapper.mapToDto(save(existingEntity));
         }
         ////////////////
+        @CacheEvict(value = "products",allEntries = true)
         public void restoreProduct(Long id)
         {
             productRepo.restoreProduct(id);
         }
         ///DELETE METHODS
+        @CacheEvict(value = "products",allEntries = true)
         @Transactional
         public void deleteProduct(Long id) {
             delete(id);
         }
         
         @Transactional
+        @CacheEvict(value = "products",allEntries = true)
         // HARD DELETE
         public void forceDeleteProduct(Long id)
         {
