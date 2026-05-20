@@ -8,6 +8,8 @@ import com.global.order_api.feature.product.ProductEntity;
 import com.global.order_api.feature.product.ProductRepo;
 import com.global.order_api.feature.user.UserEntity;
 import com.global.order_api.feature.user.UserRepo;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,9 +39,9 @@ public class CartService extends BaseService<CartEntity,Long> {
     ////////////////////////////////////////////////
     /// READING METHODS
     /// Get User Cart
+    @Cacheable(value = "carts",key = "#userId")
     public CartResponseDto getUserCart(Long userId)
     {
-
         Optional<CartEntity> optionalCart= cartRepo.findByUserId(userId);
         /// if user doesn't  have cart then create new cart don't throw exception
         if (optionalCart.isEmpty()) {
@@ -54,6 +56,7 @@ public class CartService extends BaseService<CartEntity,Long> {
 
     /// WRITING METHODS
     /// add cart item
+    @CacheEvict(value = "carts", key = "#userId")
     @Transactional
     public CartResponseDto addCartItem(Long userId ,CartItemRequestDto cartItemRequestDto) {
         /// 1=> Get current user cart OR
@@ -112,6 +115,7 @@ public class CartService extends BaseService<CartEntity,Long> {
     }
 
     /// remove cartItem
+    @CacheEvict(value = "carts",key = "#id")
     @Transactional
     public void removeCartItem(Long userId ,Long cartItemId) {
         /// 1=> Get current user cart OR
@@ -128,6 +132,7 @@ public class CartService extends BaseService<CartEntity,Long> {
 
     /// update quantity
     /// pass to direct value to update item quantity
+    @CacheEvict(value = "carts",key = "#userId")
     @Transactional
     public  CartResponseDto updateItemQuantity(Long userId,long cartItemId,Integer newQuantity)
     {
@@ -164,6 +169,7 @@ public class CartService extends BaseService<CartEntity,Long> {
     }
 
     /// clear cart after creating order
+    @CacheEvict(value = "carts",key = "#userId")
     @Transactional
     public void clearCart(long userId)
     {
