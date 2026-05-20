@@ -15,6 +15,7 @@ import com.global.order_api.feature.user.UserEntity;
 import com.global.order_api.feature.user.UserRepo;
 import com.global.order_api.feature.user.UserSpecification;
 import jakarta.persistence.criteria.Predicate;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -85,6 +86,8 @@ public class OrderService extends BaseService<OrderEntity,Long> {
     ////////////////////////////////////////////////
     /// WRITING METHODS
     //// Create an Order
+    /// for deleting user cart from cache
+    @CacheEvict(value = "carts", key = "#userId")
     @Transactional
     public OrderResponseDto createOrder(Long userId, OrderRequestDto orderRequest)
     {
