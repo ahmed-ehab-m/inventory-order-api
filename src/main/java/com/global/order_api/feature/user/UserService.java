@@ -6,6 +6,9 @@ import com.global.order_api.core.exception.DuplicateRecordException;
 import com.global.order_api.core.exception.ResourceNotFoundException;
 import com.global.order_api.core.security.JwtService;
 import jakarta.transaction.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -34,7 +37,8 @@ public class UserService extends BaseService<UserEntity,Long> {
     /////////////////////////
     /// READ METHODS
 
-    /// GET BY ID FOR FRONT-END
+    /// GET BY ID FOR FRONT-END DASHBOARD
+    @Cacheable(value = "users",key = "#id")
     public UserResponseDto getUserById(Long id)
     {
         /// from base Service
@@ -43,6 +47,7 @@ public class UserService extends BaseService<UserEntity,Long> {
     }
 
     /// GET BY EMAIL
+    @Cacheable(value = "users",key = "#email")
     public UserResponseDto findByEmail(String email)
     {
         UserEntity userEntity=userRepo.findByEmail(email)
@@ -70,6 +75,12 @@ public class UserService extends BaseService<UserEntity,Long> {
         return  PageResponse.from(userEntityPage,dtos);
     }
     //// UPDATE USER
+    @Caching(
+            evict = {
+                    @CacheEvict(value = "users",allEntries = true),/// for dashboard
+                    @CacheEvict(value = "security-users",allEntries = true) /// for security
+            }
+    )
     @Transactional
     public UserResponseDto updateUser(Long id , UserRequestDto updateRequest)
     {
@@ -99,12 +110,24 @@ public class UserService extends BaseService<UserEntity,Long> {
     }
     ////////////////////
     /// SOFT DELETE METHOD
+    @Caching(
+            evict = {
+                    @CacheEvict(value = "users",allEntries = true),/// for dashboard
+                    @CacheEvict(value = "security-users",allEntries = true) /// for security
+            }
+    )
     @Transactional
     public void softDeleteUser(Long id) {
         delete(id);
     }
     /// HARD DELETE METHODS
     @Transactional
+    @Caching(
+            evict = {
+                    @CacheEvict(value = "users",allEntries = true),/// for dashboard
+                    @CacheEvict(value = "security-users",allEntries = true) /// for security
+            }
+    )
     public  void hardDeleteUser(Long id) {
         if (!userRepo.existsById(id)) {
             throw new ResourceNotFoundException("User", "id", id);
@@ -112,6 +135,12 @@ public class UserService extends BaseService<UserEntity,Long> {
         userRepo.hardDeleteUser(id);
     }
     //// RESTORE USER
+    @Caching(
+            evict = {
+                    @CacheEvict(value = "users",allEntries = true),/// for dashboard
+                    @CacheEvict(value = "security-users",allEntries = true) /// for security
+            }
+    )
     @Transactional
     public void restoreUser(Long id) {
         if (!userRepo.existsById(id)) {

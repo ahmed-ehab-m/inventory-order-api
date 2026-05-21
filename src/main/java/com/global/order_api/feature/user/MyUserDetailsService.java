@@ -3,6 +3,7 @@ package com.global.order_api.feature.user;
 import com.global.order_api.core.exception.ResourceNotFoundException;
 import com.global.order_api.core.utils.AppTranslator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -19,6 +20,9 @@ public class MyUserDetailsService  implements UserDetailsService {
 
 
     @Override
+    /// caching user for better performance
+    //// no need to run extra query with each request it our system
+    @Cacheable(value = "security-users", key = "#email")
     public UserDetails loadUserByUsername(String email) throws ResourceNotFoundException {
         /// talk to our repo to get user details using our unique field (email not name)
         String message=appTranslator.translateMessage("error.user.not.found",email);
