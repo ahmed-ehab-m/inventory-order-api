@@ -70,6 +70,8 @@ services:
       - "6379:6379"
     # always restart if any problem occur
     restart: always
+    networks:
+      - s-network
 
 # to link 2 containers and allow to talk to each other
 networks:
