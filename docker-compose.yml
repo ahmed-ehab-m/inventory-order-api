@@ -31,6 +31,7 @@ services:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       timeout: 5s
       retries: 10
+    restart: always
 
   # second container => MY APPLICATION
   app:
@@ -58,6 +59,17 @@ services:
       - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
       - ADMIN_EMAIL=${ADMIN_EMAIL}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+
+    # third container => REDIS
+    # service name in our file
+  redis:
+    # alpine => smallest linux version to run redis image
+    image: redis:alpine
+    container_name: redis_cache
+    ports:
+      - "6379:6379"
+    # always restart if any problem occur
+    restart: always
 
 # to link 2 containers and allow to talk to each other
 networks:
