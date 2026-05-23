@@ -4,6 +4,7 @@
 
     import org.springframework.cache.annotation.CacheEvict;
     import org.springframework.cache.annotation.Cacheable;
+    import org.springframework.cache.annotation.Caching;
     import org.springframework.data.domain.Page;
     import org.springframework.data.domain.PageRequest;
     import org.springframework.data.domain.Pageable;
@@ -58,6 +59,10 @@
             return productMapper.mapToDto(productEntity);
         }
         //////////////////
+        @Cacheable(
+                value = "productsPage",
+                key = "#filter.generateCacheKey()"
+        )
         // smart method for pagination
         // take filter => smart object contains page number , size ,sort type , keyword
         // return pageResponse we created in core folder
@@ -74,6 +79,10 @@
             return PageResponse.from(productPage, dtoList);      
         }
         ////////////////////////
+        @Cacheable(
+                value  = "deletedProductsPage",
+                key = "#filter.generateCacheKey()"
+        )
         public PageResponse<ProductResponseDto>  getDeletedProducts(ProductFilterRequest filter)
         {
             Sort sort=Sort.by(Sort.Direction.fromString(filter.getSortDirection()),filter.getSortBy());
@@ -90,6 +99,7 @@
         
         ////////////////////
         ///WRITE METHODS
+        @CacheEvict(value = "productsPage",allEntries = true)
         @Transactional
         public ProductResponseDto createProduct(ProductRequestDto requestDto , MultipartFile image)
         {
@@ -105,7 +115,11 @@
             return productMapper.mapToDto(save(entity));
         }
 
-        @CacheEvict(value = "products",allEntries = true)
+        @Caching(evict = {
+                @CacheEvict(value = "productsPage", allEntries = true),
+                @CacheEvict(value = "products", key = "#id"),
+                @CacheEvict(value = "products", allEntries = true)
+        })
         @Transactional
         public ProductResponseDto updateProduct(ProductRequestDto requestDto,Long id ,MultipartFile newImage)
         {
@@ -134,20 +148,33 @@
             return productMapper.mapToDto(save(existingEntity));
         }
         ////////////////
-        @CacheEvict(value = "products",allEntries = true)
+
+        @Caching(evict = {
+                @CacheEvict(value = "productsPage", allEntries = true),
+                @CacheEvict(value = "deletedProductsPage", allEntries = true),
+                @CacheEvict(value = "products", allEntries = true)
+        })
         public void restoreProduct(Long id)
         {
             productRepo.restoreProduct(id);
         }
         ///DELETE METHODS
-        @CacheEvict(value = "products",allEntries = true)
+        @Caching(evict = {
+                @CacheEvict(value = "productsPage", allEntries = true),
+                @CacheEvict(value = "deletedProductsPage", allEntries = true),
+                @CacheEvict(value = "products", allEntries = true)
+        })
         @Transactional
         public void deleteProduct(Long id) {
             delete(id);
         }
         
         @Transactional
-        @CacheEvict(value = "products",allEntries = true)
+        @Caching(evict = {
+                @CacheEvict(value = "productsPage", allEntries = true),
+                @CacheEvict(value = "deletedProductsPage", allEntries = true),
+                @CacheEvict(value = "products", allEntries = true)
+        })
         // HARD DELETE
         public void forceDeleteProduct(Long id)
         {
