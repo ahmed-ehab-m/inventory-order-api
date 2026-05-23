@@ -2,8 +2,10 @@ package com.global.order_api.feature.category;
 
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,13 +21,15 @@ import com.global.order_api.core.exception.ResourceNotFoundException;
 import com.global.order_api.feature.product.ProductEntity;
 import com.global.order_api.feature.product.ProductRepo;
 
-@Service // 
-
+@Service //
+@Slf4j
 public class CategoryService extends BaseService<CategoryEntity, Long> {
 	
 	private final CategoryRepo categoryRepo;
 	private final CategoryMapper categoryMapper;
 	private final ProductRepo productRepo;
+
+	Long DEFAULT_CATEGORY_ID=999L;
 
 	public CategoryService(BaseRepo<CategoryEntity, Long> baseRepo, CategoryRepo categoryRepo,
 			CategoryMapper categoryMapper ,ProductRepo productRepo) {
@@ -41,7 +45,7 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
     @Cacheable(value = "categories", key = "#id")
 	public CategoryResponseDto findCategoryById(Long id)
 	{
-        System.out.println("go to data base not cache to get category id : "+id);
+       log.debug("go to data base not cache to get category id : "+id);
 		CategoryEntity entity =categoryRepo.findByIdOrThrow(id);
 		return categoryMapper.mapToDto(entity);
 	}
@@ -62,6 +66,11 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 	///  take filter => smart object contains page number , size ,sort type , keyword
 	/// return pageResponse we created in core folder
 	/// for Advanced Search Bar and Filters
+	/// SpEL (Spring Expression Language)
+	@Cacheable(
+			value = "categoriesPage",
+			key = "#filter.generateCacheKey()"
+	)
 	public PageResponse<CategoryResponseDto> getCategoriesPage(CategoryFilterRequestDto filter) {
 		// take user input => "ASC" OR "DESC" from headers
 	       Sort sort=Sort.by(Sort.Direction.fromString(filter.getSortDirection()),filter.getSortBy());
@@ -86,6 +95,7 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 	
 	////////////////////////////
 	// write methods
+	@CacheEvict(value = "categoriesPage",allEntries = true)
 	@Transactional
 	public CategoryResponseDto createCategory(CategoryRequestDto requestDto)
 	{
@@ -99,7 +109,11 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 	}
 
     //// remove this category from cache memory using id
-    @CacheEvict(value = "categories",allEntries = true)
+	@Caching(evict = {
+			@CacheEvict(value = "categoriesPage", allEntries = true),
+			@CacheEvict(value = "categories", key = "#id"),
+			@CacheEvict(value = "categories", key = "#requestDto.name")
+	})
 	@Transactional
 	public CategoryResponseDto updateCategory(CategoryRequestDto requestDto,Long id)
 	{
@@ -117,12 +131,14 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 	
 	////////////////////////////
     ///
-    @CacheEvict(value = "categories",allEntries = true)
+	@Caching(evict = {
+			@CacheEvict(value = "categoriesPage", allEntries = true),
+			@CacheEvict(value = "categories", key = "#id")
+	})
     //hard delete method and move products into Uncategorized
 	@Transactional
 	public void deleteCategory(Long id) {
-		Long DEFAULT_CATEGORY_ID=999L;
-		
+
 		// first check about default category
 		// equals because this an object not primitive
 		// if i use == here i compare the memory address

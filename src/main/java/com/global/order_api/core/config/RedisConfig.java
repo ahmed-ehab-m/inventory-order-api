@@ -4,7 +4,8 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
-import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
+import org.springframework.data.redis.cache.RedisCacheManager;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
@@ -15,10 +16,17 @@ import java.time.Duration;
 public class RedisConfig {
 
     @Bean
-    /// instead of built configuration of redis from zero
-    /// we use default configuration and ew only customize it
-    public RedisCacheConfiguration cacheConfiguration() {
-        return RedisCacheConfiguration.defaultCacheConfig()
+    /// redisconnectionfactory=> responsible for low-level connection between app and redis server
+    /// open connection channel using ip and port
+    //// redisCacheManager=> responsible for understanding @cache annotations
+    //// and cache policies
+    //// pass factory to send data to redis after applying policies
+    public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory)
+    {
+        /// 1=> default configuration for any caching
+        /// instead of built configuration of redis from zero
+        /// we use default configuration and ew only customize it
+        RedisCacheConfiguration defaultConfig= RedisCacheConfiguration.defaultCacheConfig()
                 /// ttl => time to live , to save our memory from filling and if any changing in db
                 .entryTtl(Duration.ofMinutes(60))
                 /// not saving any null values , to free space in mem and avoid NUllpointerException
@@ -30,5 +38,24 @@ public class RedisConfig {
                 /// wanna to read from cache
                 .serializeValuesWith(RedisSerializationContext
                         .SerializationPair.fromSerializer(RedisSerializer.json()));
+
+        /// 2=> short ttl for pages
+        RedisCacheConfiguration shortTtlConfig= RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(Duration.ofMinutes(5))
+                .disableCachingNullValues()
+                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(RedisSerializer.json()));
+
+        return RedisCacheManager.builder(connectionFactory)
+                .cacheDefaults(defaultConfig)
+                /// Pages - short TTL
+                .withCacheConfiguration("categoriesPage", shortTtlConfig)
+                .withCacheConfiguration("productsPage", shortTtlConfig)
+                .withCacheConfiguration("ordersPage", shortTtlConfig)
+                .withCacheConfiguration("usersPage", shortTtlConfig)
+                /// Single Records - default TTL
+                .withCacheConfiguration("category", defaultConfig)
+                .withCacheConfiguration("product", defaultConfig)
+                .build();
     }
+
 }

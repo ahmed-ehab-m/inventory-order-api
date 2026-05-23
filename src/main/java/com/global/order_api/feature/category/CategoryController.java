@@ -43,6 +43,7 @@ public class CategoryController {
 
 	@Operation(summary = "Get category by ID")
 	@GetMapping("/{id}")
+	@TrackExecutionTime
 	public ResponseEntity<ApiResponse<CategoryResponseDto>> findCategoryById(@PathVariable Long id)
 	{
 		CategoryResponseDto response=categoryService.findCategoryById(id);

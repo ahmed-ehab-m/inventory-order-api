@@ -16,5 +16,13 @@ public class BaseFilterRequestDto {
 	private int size=10;
 	private String sortBy="createdAt";
 	private String sortDirection="DESC";
+
+	public String generateCacheKey()
+	{
+		String keyword = (this.getSearchKeyword() != null && !this.getSearchKeyword().isBlank())
+				? this.getSearchKeyword()  : "all";
+		return this.getPage()+"-"+this.getSize()+"-"+
+				this.getSortDirection()+"-"+this.getSortBy()+"-"+keyword;
+	}
 	
 }
