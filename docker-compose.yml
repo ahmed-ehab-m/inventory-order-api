@@ -72,7 +72,8 @@ services:
     restart: always
     networks:
       - s-network
-
+    # determine max memory can redis take , and use LRU algorithm
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
 # to link 2 containers and allow to talk to each other
 networks:
   s-network:
