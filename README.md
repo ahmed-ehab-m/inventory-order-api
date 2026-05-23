@@ -21,6 +21,8 @@ A robust, secure, and scalable backend RESTful API built for managing an e-comme
 * **Backend:** Java, Spring Boot, Spring Data JPA (Hibernate), Spring Web.
 * **Security:** Spring Security, JWT (JSON Web Tokens), OAuth2.
 * **Database:** MySQL.
+* **Caching:** Redis.
+* **DevOps & Containerization:** Docker, Docker Compose.
 * **Database Migrations:** Flyway.
 * **External Services:** Cloudinary API (for multipart image uploads).
 * **Tools & Utilities:** MapStruct (Object mapping), Lombok, Maven.
