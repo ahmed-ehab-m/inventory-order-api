@@ -26,6 +26,7 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 	private final CategoryRepo categoryRepo;
 	private final CategoryMapper categoryMapper;
 	private final ProductRepo productRepo;
+	private static final Long DEFAULT_CATEGORY_ID = 999L;
 
 	public CategoryService(BaseRepo<CategoryEntity, Long> baseRepo, CategoryRepo categoryRepo,
 			CategoryMapper categoryMapper ,ProductRepo productRepo) {
@@ -128,8 +129,7 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
     //hard delete method and move products into Uncategorized
 	@Transactional
 	public void deleteCategory(Long id) {
-		Long DEFAULT_CATEGORY_ID=999L;
-		
+
 		// first check about default category
 		// equals because this an object not primitive
 		// if i use == here i compare the memory address
