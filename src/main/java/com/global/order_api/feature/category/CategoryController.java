@@ -15,6 +15,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("api/v1/categories")
 @RequiredArgsConstructor
@@ -28,10 +30,21 @@ public class CategoryController {
 
 	//////////////////////////////////////
 	/// READ METHODS (Public Access)
-
 	@TrackExecutionTime
-	@Operation(summary = "Get all categories")
+	@Operation(summary = "Get all categories (Public)")
 	@GetMapping("")
+	public ResponseEntity<ApiResponse<List<CategoryResponseDto>>> getCategories()
+	{
+		List<CategoryResponseDto> categories=categoryService.findAllCategories();
+		String message = appTranslator.getTranslatedAction("success.retrieved", ENTITY_KEY);
+		ApiResponse<List<CategoryResponseDto>> apiResponse = ApiResponse.success(categories, message);
+		return ResponseEntity.ok(apiResponse);
+	}
+	//////////////
+	@TrackExecutionTime
+	@PreAuthorize("hasRole('ADMIN')")
+	@Operation(summary = "Get all categories for admin")
+	@GetMapping("/page")
 	public ResponseEntity<ApiResponse<PageResponse<CategoryResponseDto>>> getCategoriesPage(
 			@Valid @ModelAttribute CategoryFilterRequestDto filter)
 	{

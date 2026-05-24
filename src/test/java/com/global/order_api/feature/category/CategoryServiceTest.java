@@ -261,6 +261,62 @@ class CategoryServiceTest {
             verify(categoryRepo, times(1)).findByNameContainingIgnoreCase(anyString(), any(Pageable.class));
         }
 
+        /// USER CATEGORIES
+        @Test
+        void findAllCategories_WhenDataExists_ShouldReturnListOfCategories() {
+            /// 1=> create fake entities
+            CategoryEntity fakeEntity = new CategoryEntity();
+            fakeEntity.setId(1L);
+            fakeEntity.setName("Electronics");
+            List<CategoryEntity> entityList = List.of(fakeEntity);
+
+            /// 2=> create fake DTOs
+            CategoryResponseDto fakeDto = new CategoryResponseDto();
+            fakeDto.setId(1L);
+            fakeDto.setName("Electronics");
+            List<CategoryResponseDto> dtoList = List.of(fakeDto);
+
+            /// 3=> call mocks
+            when(categoryRepo.findAll()).thenReturn(entityList);
+            when(categoryMapper.mapToDtoList(entityList)).thenReturn(dtoList);
+
+            /// 4=> call our function for testing
+            List<CategoryResponseDto> result = categoryService.findAllCategories();
+
+            /// 5=> assertions
+            assertNotNull(result);
+            assertFalse(result.isEmpty());
+            assertEquals(1, result.size());
+            assertEquals("Electronics", result.get(0).getName());
+
+            /// 6=> verify interactions
+            verify(categoryRepo, times(1)).findAll();
+            verify(categoryMapper, times(1)).mapToDtoList(entityList);
+        }
+
+        @Test
+        void findAllCategories_WhenNoData_ShouldReturnEmptyList() {
+            /// 1=> create empty lists to simulate empty database
+            List<CategoryEntity> emptyEntityList = List.of(); // Empty list from DB
+            List<CategoryResponseDto> emptyDtoList = List.of(); // Empty list from Mapper
+
+            /// 2=> call mocks
+            when(categoryRepo.findAll()).thenReturn(emptyEntityList);
+            when(categoryMapper.mapToDtoList(emptyEntityList)).thenReturn(emptyDtoList);
+
+            /// 3=> call our function for testing
+            List<CategoryResponseDto> result = categoryService.findAllCategories();
+
+            /// 4=> assertions
+            // The result must not be null, it should be just empty
+            assertNotNull(result);
+            assertTrue(result.isEmpty());
+
+            /// 5=> verify interactions
+            verify(categoryRepo, times(1)).findAll();
+            verify(categoryMapper, times(1)).mapToDtoList(emptyEntityList);
+        }
+
         ////////////////////////////////////////////////////////////////
         //////////////// GET CATEGORY BY Name States/////////////
         /// Get Category by Name - RETURN CATEGORY
