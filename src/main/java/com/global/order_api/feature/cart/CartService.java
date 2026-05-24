@@ -115,7 +115,7 @@ public class CartService extends BaseService<CartEntity,Long> {
     }
 
     /// remove cartItem
-    @CacheEvict(value = "carts",key = "#id")
+    @CacheEvict(value = "carts",key = "#userId")
     @Transactional
     public void removeCartItem(Long userId ,Long cartItemId) {
         /// 1=> Get current user cart OR

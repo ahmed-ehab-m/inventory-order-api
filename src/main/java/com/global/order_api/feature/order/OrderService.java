@@ -16,6 +16,8 @@ import com.global.order_api.feature.user.UserRepo;
 import com.global.order_api.feature.user.UserSpecification;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -46,9 +48,26 @@ public class OrderService extends BaseService<OrderEntity,Long> {
 
     ////////////////////////////////////////////////
     /// READING METHODS
+    /// Get order By Id to get order details for Admin
+    @Cacheable(value = "orders", key = "#orderId")
+    public OrderResponseDto getOrderById(Long orderId) {
+        OrderEntity order = orderRepo.findByIdOrThrow(orderId);
+        return orderMapper.mapToDto(order);
+    }
+    /// Get order By Id to get order details for user
+    @Cacheable(value = "orders", key = "#orderId")
+    public OrderResponseDto getUserOrderById(Long userId, Long orderId) {
+        OrderEntity order = orderRepo.findByIdAndUserId(orderId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
+        return orderMapper.mapToDto(order);
+    }
     /// Get All Orders
     /// smart method for pagination
     //// GET ALL ORDERS FOR ADMIN
+    @Cacheable(
+            value = "ordersPage",
+            key = "'admin-' + #filter.generateCacheKey()"
+    )
     public PageResponse<OrderResponseDto> getAllOrders(OrderFilterRequest filter)
     {
         ///// 1=> take user input => "ASC" OR "DESC" from headers
@@ -67,6 +86,11 @@ public class OrderService extends BaseService<OrderEntity,Long> {
     }
 
     //// GET ONLY USER ORDERS
+    /// add user id to separate general orders and user orders
+    @Cacheable(
+            value = "ordersPage",
+            key = "'user:' + #userId + '-' + #filter.generateCacheKey()"
+    )
     public PageResponse<OrderResponseDto> getUserOrders(Long userId, OrderFilterRequest filter)
     {
         Sort sort=Sort.by(Sort.Direction.fromString(filter.getSortDirection()),filter.getSortBy());
@@ -87,7 +111,12 @@ public class OrderService extends BaseService<OrderEntity,Long> {
     /// WRITING METHODS
     //// Create an Order
     /// for deleting user cart from cache
-    @CacheEvict(value = "carts", key = "#userId")
+    @Caching(evict = {
+            @CacheEvict(value = "ordersPage", allEntries = true),// remove admin , user pages
+            @CacheEvict(value = "carts", key = "#userId"), // clean user from cache
+            @CacheEvict(value = "productsPage", allEntries = true), // remove products because stock has been changed
+            @CacheEvict(value = "products", allEntries = true) // remove product details
+    })
     @Transactional
     public OrderResponseDto createOrder(Long userId, OrderRequestDto orderRequest)
     {
@@ -153,6 +182,12 @@ public class OrderService extends BaseService<OrderEntity,Long> {
     }
 
     //// Cancel an Order
+    @Caching(evict = {
+            @CacheEvict(value = "ordersPage", allEntries = true),
+            @CacheEvict(value = "orders", key = "#orderId"),
+            @CacheEvict(value = "productsPage", allEntries = true),
+            @CacheEvict(value = "products", allEntries = true) // remove product details
+    })
     @Transactional
     public void cancelOrder(Long userId , Long orderId)
     {
@@ -186,6 +221,10 @@ public class OrderService extends BaseService<OrderEntity,Long> {
         }
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "ordersPage", allEntries = true),
+            @CacheEvict(value = "orders", key = "#orderId")
+    })
     /// Soft Delete
     @Transactional
     public void softDeleteOrder(Long userId, Long orderId) {
@@ -203,6 +242,10 @@ public class OrderService extends BaseService<OrderEntity,Long> {
 
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "ordersPage", allEntries = true),
+            @CacheEvict(value = "orders", key = "#orderId")
+    })
     /// hard-delete
     @Transactional
     public void hardDeleteOrder(Long orderId) {

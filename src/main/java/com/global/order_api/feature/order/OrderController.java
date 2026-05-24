@@ -45,6 +45,35 @@ public class OrderController {
         ApiResponse<PageResponse<OrderResponseDto>> apiResponse=ApiResponse.success(pageResponse,message);
         return  ResponseEntity.ok(apiResponse);
     }
+    /// get order by id for Admin
+    @TrackExecutionTime
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Get Order By ID (Admin)",
+            description = "Retrieves the details of a specific order by its ID. Accessible only by Admins.")
+    public ResponseEntity<ApiResponse<OrderResponseDto>> getOrderById(
+            @PathVariable Long id
+    ) {
+        OrderResponseDto orderResponse = orderService.getOrderById(id);
+        String message = appTranslator.getTranslatedAction("success.retrieved", ENTITY_KEY);
+        ApiResponse<OrderResponseDto> apiResponse = ApiResponse.success(orderResponse, message);
+        return ResponseEntity.ok(apiResponse);
+    }
+    /// get order by id for User
+    @TrackExecutionTime
+    @GetMapping("/my-orders/{id}")
+    @Operation(summary = "Get My Order Details (Customer)",
+            description = "Retrieves the details of a specific order for the currently authenticated user.")
+    public ResponseEntity<ApiResponse<OrderResponseDto>> getUserOrderById(
+            @PathVariable Long id
+    ) {
+        Long userId = SecurityUtils.getCurrentUserId();
+        OrderResponseDto orderResponse = orderService.getUserOrderById(userId, id);
+
+        String message = appTranslator.getTranslatedAction("success.retrieved", ENTITY_KEY);
+        ApiResponse<OrderResponseDto> apiResponse = ApiResponse.success(orderResponse, message);
+        return ResponseEntity.ok(apiResponse);
+    }
 
     /// get user orders
     @TrackExecutionTime

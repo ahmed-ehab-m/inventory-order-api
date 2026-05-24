@@ -16,4 +16,17 @@ public class OrderFilterRequest extends BaseFilterRequestDto {
     private LocalDate fromDate;
     private LocalDate toDate;
     private Boolean isDeleted = false;
+
+    @Override
+    public String generateCacheKey() {
+        String baseKey = super.generateCacheKey();
+
+        return baseKey +
+                "-status:" + (status != null ? status.name() : "all") +
+                "-minPrice:" + (minPrice != null ? minPrice : "0") +
+                "-maxPrice:" + (maxPrice != null ? maxPrice : "any") +
+                "-fromDate:" + (fromDate != null ? fromDate.toString() : "any") +
+                "-toDate:" + (toDate != null ? toDate.toString() : "any") +
+                "-deleted:" + (isDeleted != null ? isDeleted : "false");
+    }
 }

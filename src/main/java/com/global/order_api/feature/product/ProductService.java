@@ -152,7 +152,7 @@
         @Caching(evict = {
                 @CacheEvict(value = "productsPage", allEntries = true),
                 @CacheEvict(value = "deletedProductsPage", allEntries = true),
-                @CacheEvict(value = "products", allEntries = true)
+               @CacheEvict(value = "products", allEntries = true)
         })
         public void restoreProduct(Long id)
         {

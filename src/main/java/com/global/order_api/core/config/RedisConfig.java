@@ -23,6 +23,7 @@ public class RedisConfig {
     //// pass factory to send data to redis after applying policies
     public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory)
     {
+        /////////////////////// 60 MINUTES //////////////
         /// 1=> default configuration for any caching
         /// instead of built configuration of redis from zero
         /// we use default configuration and ew only customize it
@@ -39,21 +40,29 @@ public class RedisConfig {
                 .serializeValuesWith(RedisSerializationContext
                         .SerializationPair.fromSerializer(RedisSerializer.json()));
 
+        /////////////////////// 5 MINUTES //////////////
         /// 2=> short ttl for pages
         RedisCacheConfiguration shortTtlConfig= RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofMinutes(5))
                 .disableCachingNullValues()
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(RedisSerializer.json()));
 
+
+        /// 3=> ////////////////// Long TTL (7 Days) ////////////////////////
+        RedisCacheConfiguration longTtlConfig = RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(Duration.ofDays(7))
+                .disableCachingNullValues()
+                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(RedisSerializer.json()));
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(defaultConfig)
-                /// Pages - short TTL
-                .withCacheConfiguration("categoriesPage", shortTtlConfig)
+                /// LONG TTL 7 DAYS
+                .withCacheConfiguration("categories", longTtlConfig)
+                .withCacheConfiguration("categoriesPage", longTtlConfig)
+                ////
                 .withCacheConfiguration("productsPage", shortTtlConfig)
                 .withCacheConfiguration("ordersPage", shortTtlConfig)
                 .withCacheConfiguration("usersPage", shortTtlConfig)
                 /// Single Records - default TTL
-                .withCacheConfiguration("category", defaultConfig)
                 .withCacheConfiguration("product", defaultConfig)
                 .build();
     }

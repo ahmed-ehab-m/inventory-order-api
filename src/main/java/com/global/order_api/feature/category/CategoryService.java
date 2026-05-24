@@ -65,7 +65,8 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 				.orElseThrow(() -> new ResourceNotFoundException("Category", "name", name));
 		return categoryMapper.mapToDto(entity);
 	}
-	
+
+
 	/// smart method for pagination
 	///  take filter => smart object contains page number , size ,sort type , keyword
 	/// return pageResponse we created in core folder
