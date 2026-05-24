@@ -48,16 +48,15 @@ public class RedisConfig {
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(RedisSerializer.json()));
 
 
-        /// 3=> ////////////////// Long TTL (7 Days) ////////////////////////
+        /// 3=> ////////////////// Long TTL (1 Days) ////////////////////////
         RedisCacheConfiguration longTtlConfig = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofDays(7))
+                .entryTtl(Duration.ofDays(1))
                 .disableCachingNullValues()
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(RedisSerializer.json()));
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(defaultConfig)
-                /// LONG TTL 7 DAYS
+                /// LONG TTL 1 Day
                 .withCacheConfiguration("categories", longTtlConfig)
-                .withCacheConfiguration("categoriesPage", longTtlConfig)
                 ////
                 .withCacheConfiguration("productsPage", shortTtlConfig)
                 .withCacheConfiguration("ordersPage", shortTtlConfig)

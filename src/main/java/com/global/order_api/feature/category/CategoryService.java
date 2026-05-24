@@ -39,10 +39,18 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 		this.categoryMapper = categoryMapper;
 		this.productRepo=productRepo;
 	}
-	//// CACHING => READING-HEAVY , WRITE-RARE
-	////////////////////////////
-	// read Methods
-    ///
+	////////////////////CACHING//////////////////////
+	//// CACHE TYPE => READING-HEAVY , WRITE-RARE
+	///  CACHE STRATEGY => READING = CACHE-ASIDE || WRITING = WRITE-AROUND
+	///  WRITE-AROUND => no need to write in db , redis (in same time)
+	/// 			  => rare editing on categories
+	/// 			  => simple , save resources
+	///  CACHE-ASIDE  => resistance even if redis fail
+	/// 			  => simple
+	/// 			  => on-demand loading or lazy loading
+	/// 			  => store only what users needed , high traffic to save resources
+	/////////////////////////////////////////////////
+	/// read Methods
 	/// caching here for Business Logic
     @Cacheable(value = "categories", key = "#id")
 	public CategoryResponseDto findCategoryById(Long id)
@@ -66,6 +74,7 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 		return categoryMapper.mapToDto(entity);
 	}
 	/// USER GET ALL METHOD
+	@Cacheable(value = "categories", key = "'all'")
 	public List<CategoryResponseDto> findAllCategories()
 	{
 		List<CategoryResponseDto> categories= categoryMapper.mapToDtoList(categoryRepo.findAll());
@@ -79,10 +88,6 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 	/// return pageResponse we created in core folder
 	/// for Advanced Search Bar and Filters
 	/// SpEL (Spring Expression Language)
-	@Cacheable(
-			value = "categoriesPage",
-			key = "#filter.generateCacheKey()"
-	)
 	public PageResponse<CategoryResponseDto> getCategoriesPage(CategoryFilterRequestDto filter) {
 		// take user input => "ASC" OR "DESC" from headers
 	       Sort sort=Sort.by(Sort.Direction.fromString(filter.getSortDirection()),filter.getSortBy());
@@ -109,7 +114,7 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 	// write methods
 	/// remove all page from cache
 	/// editing methods here , very minor or low editing here so remove all
-	@CacheEvict(value = "categoriesPage",allEntries = true)
+	@CacheEvict(value = "categories",allEntries = true)
 	@Transactional
 	public CategoryResponseDto createCategory(CategoryRequestDto requestDto)
 	{
@@ -123,14 +128,7 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 	}
 
     //// remove this category from cache memory using id
-	@Caching(evict = {
-			@CacheEvict(value = "categoriesPage", allEntries = true),
-//			@CacheEvict(value = "categories", key = "#id"),
-			/// problem here we remove new name !! and old name still in cache
-//			@CacheEvict(value = "categories", key = "#requestDto.name")
-			/// remove names + ids
-			@CacheEvict(value = "categories", allEntries = true)
-	})
+	@CacheEvict(value = "categories", allEntries = true)
 	@Transactional
 	public CategoryResponseDto updateCategory(CategoryRequestDto requestDto,Long id)
 	{
@@ -148,11 +146,7 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 	
 	////////////////////////////
     ///
-	/// remove names + ids
-	@Caching(evict = {
-			@CacheEvict(value = "categories", allEntries = true),
-			@CacheEvict(value = "categoriesPage", allEntries = true)
-	})
+	@CacheEvict(value = "categories", allEntries = true)
     //hard delete method and move products into Uncategorized
 	@Transactional
 	public void deleteCategory(Long id) {
