@@ -36,8 +36,7 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 	}
 	
 	////////////////////////////
-	// read Methods
-    ///
+	/// Reading Methods
     @Cacheable(value = "categories", key = "#id")
 	public CategoryResponseDto findCategoryById(Long id)
 	{
@@ -57,7 +56,15 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 				.orElseThrow(() -> new ResourceNotFoundException("Category", "name", name));
 		return categoryMapper.mapToDto(entity);
 	}
-	
+	/// USER GET ALL METHOD
+	public List<CategoryResponseDto> findAllCategories()
+	{
+		List<CategoryResponseDto> categories= categoryMapper.mapToDtoList(categoryRepo.findAll());
+		return categories;
+	}
+
+
+	/// ADMIN METHOD
 	/// smart method for pagination
 	///  take filter => smart object contains page number , size ,sort type , keyword
 	/// return pageResponse we created in core folder
