@@ -40,8 +40,7 @@ public class CategoryController {
 		ApiResponse<List<CategoryResponseDto>> apiResponse = ApiResponse.success(categories, message);
 		return ResponseEntity.ok(apiResponse);
 	}
-
-
+	//////////////
 	@TrackExecutionTime
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Get all categories for admin")

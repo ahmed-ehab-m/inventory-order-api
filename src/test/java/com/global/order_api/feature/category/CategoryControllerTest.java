@@ -176,7 +176,7 @@ class CategoryControllerTest {
 
             /// 4=> test our function
             /// pass url of endpoint
-            mockMvc.perform(get("/api/v1/categories")
+            mockMvc.perform(get("/api/v1/categories/page")
                             /// Query params not body
                             .param("page", String.valueOf(filterRequestDto.getPage()))
                             .param("size", String.valueOf(filterRequestDto.getSize()))
@@ -194,6 +194,45 @@ class CategoryControllerTest {
                     /// test pagination
                     .andExpect(jsonPath("$.data.totalElements").value(1))
                     .andExpect(jsonPath("$.data.currentPage").value(0));
+        }
+
+        ///////////////// GET ALL CATEGORIES FOR USERS (Public) /////////////
+        @Test
+        void getCategories_ShouldReturnAllCategoriesListWithSuccessMessage() throws Exception
+        {
+            /// 1=> create fake data to be returned by service
+            CategoryResponseDto fakeResponseDto = new CategoryResponseDto();
+            fakeResponseDto.setId(1L);
+            fakeResponseDto.setName("Electronics");
+
+            List<CategoryResponseDto> fakeCategoriesList = List.of(fakeResponseDto);
+
+            /// 2=> give our scenario to our mocks
+            when(categoryService.findAllCategories())
+                    .thenReturn(fakeCategoriesList);
+
+            /// expected Message
+            String fakeMessage = "Categories retrieved successfully";
+            when(appTranslator.getTranslatedAction(eq("success.retrieved"), anyString()))
+                    .thenReturn(fakeMessage);
+
+            /// 3=> test our function
+            /// pass url of public endpoint (No query params needed here)
+            mockMvc.perform(get("/api/v1/categories")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andDo(print())
+                    /// 4=> check our return ApiResponse
+                    /// check status code
+                    .andExpect(status().isOk())
+                    /// check our message and success flag
+                    .andExpect(jsonPath("$.message").value(fakeMessage))
+                    .andExpect(jsonPath("$.success").value(true))
+                    /// check the data array itself
+                    /// Since it's a List directly, data is an array, not an object containing a list
+                    .andExpect(jsonPath("$.data").isArray())
+                    .andExpect(jsonPath("$.data.length()").value(1))
+                    .andExpect(jsonPath("$.data[0].id").value(1))
+                    .andExpect(jsonPath("$.data[0].name").value("Electronics"));
         }
 
         ////////////////////////////////////////////////////////////////
