@@ -2,18 +2,13 @@ package com.global.order_api.feature.product;
 
 import java.math.BigDecimal;
 
+import jakarta.persistence.*;
 import org.hibernate.annotations.SQLDelete;
 import org.springframework.data.annotation.Id;
 
 import com.global.order_api.core.base.SoftDeletableEntity;
 import com.global.order_api.feature.category.CategoryEntity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -34,7 +29,10 @@ import lombok.Setter;
 // tell hibernate that => any delete method called 
 @SQLDelete(sql="UPDATE products SET is_deleted=true WHERE ID=?")
 public class ProductEntity extends SoftDeletableEntity<Long> {
-	
+
+    @Version  /// every update hibernate increase version field +1
+    private Long version;
+
 	@Column(name = "name",nullable = false , length = 255)
 	private String name;
 	
