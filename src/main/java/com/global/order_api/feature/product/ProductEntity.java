@@ -30,7 +30,11 @@ import lombok.Setter;
 @SQLDelete(sql="UPDATE products SET is_deleted=true WHERE ID=?")
 public class ProductEntity extends SoftDeletableEntity<Long> {
 
-    @Version  /// every update hibernate increase version field +1
+    /// every update hibernate increase version field +1
+    /// add WHERE VERSION = OLD VALUE  to any sql statement
+    /// if db return update failure because version has been changed
+    /// then return OptimisticLockingFailureException  to refresh page in front-end
+    @Version
     private Long version;
 
 	@Column(name = "name",nullable = false , length = 255)
