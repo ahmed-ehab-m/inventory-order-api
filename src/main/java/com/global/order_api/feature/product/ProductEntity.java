@@ -34,7 +34,8 @@ import lombok.Setter;
 // tell hibernate that => any delete method called 
 @SQLDelete(sql="UPDATE products SET is_deleted=true WHERE ID=?")
 public class ProductEntity extends SoftDeletableEntity<Long> {
-	
+
+
 	@Column(name = "name",nullable = false , length = 255)
 	private String name;
 	

@@ -39,7 +39,24 @@
             this.categoryRepo=categoryRepo;
             this.fileUploadService=fileUploadService;
         }
-        
+
+        ////////////////////CACHING//////////////////////
+        ///  Product metadata => name , description , image ,price , category id
+        ///  metadata => READ-HEAVY , WRTIE-RARE (as Category)
+        ///  metaData CACHE STRATEGY => READING = CACHE-ASIDE || WRITING = WRITE-AROUND
+        ///
+        ///  product stockCount => READ-HEAVY , WRTIE-HEAVY
+        ///
+        //// CACHE TYPE => READ-HEAVY , WRITE-HEAVY
+        ///
+        ///  CACHE STRATEGY => READING = READ-THROUGH || WRITING = WRITE-THROUGH
+        ///  WRITE-THROUGH => no need to write in db , redis (in same time)
+        /// 			  => rare editing on categories
+        /// 			  => simple , save resources
+        ///  CACHE-ASIDE  => resistance even if redis fail
+        /// 			  => simple
+        /// 			  => on-demand loading or lazy loading
+        /// 			  => store only what users needed , high traffic to save resources
         ////////////////////////////
         /// READ METHODS
         ///////////////

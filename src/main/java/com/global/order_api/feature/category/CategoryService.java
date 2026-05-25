@@ -40,7 +40,7 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 		this.productRepo=productRepo;
 	}
 	////////////////////CACHING//////////////////////
-	//// CACHE TYPE => READING-HEAVY , WRITE-RARE
+	//// CACHE TYPE => READ-HEAVY , WRITE-RARE
 	///  CACHE STRATEGY => READING = CACHE-ASIDE || WRITING = WRITE-AROUND
 	///  WRITE-AROUND => no need to write in db , redis (in same time)
 	/// 			  => rare editing on categories
@@ -80,7 +80,6 @@ public class CategoryService extends BaseService<CategoryEntity, Long> {
 		List<CategoryResponseDto> categories= categoryMapper.mapToDtoList(categoryRepo.findAll());
 		return categories;
 	}
-
 
 	/// ADMIN METHOD
 	/// smart method for pagination
