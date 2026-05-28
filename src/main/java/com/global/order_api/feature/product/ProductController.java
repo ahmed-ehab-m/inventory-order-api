@@ -32,15 +32,30 @@ public class ProductController {
 	//////////////////////////////////////
 	/// READ METHODS (Public Access)
 
+	//// for user
 	@TrackExecutionTime
 	@Operation(summary = "Get All Products (Paginated)")
 	@GetMapping("")
 	public ResponseEntity<ApiResponse<PageResponse<UserProductResponseDto>>> getProductsPage(
-			@ModelAttribute ProductFilterRequest filter)
+			@Valid  @ModelAttribute ProductFilterRequest filter)
 	{
 		PageResponse<UserProductResponseDto> pageResponse=productService.getProductsPage(filter);
 		String message = appTranslator.getTranslatedAction("success.retrieved", ENTITY_KEY);
 		ApiResponse<PageResponse<UserProductResponseDto>> apiResponse=ApiResponse.success(pageResponse, message);
+		return ResponseEntity.ok(apiResponse);
+	}
+
+	//// for Admin
+	@TrackExecutionTime
+	@Operation(summary = "Get All Products For Admin")
+	@GetMapping("/admin")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<ApiResponse<PageResponse<AdminProductResponseDto>>> getAdminProductsPage(
+			@Valid @ModelAttribute ProductFilterRequest filter)
+	{
+		PageResponse<AdminProductResponseDto> pageResponse=productService.getAdminProductsPage(filter);
+		String message = appTranslator.getTranslatedAction("success.retrieved", ENTITY_KEY);
+		ApiResponse<PageResponse<AdminProductResponseDto>> apiResponse=ApiResponse.success(pageResponse, message);
 		return ResponseEntity.ok(apiResponse);
 	}
 
