@@ -30,7 +30,7 @@ public interface ProductRepo extends BaseRepo<ProductEntity,Long> ,JpaSpecificat
 	/// database engine add row-level-lock in ram on this record
 	/// so any thread wanna to get this record , db engine block it and add it into waiting queue
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
-	@Query("SELECT p FROM ProductEntity WHERE p.id = :id")
+	@Query("SELECT p FROM ProductEntity p WHERE p.id = :id")
 	Optional<ProductEntity> findByIdForUpdate(@Param("id") Long id);
 
 	/// default findbyid() => for fast reading
