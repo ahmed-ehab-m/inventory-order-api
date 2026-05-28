@@ -5,6 +5,8 @@ import org.mapstruct.Mapping;
 
 import com.global.order_api.core.base.BaseMapper;
 
+import java.util.List;
+
 @Mapper // trigger map struct to generate code
 // in compile time
 // map struct generate productmapperimpl
@@ -19,6 +21,9 @@ public interface ProductMapper extends BaseMapper<ProductEntity, ProductRequestD
 	/// tell mapper ignore Category in product entity 
     @Mapping(target = "category", ignore = true)
     ProductEntity mapToEntity(ProductRequestDto requestDto);
+
+    List<AdminProductResponseDto> mapToAdminDtoList(List<ProductEntity> entities);
+    AdminProductResponseDto mapToAdminDto(ProductEntity entity);
 }
 
 	
