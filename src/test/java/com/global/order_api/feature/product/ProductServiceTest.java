@@ -255,6 +255,44 @@ class ProductServiceTest {
             verify(productRepo, times(1)).findAllDeletedProducts(any(Specification.class), any(Pageable.class));
             verify(productMapper, times(1)).mapToDtoList(emptyMockPage.getContent());
         }
+
+        //////////////// GET PRODUCT STOCK COUNT States /////////////
+        ///// Get Product Stock Count - SUCCESS
+        @Test
+        void getProductStockCount_WhenProductExists_ShouldReturnStockCount() {
+            /// 1=> Setup Data
+            Long productId = 1L;
+            int expectedStock = 50;
+
+            /// 2=> Mocking the Repo
+            when(productRepo.findStockCountById(productId)).thenReturn(Optional.of(expectedStock));
+
+            /// 3=> Test our function
+            int result = productService.getProductStockCount(productId);
+
+            /// 4=> Assert & Verify
+            assertEquals(expectedStock, result);
+
+            verify(productRepo, times(1)).findStockCountById(productId);
+        }
+
+        ///// Get Product Stock Count - FAIL: Product Not Found
+        @Test
+        void getProductStockCount_WhenProductDoesNotExist_ShouldThrowResourceNotFoundException() {
+            /// 1=> Setup Data
+            Long nonExistingId = 999L;
+
+            /// 2=> Mocking the Repo
+            when(productRepo.findStockCountById(nonExistingId)).thenReturn(Optional.empty());
+
+            /// 3=> Test our function & Assert Exception
+            assertThrows(ResourceNotFoundException.class, () -> {
+                productService.getProductStockCount(nonExistingId);
+            });
+
+            /// 4=> Verify Interactions
+            verify(productRepo, times(1)).findStockCountById(nonExistingId);
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////
