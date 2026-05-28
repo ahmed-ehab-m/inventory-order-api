@@ -8,12 +8,12 @@ import com.global.order_api.core.base.BaseMapper;
 @Mapper // trigger map struct to generate code
 // in compile time
 // map struct generate productmapperimpl
-public interface ProductMapper extends BaseMapper<ProductEntity, ProductRequestDto, ProductResponseDto>{
+public interface ProductMapper extends BaseMapper<ProductEntity, ProductRequestDto, UserProductResponseDto>{
 	@Override
 	// to make him map correctly
     @Mapping(source = "category.id", target = "categoryId")
     @Mapping(source = "category.name", target = "categoryName")
-    ProductResponseDto mapToDto(ProductEntity entity);
+    UserProductResponseDto mapToDto(ProductEntity entity);
 	
 	@Override
 	/// tell mapper ignore Category in product entity 

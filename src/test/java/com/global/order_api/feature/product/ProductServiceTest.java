@@ -66,14 +66,14 @@ class ProductServiceTest {
             /// The Database JOIN is already verified in the Repo layer tests.
             /// This Service Unit Test only verifies the delegation to Repo and Mapper.
 
-            ProductResponseDto fakeDto = new ProductResponseDto();
+            UserProductResponseDto fakeDto = new UserProductResponseDto();
             fakeDto.setId(id);
             fakeDto.setName("Laptop");
 
             when(productRepo.findByIdWithCategory(id)).thenReturn(Optional.of(fakeEntity));
             when(productMapper.mapToDto(fakeEntity)).thenReturn(fakeDto);
 
-            ProductResponseDto result = productService.getProductByIdWithCategory(id);
+            UserProductResponseDto result = productService.getProductByIdWithCategory(id);
 
             assertNotNull(result);
             assertEquals("Laptop", result.getName());
@@ -104,14 +104,14 @@ class ProductServiceTest {
             fakeEntity.setId(1L);
             fakeEntity.setName(productName);
 
-            ProductResponseDto fakeDto = new ProductResponseDto();
+            UserProductResponseDto fakeDto = new UserProductResponseDto();
             fakeDto.setId(1L);
             fakeDto.setName(productName);
 
             when(productRepo.findByName(productName)).thenReturn(Optional.of(fakeEntity));
             when(productMapper.mapToDto(fakeEntity)).thenReturn(fakeDto);
 
-            ProductResponseDto result = productService.getProductByName(productName);
+            UserProductResponseDto result = productService.getProductByName(productName);
 
             assertNotNull(result);
             assertEquals(productName, result.getName());
@@ -146,7 +146,7 @@ class ProductServiceTest {
             // 3. create fake page contains products to use it to be the return from repo
             Page<ProductEntity> mockEntityPage = new PageImpl<>(List.of(fakeEntity));
 
-            ProductResponseDto fakeDto = new ProductResponseDto();
+            UserProductResponseDto fakeDto = new UserProductResponseDto();
             fakeDto.setName("Phone");
 
             /// specification => is Lambda Expression
@@ -158,7 +158,7 @@ class ProductServiceTest {
             when(productMapper.mapToDtoList(mockEntityPage.getContent())).thenReturn(List.of(fakeDto));
 
             // 4. Act
-            PageResponse<ProductResponseDto> result = productService.getProductsPage(filter);
+            PageResponse<UserProductResponseDto> result = productService.getProductsPage(filter);
 
             // 5. Assert
             assertNotNull(result);
@@ -185,7 +185,7 @@ class ProductServiceTest {
             when(productMapper.mapToDtoList(emptyMockPage.getContent())).thenReturn(List.of());
 
             // 3. Act
-            PageResponse<ProductResponseDto> result = productService.getProductsPage(filter);
+            PageResponse<UserProductResponseDto> result = productService.getProductsPage(filter);
 
             // 4. Assert
             assertNotNull(result);
@@ -209,7 +209,7 @@ class ProductServiceTest {
             fakeEntity.setDeleted(true);
             Page<ProductEntity> mockEntityPage = new PageImpl<>(List.of(fakeEntity));
 
-            ProductResponseDto fakeDto = new ProductResponseDto();
+            UserProductResponseDto fakeDto = new UserProductResponseDto();
             fakeDto.setName("Deleted Phone");
 
 
@@ -218,7 +218,7 @@ class ProductServiceTest {
             when(productMapper.mapToDtoList(mockEntityPage.getContent())).thenReturn(List.of(fakeDto));
 
             // 3. Act
-            PageResponse<ProductResponseDto> result = productService.getDeletedProducts(filter);
+            PageResponse<UserProductResponseDto> result = productService.getDeletedProducts(filter);
 
             // 4. Assert
             assertNotNull(result);
@@ -245,7 +245,7 @@ class ProductServiceTest {
             when(productMapper.mapToDtoList(emptyMockPage.getContent())).thenReturn(List.of());
 
             // 3. Act
-            PageResponse<ProductResponseDto> result = productService.getDeletedProducts(filter);
+            PageResponse<UserProductResponseDto> result = productService.getDeletedProducts(filter);
             // 4. Assert
             assertNotNull(result);
             assertTrue(result.getData().isEmpty()); /// check empty page is true
@@ -329,7 +329,7 @@ class ProductServiceTest {
             ProductEntity mappedEntity = new ProductEntity();
             mappedEntity.setName("New TV");
 
-            ProductResponseDto responseDto = new ProductResponseDto();
+            UserProductResponseDto responseDto = new UserProductResponseDto();
             responseDto.setName("New TV");
 
             // Mock behaviors
@@ -343,7 +343,7 @@ class ProductServiceTest {
             when(productMapper.mapToDto(mappedEntity)).thenReturn(responseDto);
 
             // 2. Act
-            ProductResponseDto result = productService.createProduct(requestDto, mockImage);
+            UserProductResponseDto result = productService.createProduct(requestDto, mockImage);
 
             // 3. Assert & Verify
             assertNotNull(result);
@@ -364,7 +364,7 @@ class ProductServiceTest {
             when(categoryRepo.findByIdOrThrow(2L)).thenReturn(category);
             when(productMapper.mapToEntity(requestDto)).thenReturn(new ProductEntity());
             when(productRepo.save(any(ProductEntity.class))).thenReturn(new ProductEntity());
-            when(productMapper.mapToDto(any())).thenReturn(new ProductResponseDto());
+            when(productMapper.mapToDto(any())).thenReturn(new UserProductResponseDto());
 
             // Act with null image
             productService.createProduct(requestDto, null);
@@ -436,7 +436,7 @@ class ProductServiceTest {
 
             when(productRepo.save(existingEntity)).thenReturn(existingEntity);
             //// new ProductResponseDto => for simplicity and we don't have to check return result
-            when(productMapper.mapToDto(existingEntity)).thenReturn(new ProductResponseDto());
+            when(productMapper.mapToDto(existingEntity)).thenReturn(new UserProductResponseDto());
 
             productService.updateProduct(requestDto, productId, mockNewImage);
 
@@ -460,7 +460,7 @@ class ProductServiceTest {
 
             when(productRepo.findByIdOrThrow(productId)).thenReturn(existingProduct);
             when(productRepo.save(existingProduct)).thenReturn(existingProduct);
-            when(productMapper.mapToDto(existingProduct)).thenReturn(new ProductResponseDto());
+            when(productMapper.mapToDto(existingProduct)).thenReturn(new UserProductResponseDto());
 
             // 2. Act: بنبعت الصورة null
             productService.updateProduct(requestDto, productId, null);
@@ -495,7 +495,7 @@ class ProductServiceTest {
 
             when(fileUploadService.uploadImage(mockNewImage)).thenReturn("http://new-image.com");
             when(productRepo.save(existingProduct)).thenReturn(existingProduct);
-            when(productMapper.mapToDto(existingProduct)).thenReturn(new ProductResponseDto());
+            when(productMapper.mapToDto(existingProduct)).thenReturn(new UserProductResponseDto());
 
             // 2. Act
             productService.updateProduct(requestDto, productId, mockNewImage);

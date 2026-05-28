@@ -9,7 +9,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.global.order_api.core.base.PageResponse;
-import com.global.order_api.core.exception.DuplicateRecordException;
 import com.global.order_api.core.exception.FileStorageException;
 import com.global.order_api.core.exception.ResourceNotFoundException;
 import com.global.order_api.core.security.JwtFilter;
@@ -23,17 +22,14 @@ import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration
 import org.springframework.boot.security.autoconfigure.web.servlet.SecurityFilterAutoConfiguration;
 import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientAutoConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
-import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpMethod;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.multipart.MultipartFile;
 import tools.jackson.databind.ObjectMapper;
 import org.springframework.http.MediaType;
@@ -78,7 +74,7 @@ class ProductControllerTest {
         void getProductsByIdWithCategory_WhenIdExists_ShouldReturnProduct() throws Exception {
             long productId = 1L;
             /// use it as return from service layer
-            ProductResponseDto fakeDto = new ProductResponseDto();
+            UserProductResponseDto fakeDto = new UserProductResponseDto();
             fakeDto.setId(productId);
             fakeDto.setName("Laptop");
 
@@ -122,7 +118,7 @@ class ProductControllerTest {
         @Test
         void getProductByName_WhenExists_ShouldReturnProduct() throws Exception {
             String productName = "TV";
-            ProductResponseDto fakeDto = new ProductResponseDto();
+            UserProductResponseDto fakeDto = new UserProductResponseDto();
             fakeDto.setId(1L);
             fakeDto.setName(productName);
 
@@ -147,14 +143,14 @@ class ProductControllerTest {
             filter.setPage(0);
             filter.setSize(10);
 
-            ProductResponseDto fakeDto = new ProductResponseDto();
+            UserProductResponseDto fakeDto = new UserProductResponseDto();
             fakeDto.setId(1L);
             fakeDto.setName("Laptop");
 
 
-            Page<ProductResponseDto> page = new PageImpl<>(List.of(fakeDto));
+            Page<UserProductResponseDto> page = new PageImpl<>(List.of(fakeDto));
             /// fake page response mock to be as result from service layer
-            PageResponse<ProductResponseDto> fakePage = PageResponse.from(page, List.of(fakeDto));
+            PageResponse<UserProductResponseDto> fakePage = PageResponse.from(page, List.of(fakeDto));
 
             String fakeMessage = "Products retrieved successfully";
 
@@ -176,10 +172,10 @@ class ProductControllerTest {
         ///// Get Soft Deleted Products
         @Test
         void getDeletedProducts_ShouldReturnPagedDeletedProducts() throws Exception {
-            ProductResponseDto fakeDto = new ProductResponseDto();
+            UserProductResponseDto fakeDto = new UserProductResponseDto();
             fakeDto.setName("Deleted Laptop");
 
-            PageResponse<ProductResponseDto> fakePage = PageResponse.from(
+            PageResponse<UserProductResponseDto> fakePage = PageResponse.from(
                     new PageImpl<>(List.of(fakeDto)), List.of(fakeDto)
             );
 
@@ -263,7 +259,7 @@ class ProductControllerTest {
             requestDto.setPrice(BigDecimal.valueOf(15000));
             requestDto.setStockCount(10);
 
-            ProductResponseDto responseDto = new ProductResponseDto();
+            UserProductResponseDto responseDto = new UserProductResponseDto();
             responseDto.setId(5L);
             responseDto.setName("New Phone");
             requestDto.setStockCount(10);
@@ -344,7 +340,7 @@ class ProductControllerTest {
             requestDto.setStockCount(10);
 
 
-            ProductResponseDto responseDto = new ProductResponseDto();
+            UserProductResponseDto responseDto = new UserProductResponseDto();
             responseDto.setId(productId);
             responseDto.setName("Updated Phone");
 

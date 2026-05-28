@@ -1,9 +1,6 @@
 package com.global.order_api.feature.cart;
 
 import com.global.order_api.core.base.BaseMapper;
-import com.global.order_api.feature.product.ProductEntity;
-import com.global.order_api.feature.product.ProductResponseDto;
-import org.aspectj.lang.annotation.After;
 import org.mapstruct.*;
 
 @Mapper(builder = @Builder(disableBuilder = true))

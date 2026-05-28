@@ -7,7 +7,6 @@
     import org.springframework.cache.CacheManager;
     import org.springframework.cache.annotation.CacheEvict;
     import org.springframework.cache.annotation.Cacheable;
-    import org.springframework.cache.annotation.Caching;
     import org.springframework.data.domain.Page;
     import org.springframework.data.domain.PageRequest;
     import org.springframework.data.domain.Pageable;
@@ -16,8 +15,7 @@
     import org.springframework.stereotype.Service;
     import org.springframework.transaction.annotation.Transactional;
     import org.springframework.web.multipart.MultipartFile;
-    
-    import com.global.order_api.core.base.BaseRepo;
+
     import com.global.order_api.core.base.BaseService;
     import com.global.order_api.core.base.PageResponse;
     import com.global.order_api.core.exception.ResourceNotFoundException;
@@ -65,7 +63,7 @@
         /// READ METHODS
         ///////////////
         @Cacheable(value = "product",key = "#id")
-        public ProductResponseDto getProductByIdWithCategory(Long id)
+        public UserProductResponseDto getProductByIdWithCategory(Long id)
         {
             ProductEntity productEntity = productRepo.findByIdWithCategory(id)
                     .orElseThrow(() -> new ResourceNotFoundException("Product", "id", id));
@@ -73,7 +71,7 @@
         }
         //////////////////
         @Cacheable(value = "product",key = "#name")
-        public ProductResponseDto getProductByName(String name)
+        public UserProductResponseDto getProductByName(String name)
         {
             ProductEntity productEntity = productRepo.findByName(name)
                     .orElseThrow(() -> new ResourceNotFoundException("Product", "name", name));
@@ -97,7 +95,7 @@
                 condition = "#filter.page == 0 &&" +
                         " (#filter.keyword == null || #filter.keyword.isEmpty())" +
                         " && #filter.categoryId == null")
-        public PageResponse<ProductResponseDto> getProductsPage(ProductFilterRequest filter) {
+        public PageResponse<UserProductResponseDto> getProductsPage(ProductFilterRequest filter) {
         // take user input => "ASC" OR "DESC" from headers
             Sort sort=Sort.by(Sort.Direction.fromString(filter.getSortDirection()),filter.getSortBy());
             //Pageable => take all user input 
@@ -106,7 +104,7 @@
             // holds data + meta data about it
             Specification<ProductEntity> spec = ProductSpecification.buildFilter(filter);
             Page<ProductEntity> productPage = productRepo.findAll(spec, pageable);
-            List<ProductResponseDto> dtoList=productMapper.mapToDtoList(productPage.getContent());
+            List<UserProductResponseDto> dtoList=productMapper.mapToDtoList(productPage.getContent());
             return PageResponse.from(productPage, dtoList);      
         }
         ////////////////////////
@@ -116,7 +114,7 @@
                 condition = "#filter.page == 0 &&" +
                         " (#filter.keyword == null || #filter.keyword.isEmpty())" +
                         " && #filter.categoryId == null")
-        public PageResponse<ProductResponseDto>  getDeletedProducts(ProductFilterRequest filter)
+        public PageResponse<UserProductResponseDto>  getDeletedProducts(ProductFilterRequest filter)
         {
             Sort sort=Sort.by(Sort.Direction.fromString(filter.getSortDirection()),filter.getSortBy());
             //Pageable => take all user input 
@@ -125,7 +123,7 @@
             // holds data + meta data about it
             Specification<ProductEntity> spec = ProductSpecification.buildFilter(filter);
             Page<ProductEntity> productPage = productRepo.findAllDeletedProducts(spec,pageable);
-            List<ProductResponseDto> dtoList=productMapper.mapToDtoList(productPage.getContent());
+            List<UserProductResponseDto> dtoList=productMapper.mapToDtoList(productPage.getContent());
             return PageResponse.from(productPage, dtoList); 
         }
         ////////////
@@ -133,7 +131,7 @@
         ////////////////////
         ///WRITE METHODS
         @Transactional
-        public ProductResponseDto createProduct(ProductRequestDto requestDto , MultipartFile image)
+        public UserProductResponseDto createProduct(ProductRequestDto requestDto , MultipartFile image)
         {
             // first check if category is existed
             CategoryEntity categoryEntity = categoryRepo.findByIdOrThrow(requestDto.getCategoryId());
@@ -149,7 +147,7 @@
 
         @Transactional
 
-        public ProductResponseDto updateProduct(ProductRequestDto requestDto,Long id ,MultipartFile newImage)
+        public UserProductResponseDto updateProduct(ProductRequestDto requestDto, Long id , MultipartFile newImage)
         {
             // first check the category is existed
             ProductEntity existingEntity= productRepo.findByIdOrThrow(id);

@@ -13,13 +13,13 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class ProductResponseDto extends BaseResponseDto<Long> {
+public class UserProductResponseDto extends BaseResponseDto<Long> {
 	private String name;
 	private String description;
 	private String image;
 	private BigDecimal price;
-	private int stockCount;
-	
+//	private int stockCount;
+
 	private Long categoryId;
 	private String categoryName;
 }

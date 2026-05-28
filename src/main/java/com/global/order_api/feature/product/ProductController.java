@@ -1,8 +1,5 @@
 package com.global.order_api.feature.product;
 
-import java.util.List;
-
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -38,34 +35,34 @@ public class ProductController {
 	@TrackExecutionTime
 	@Operation(summary = "Get All Products (Paginated)")
 	@GetMapping("")
-	public ResponseEntity<ApiResponse<PageResponse<ProductResponseDto>>> getProductsPage(
+	public ResponseEntity<ApiResponse<PageResponse<UserProductResponseDto>>> getProductsPage(
 			@ModelAttribute ProductFilterRequest filter)
 	{
-		PageResponse<ProductResponseDto> pageResponse=productService.getProductsPage(filter);
+		PageResponse<UserProductResponseDto> pageResponse=productService.getProductsPage(filter);
 		String message = appTranslator.getTranslatedAction("success.retrieved", ENTITY_KEY);
-		ApiResponse<PageResponse<ProductResponseDto>> apiResponse=ApiResponse.success(pageResponse, message);
+		ApiResponse<PageResponse<UserProductResponseDto>> apiResponse=ApiResponse.success(pageResponse, message);
 		return ResponseEntity.ok(apiResponse);
 	}
 
 	@Operation(summary = "Get Product By ID")
 	@GetMapping("/{id}")
-	public ResponseEntity<ApiResponse<ProductResponseDto>> getProductsByIdWithCategory(
+	public ResponseEntity<ApiResponse<UserProductResponseDto>> getProductsByIdWithCategory(
 			@Parameter(description = "Product ID") @PathVariable Long id)
 	{
-		ProductResponseDto product=productService.getProductByIdWithCategory(id);
+		UserProductResponseDto product=productService.getProductByIdWithCategory(id);
 		String message = appTranslator.getTranslatedAction("success.retrieved", ENTITY_KEY);
-		ApiResponse<ProductResponseDto> apiResponse=ApiResponse.success(product, message);
+		ApiResponse<UserProductResponseDto> apiResponse=ApiResponse.success(product, message);
 		return ResponseEntity.ok(apiResponse);
 	}
 
 	@Operation(summary = "Get Product By Name")
 	@GetMapping("/name/{name}")
-	public ResponseEntity<ApiResponse<ProductResponseDto>> getProductByName(
+	public ResponseEntity<ApiResponse<UserProductResponseDto>> getProductByName(
 			@Parameter(description = "Exact product name") @PathVariable String name)
 	{
-		ProductResponseDto productDto=productService.getProductByName(name);
+		UserProductResponseDto productDto=productService.getProductByName(name);
 		String message = appTranslator.getTranslatedAction("success.retrieved", ENTITY_KEY);
-		ApiResponse<ProductResponseDto> apiResponse=ApiResponse.success(productDto, message);
+		ApiResponse<UserProductResponseDto> apiResponse=ApiResponse.success(productDto, message);
 		return ResponseEntity.ok(apiResponse);
 	}
 	////////////////////
@@ -88,12 +85,12 @@ public class ProductController {
 	@Operation(summary = "Get Soft Deleted Products")
 	@GetMapping("/deletedProducts")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<ApiResponse<PageResponse<ProductResponseDto>>> getDeletedProducts(
+	public ResponseEntity<ApiResponse<PageResponse<UserProductResponseDto>>> getDeletedProducts(
 			@ModelAttribute ProductFilterRequest filter)
 	{
-		PageResponse<ProductResponseDto> pageResponse=productService.getDeletedProducts(filter);
+		PageResponse<UserProductResponseDto> pageResponse=productService.getDeletedProducts(filter);
 		String message = appTranslator.getTranslatedAction("success.deleted_retrieved", ENTITY_KEY);
-		ApiResponse<PageResponse<ProductResponseDto>> apiResponse=ApiResponse.success(pageResponse, message);
+		ApiResponse<PageResponse<UserProductResponseDto>> apiResponse=ApiResponse.success(pageResponse, message);
 		return ResponseEntity.ok(apiResponse);
 	}
 
@@ -106,27 +103,27 @@ public class ProductController {
 	/// @RequestPart => Multi part/form-data => request is separate to
 	/// part holds image
 	/// part holds json "data"
-	public ResponseEntity<ApiResponse<ProductResponseDto>> createProduct(
+	public ResponseEntity<ApiResponse<UserProductResponseDto>> createProduct(
 			@Parameter(description = "Product Details (JSON format)") @Valid @RequestPart("data") ProductRequestDto request ,
 			@Parameter(description = "Product Image File") @RequestPart(value = "image",required = false) MultipartFile image
 	) {
-		ProductResponseDto response=productService.createProduct(request,image);
+		UserProductResponseDto response=productService.createProduct(request,image);
 		String message=appTranslator.getTranslatedAction("success.created",ENTITY_KEY);
-		ApiResponse<ProductResponseDto> apiResponse=ApiResponse.success(response,message);
+		ApiResponse<UserProductResponseDto> apiResponse=ApiResponse.success(response,message);
 		return new ResponseEntity<>(apiResponse, HttpStatus.CREATED);
 	}
 
 	@Operation(summary = "Update an Existing Product")
 	@PutMapping(value="/{id}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<ApiResponse<ProductResponseDto>> updateProduct(
+	public ResponseEntity<ApiResponse<UserProductResponseDto>> updateProduct(
 			@Parameter(description = "Product ID to update") @PathVariable Long id,
 			@Parameter(description = "Updated Product Details (JSON)") @Valid @RequestPart("data") ProductRequestDto request ,
 			@Parameter(description = "New Image File (Optional)") @RequestPart(value = "image",required = false) MultipartFile image
 	) {
-		ProductResponseDto response=productService.updateProduct(request,id,image);
+		UserProductResponseDto response=productService.updateProduct(request,id,image);
 		String message=appTranslator.getTranslatedAction("success.updated",ENTITY_KEY);
-		ApiResponse<ProductResponseDto> apiResponse=ApiResponse.success(response,message);
+		ApiResponse<UserProductResponseDto> apiResponse=ApiResponse.success(response,message);
 		return new ResponseEntity<>(apiResponse, HttpStatus.OK);
 	}
 
