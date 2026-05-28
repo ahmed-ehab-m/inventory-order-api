@@ -68,6 +68,20 @@ public class ProductController {
 		ApiResponse<ProductResponseDto> apiResponse=ApiResponse.success(productDto, message);
 		return ResponseEntity.ok(apiResponse);
 	}
+	////////////////////
+	@Operation(summary = "Get Product Stock Count")
+	@GetMapping("/{id}/stock")
+	public ResponseEntity<ApiResponse<Integer>> getProductStockCount(
+			@Parameter(description = "Product ID") @PathVariable Long id)
+	{
+		Integer stockCount = productService.getProductStockCount(id);
+
+		String message = appTranslator.getTranslatedAction("success.retrieved", ENTITY_KEY);
+
+		ApiResponse<Integer> apiResponse = ApiResponse.success(stockCount, message);
+
+		return ResponseEntity.ok(apiResponse);
+	}
 
 	/////////////////
 	/// GET SOFT DELETED PRODUCTS (ADMIN ONLY)
