@@ -76,7 +76,7 @@ public class ProductController {
 	{
 		Integer stockCount = productService.getProductStockCount(id);
 
-		String message = appTranslator.getTranslatedAction("success.retrieved", ENTITY_KEY);
+		String message = appTranslator.getTranslatedAction("success.retrieved", "field.stock");
 
 		ApiResponse<Integer> apiResponse = ApiResponse.success(stockCount, message);
 

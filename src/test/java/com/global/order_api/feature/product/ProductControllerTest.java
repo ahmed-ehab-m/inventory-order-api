@@ -196,6 +196,55 @@ class ProductControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.data[0].name").value("Deleted Laptop"));
         }
+
+        @Test
+        void getProductStockCount_WhenProductExists_ShouldReturnApiResponseWithStock() throws Exception {
+            /// 1=> Setup Data
+            Long productId = 1L;
+            int expectedStock = 50;
+            String expectedMessage ="Stock Count retrieved successfully";
+
+            /// 2=> Mock Dependencies
+            when(productService.getProductStockCount(productId)).thenReturn(expectedStock);
+
+            when(appTranslator.getTranslatedAction(eq("success.retrieved"), anyString()))
+                    .thenReturn(expectedMessage);
+
+            /// 3=> Perform Request & 4=> Assertions
+            mockMvc.perform(get("/api/v1/products/{id}/stock", productId)
+                            .contentType(MediaType.APPLICATION_JSON))
+
+                    .andExpect(status().isOk())
+
+                    .andExpect(jsonPath("$.message").value(expectedMessage))
+
+                    .andExpect(jsonPath("$.data").value(expectedStock));
+
+            /// 5=> Verify Mock Interactions
+            verify(productService, times(1)).getProductStockCount(productId);
+            verify(appTranslator, times(1)).getTranslatedAction(eq("success.retrieved"), anyString());
+        }
+
+        ///// Get Product Stock Count - FAIL: Product Not Found
+        @Test
+        void getProductStockCount_WhenProductDoesNotExist_ShouldReturn404NotFound() throws Exception {
+            /// 1=> Setup Data
+            Long nonExistingId = 999L;
+
+            /// 2=> Mock Dependencies
+            when(productService.getProductStockCount(nonExistingId))
+                    .thenThrow(new ResourceNotFoundException("Product", "id", nonExistingId));
+
+            /// 3=> Perform Request & 4=> Assertions
+            mockMvc.perform(get("/api/v1/products/{id}/stock", nonExistingId)
+                            .contentType(MediaType.APPLICATION_JSON))
+
+                    .andExpect(status().isNotFound());
+
+            /// 5=> Verify Mock Interactions
+            verify(productService, times(1)).getProductStockCount(nonExistingId);
+            verify(appTranslator, never()).getTranslatedAction(anyString(), anyString());
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////
