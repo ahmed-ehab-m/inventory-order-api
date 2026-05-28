@@ -1,5 +1,6 @@
 package com.global.order_api.feature.product;
 
+import com.global.order_api.core.base.BaseResponseDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,7 +12,7 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @AllArgsConstructor
-public class AdminProductResponseDto {
+public class AdminProductResponseDto extends BaseResponseDto<Long> {
     private String name;
     private String description;
     private String image;

@@ -28,6 +28,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpMethod;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.multipart.MultipartFile;
@@ -241,6 +242,42 @@ class ProductControllerTest {
             verify(productService, times(1)).getProductStockCount(nonExistingId);
             verify(appTranslator, never()).getTranslatedAction(anyString(), anyString());
         }
+
+        ///// Get Admin Products Page
+        @Test
+        void getAdminProductsPage_ShouldReturnPagedProducts() throws Exception {
+            /// create fake filter
+            ProductFilterRequest filter = new ProductFilterRequest();
+            filter.setPage(0);
+            filter.setSize(10);
+
+            AdminProductResponseDto fakeDto = new AdminProductResponseDto();
+            fakeDto.setId(1L);
+            fakeDto.setName("Laptop");
+            fakeDto.setStockCount(50);
+
+            Page<AdminProductResponseDto> page = new PageImpl<>(List.of(fakeDto));
+            /// fake page response mock to be as result from service layer
+            PageResponse<AdminProductResponseDto> fakePage = PageResponse.from(page, List.of(fakeDto));
+
+            String fakeMessage = "Products retrieved successfully";
+
+            when(productService.getAdminProductsPage(ArgumentMatchers.any(ProductFilterRequest.class)))
+                    .thenReturn(fakePage);
+            when(appTranslator.getTranslatedAction(eq("success.retrieved"), eq(ENTITY_KEY)))
+                    .thenReturn(fakeMessage);
+
+            mockMvc.perform(get("/api/v1/products/admin")
+                            .param("page", "0")
+                            .param("size", "10")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.data[0].name").value("Laptop"))
+                    .andExpect(jsonPath("$.data.data[0].stockCount").value(50))
+                    .andExpect(jsonPath("$.data.totalElements").value(1));
+        }
+
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////
