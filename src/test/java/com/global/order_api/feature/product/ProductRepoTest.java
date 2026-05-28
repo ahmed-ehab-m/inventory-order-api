@@ -401,6 +401,51 @@ class ProductRepoTest {
             /// 3=> assert
             assertThat(imageUrl).isNotPresent();
         }
+
+        //////////////// GET PRODUCT FOR UPDATE State /////////////
+        ///// Find Product by ID with Pessimistic Lock - RETURN Product
+        @Test
+        void findByIdForUpdate_WhenIdExists_ShouldReturnProduct()
+        {
+            /// 1=> create category and save it
+            CategoryEntity category = createAndSaveCategory("New Electronics");
+
+            /// 2=> CREATE Product and add it into created Category
+            ProductEntity product = createAndSaveProduct("Laptop", 15000.0, category, false);
+
+            /// 3=> clear cache to force test to go to read from H2 DataBase
+            entityManager.clear();
+
+            /// 4=> test our function
+            Optional<ProductEntity> result = productRepo.findByIdForUpdate(product.getId());
+
+            /// 5=> assert
+            /// check if function return the product
+            assertThat(result).isPresent();
+            /// check the name
+            assertThat(result.get().getName()).isEqualTo("Laptop");
+
+             assertThat(result.get().getStockCount()).isNotNull();
+        }
+
+        ///// Find Product by ID with Pessimistic Lock - RETURN Empty Optional when ID does not exist
+        @Test
+        void findByIdForUpdate_WhenIdDoesNotExist_ShouldReturnEmptyOptional()
+        {
+            /// 1=> define a non-existing ID
+            Long nonExistingId = 999L;
+
+            /// 2=> clear cache just to be safe (optional here since we didn't save anything)
+            entityManager.clear();
+
+            /// 3=> test our function
+            Optional<ProductEntity> result = productRepo.findByIdForUpdate(nonExistingId);
+
+            /// 4=> assert
+            /// check if function returns empty optional instead of throwing unexpected exceptions
+            assertThat(result).isEmpty();
+            assertThat(result).isNotPresent();
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////

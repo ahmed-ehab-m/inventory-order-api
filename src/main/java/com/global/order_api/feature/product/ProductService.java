@@ -2,6 +2,7 @@
     
     import java.util.List;
 
+    import com.global.order_api.core.exception.BusinessLogicException;
     import org.springframework.cache.annotation.CacheEvict;
     import org.springframework.cache.annotation.Cacheable;
     import org.springframework.cache.annotation.Caching;
@@ -174,6 +175,24 @@
         public void restoreProduct(Long id)
         {
             productRepo.restoreProduct(id);
+        }
+
+        ////////////////////////////
+        @Transactional
+        public void reduceStock(Long productId , int requestedQuantity)
+        {
+            /// 1=> get our product
+            ProductEntity product= productRepo.findByIdForUpdate(productId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Product", "id", productId));
+            /// 2=> check the requested quantity if not available in Stock
+            if(requestedQuantity > product.getStockCount())
+            {
+                throw new BusinessLogicException("error.insufficient.stock",
+                        new Object[]{requestedQuantity, product.getStockCount()});
+            }
+            /// 3=> reduce stock count and save
+            product.setStockCount(product.getStockCount()-requestedQuantity);
+            productRepo.save(product);
         }
         ///DELETE METHODS
         @Caching(evict = {

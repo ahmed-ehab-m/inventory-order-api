@@ -2,13 +2,11 @@ package com.global.order_api.feature.product;
 
 import java.util.Optional;
 
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
 import com.global.order_api.core.base.BaseRepo;
@@ -23,6 +21,19 @@ public interface ProductRepo extends BaseRepo<ProductEntity,Long> ,JpaSpecificat
 //	// for better performance using SELECT *
 //	// sort by name ,price ,created at
 //	Page<ProductEntity> findAll(Pageable pageable);
+
+	/// apply lock
+	/// call when user press on submit order to decrease stock count
+	/// pessimistic => to lock record and make db make an queue in reading process
+	/// write => to create Exclusive Lock
+	/// Lock => add FOR UPDATE to my SQL statement depend on DB type
+	/// database engine add row-level-lock in ram on this record
+	/// so any thread wanna to get this record , db engine block it and add it into waiting queue
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
+	@Query("SELECT p FROM ProductEntity p WHERE p.id = :id")
+	Optional<ProductEntity> findByIdForUpdate(@Param("id") Long id);
+
+	/// default findbyid() => for fast reading
 
 	// for show only
 	/// get full category not using projection

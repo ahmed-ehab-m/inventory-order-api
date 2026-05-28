@@ -2,6 +2,7 @@ package com.global.order_api.feature.product;
 
 import java.math.BigDecimal;
 
+import jakarta.persistence.*;
 import org.hibernate.annotations.SQLDelete;
 import org.springframework.data.annotation.Id;
 
@@ -35,6 +36,12 @@ import lombok.Setter;
 @SQLDelete(sql="UPDATE products SET is_deleted=true WHERE ID=?")
 public class ProductEntity extends SoftDeletableEntity<Long> {
 
+    /// every update hibernate increase version field +1
+    /// add WHERE VERSION = OLD VALUE  to any sql statement
+    /// if db return update failure because version has been changed
+    /// then return OptimisticLockingFailureException  to refresh page in front-end
+    @Version
+    private Long version;
 
 	@Column(name = "name",nullable = false , length = 255)
 	private String name;
