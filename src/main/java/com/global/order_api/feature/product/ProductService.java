@@ -3,6 +3,8 @@
     import java.util.List;
 
     import com.global.order_api.core.exception.BusinessLogicException;
+    import org.springframework.cache.Cache;
+    import org.springframework.cache.CacheManager;
     import org.springframework.cache.annotation.CacheEvict;
     import org.springframework.cache.annotation.Cacheable;
     import org.springframework.cache.annotation.Caching;
@@ -31,14 +33,17 @@
         private final CategoryRepo categoryRepo;
         private final ProductMapper productMapper;
         private final FileUploadService fileUploadService;
+        /// to control my cache
+        private final CacheManager cacheManager;
         
         public ProductService(ProductRepo productRepo,
-                ProductMapper productMapper, CategoryRepo categoryRepo ,FileUploadService fileUploadService) {
+                              ProductMapper productMapper, CategoryRepo categoryRepo , FileUploadService fileUploadService, CacheManager cacheManager) {
             super(productRepo);
             this.productRepo = productRepo;
             this.productMapper = productMapper;
             this.categoryRepo=categoryRepo;
             this.fileUploadService=fileUploadService;
+            this.cacheManager = cacheManager;
         }
 
         ////////////////////CACHING//////////////////////
@@ -49,20 +54,13 @@
         ///  metaData CACHE STRATEGY => READING = CACHE-ASIDE || WRITING = WRITE-AROUND (DB)
 
         ///  product stockCount => READ-HEAVY , WRTIE-HEAVY
+        ///  stockCount CACHE STRATEGY => READING = CACHE-ASIDE (cache) || WRITING = WRITE-AROUND (DB) (lock)
         ///  so we separate our product to 2 endpoints or services
         ///  first for rare writing data => name , description , image ,price , category id
         ///  second for stockCount only  low ttl
         ///  and this not big traffic on db because
         ///     very simple query => SELECT stock_count FROM products WHERE id = 1;
         ///     microCaching => 5 seconds => in 60 seconds db receives only 12 query
-        ///  CACHE STRATEGY => READING = READ-THROUGH || WRITING = WRITE-THROUGH
-        ///  WRITE-THROUGH => no need to write in db , redis (in same time)
-        /// 			  => rare editing on categories
-        /// 			  => simple , save resources
-        ///  CACHE-ASIDE  => resistance even if redis fail
-        /// 			  => simple
-        /// 			  => on-demand loading or lazy loading
-        /// 			  => store only what users needed , high traffic to save resources
         ////////////////////////////
         /// READ METHODS
         ///////////////
@@ -150,14 +148,16 @@
         }
 
         @Transactional
-        @CacheEvict(value = "product", key = "#id")
+
         public ProductResponseDto updateProduct(ProductRequestDto requestDto,Long id ,MultipartFile newImage)
         {
             // first check the category is existed
             ProductEntity existingEntity= productRepo.findByIdOrThrow(id);
+            String oldName=existingEntity.getName();
             // second check if category id is changed
             if(requestDto.getCategoryId() !=null)
             {
+
                 CategoryEntity categoryEntity =categoryRepo.findByIdOrThrow(requestDto.getCategoryId());
                 existingEntity.setCategory(categoryEntity);
             }
@@ -175,6 +175,16 @@
             }
             // update the remaining entity data
             productMapper.updateEntityFromDto(requestDto, existingEntity);
+            //// remove this product cache
+            Cache productCache= cacheManager.getCache("product");
+            if(productCache !=null)
+            {
+                productCache.evict(id);
+                productCache.evict(oldName);
+                /// remove new name cache because if user search with product name and doesn't exist yet
+                /// then admin update product with this new name
+                productCache.evict(existingEntity.getName());
+            }
             return productMapper.mapToDto(save(existingEntity));
         }
         ////////////////
@@ -203,20 +213,35 @@
         }
         ///DELETE METHODS
         @Transactional
-        @CacheEvict(value = "product", key = "#id")
         public void deleteProduct(Long id) {
+            ProductEntity entity = productRepo.findByIdOrThrow(id);
+            String name = entity.getName();
             delete(id);
+            //// remove this product cache
+            Cache productCache= cacheManager.getCache("product");
+            if(productCache !=null)
+            {
+                productCache.evict(id);
+                productCache.evict(name);
+            }
         }
         
         @Transactional
         // HARD DELETE
-        @CacheEvict(value = "product", key = "#id")
         public void forceDeleteProduct(Long id)
         {
-            productRepo.findByIdOrThrow(id);
+            ProductEntity entity = productRepo.findByIdOrThrow(id);
+            String name = entity.getName();
             productRepo.getImageUrlByIdEvenIfDeleted(id)
                             .ifPresent(imageUrl -> fileUploadService.deleteImage(imageUrl));
             productRepo.hardDeleteProduct(id);
+            //// remove this product cache
+            Cache productCache= cacheManager.getCache("product");
+            if(productCache !=null)
+            {
+                productCache.evict(id);
+                productCache.evict(name);
+            }
         }
         
         
