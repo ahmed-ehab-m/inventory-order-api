@@ -18,7 +18,7 @@ public class ProductFilterRequest extends BaseFilterRequestDto {
 	private BigDecimal maxPrice;
 	private Boolean inStockOnly;
 
-	@Override
+/*	@Override
 	public String generateCacheKey() {
 		String baseKey = super.generateCacheKey();
 
@@ -27,6 +27,6 @@ public class ProductFilterRequest extends BaseFilterRequestDto {
 				"-minPrice:" + (minPrice != null ? minPrice : "0") +
 				"-maxPrice:" + (maxPrice != null ? maxPrice : "any") +
 				"-stock:" + (inStockOnly != null ? inStockOnly : "all");
-	}
+	}*/
 	
 }

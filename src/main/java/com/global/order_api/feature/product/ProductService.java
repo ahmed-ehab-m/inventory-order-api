@@ -42,14 +42,19 @@
         }
 
         ////////////////////CACHING//////////////////////
+        /// PRODUCTS PAGE TTL => 15 M
+        /// PRODUCT TTL => 60 M
         ///  Product metadata => name , description , image ,price , category id
         ///  metadata => READ-HEAVY , WRTIE-RARE (as Category)
-        ///  metaData CACHE STRATEGY => READING = CACHE-ASIDE || WRITING = WRITE-AROUND
-        ///
+        ///  metaData CACHE STRATEGY => READING = CACHE-ASIDE || WRITING = WRITE-AROUND (DB)
+
         ///  product stockCount => READ-HEAVY , WRTIE-HEAVY
-        ///
-        //// CACHE TYPE => READ-HEAVY , WRITE-HEAVY
-        ///
+        ///  so we separate our product to 2 endpoints or services
+        ///  first for rare writing data => name , description , image ,price , category id
+        ///  second for stockCount only  low ttl
+        ///  and this not big traffic on db because
+        ///     very simple query => SELECT stock_count FROM products WHERE id = 1;
+        ///     microCaching => 5 seconds => in 60 seconds db receives only 12 query
         ///  CACHE STRATEGY => READING = READ-THROUGH || WRITING = WRITE-THROUGH
         ///  WRITE-THROUGH => no need to write in db , redis (in same time)
         /// 			  => rare editing on categories
@@ -61,7 +66,7 @@
         ////////////////////////////
         /// READ METHODS
         ///////////////
-        @Cacheable(value = "products",key = "#id")
+        @Cacheable(value = "product",key = "#id")
         public ProductResponseDto getProductByIdWithCategory(Long id)
         {
             ProductEntity productEntity = productRepo.findByIdWithCategory(id)
@@ -69,7 +74,7 @@
             return productMapper.mapToDto(productEntity);
         }
         //////////////////
-        @Cacheable(value = "products",key = "#name")
+        @Cacheable(value = "product",key = "#name")
         public ProductResponseDto getProductByName(String name)
         {
             ProductEntity productEntity = productRepo.findByName(name)
@@ -77,13 +82,15 @@
             return productMapper.mapToDto(productEntity);
         }
         //////////////////
-        @Cacheable(
-                value = "productsPage",
-                key = "#filter.generateCacheKey()"
-        )
         // smart method for pagination
         // take filter => smart object contains page number , size ,sort type , keyword
         // return pageResponse we created in core folder
+        @Cacheable(
+                value = "productsPage",
+                key = "'defaultHomePage'",
+                condition = "#filter.page == 0 &&" +
+                        " (#filter.keyword == null || #filter.keyword.isEmpty())" +
+                        " && #filter.categoryId == null")
         public PageResponse<ProductResponseDto> getProductsPage(ProductFilterRequest filter) {
         // take user input => "ASC" OR "DESC" from headers
             Sort sort=Sort.by(Sort.Direction.fromString(filter.getSortDirection()),filter.getSortBy());
@@ -98,9 +105,11 @@
         }
         ////////////////////////
         @Cacheable(
-                value  = "deletedProductsPage",
-                key = "#filter.generateCacheKey()"
-        )
+                value = "productsPage",
+                key = "'deletedProductsPage'",
+                condition = "#filter.page == 0 &&" +
+                        " (#filter.keyword == null || #filter.keyword.isEmpty())" +
+                        " && #filter.categoryId == null")
         public PageResponse<ProductResponseDto>  getDeletedProducts(ProductFilterRequest filter)
         {
             Sort sort=Sort.by(Sort.Direction.fromString(filter.getSortDirection()),filter.getSortBy());
@@ -117,7 +126,6 @@
         
         ////////////////////
         ///WRITE METHODS
-        @CacheEvict(value = "productsPage",allEntries = true)
         @Transactional
         public ProductResponseDto createProduct(ProductRequestDto requestDto , MultipartFile image)
         {
@@ -133,12 +141,8 @@
             return productMapper.mapToDto(save(entity));
         }
 
-        @Caching(evict = {
-                @CacheEvict(value = "productsPage", allEntries = true),
-                @CacheEvict(value = "products", key = "#id"),
-                @CacheEvict(value = "products", allEntries = true)
-        })
         @Transactional
+        @CacheEvict(value = "product", key = "#id")
         public ProductResponseDto updateProduct(ProductRequestDto requestDto,Long id ,MultipartFile newImage)
         {
             // first check the category is existed
@@ -166,12 +170,7 @@
             return productMapper.mapToDto(save(existingEntity));
         }
         ////////////////
-
-        @Caching(evict = {
-                @CacheEvict(value = "productsPage", allEntries = true),
-                @CacheEvict(value = "deletedProductsPage", allEntries = true),
-               @CacheEvict(value = "products", allEntries = true)
-        })
+        @CacheEvict(value = "product", key = "#id")
         public void restoreProduct(Long id)
         {
             productRepo.restoreProduct(id);
@@ -195,23 +194,15 @@
             productRepo.save(product);
         }
         ///DELETE METHODS
-        @Caching(evict = {
-                @CacheEvict(value = "productsPage", allEntries = true),
-                @CacheEvict(value = "deletedProductsPage", allEntries = true),
-                @CacheEvict(value = "products", allEntries = true)
-        })
         @Transactional
+        @CacheEvict(value = "product", key = "#id")
         public void deleteProduct(Long id) {
             delete(id);
         }
         
         @Transactional
-        @Caching(evict = {
-                @CacheEvict(value = "productsPage", allEntries = true),
-                @CacheEvict(value = "deletedProductsPage", allEntries = true),
-                @CacheEvict(value = "products", allEntries = true)
-        })
         // HARD DELETE
+        @CacheEvict(value = "product", key = "#id")
         public void forceDeleteProduct(Long id)
         {
             productRepo.findByIdOrThrow(id);
