@@ -197,6 +197,39 @@ class ProductServiceTest {
             verify(productMapper, times(1)).mapToDtoList(emptyMockPage.getContent());
         }
 
+        @Test
+        void getAdminProductsPage_ShouldCorrectlyMapStockCount() {
+            /// 1=> Setup Data
+            ProductFilterRequest filter = new ProductFilterRequest();
+            filter.setPage(0);
+            filter.setSize(10);
+            filter.setSortDirection("ASC");
+            filter.setSortBy("id");
+
+            ProductEntity product = new ProductEntity();
+            product.setId(1L);
+            product.setName("Laptop");
+            product.setStockCount(75);
+
+            Page<ProductEntity> productPage = new PageImpl<>(List.of(product));
+
+            AdminProductResponseDto adminDto = new AdminProductResponseDto();
+            adminDto.setName("Laptop");
+            adminDto.setStockCount(75);
+
+            /// 2=> Mocking
+            when(productRepo.findAll(any(Specification.class), any(Pageable.class))).thenReturn(productPage);
+            when(productMapper.mapToAdminDtoList(anyList())).thenReturn(List.of(adminDto));
+
+            /// 3=> Act
+            PageResponse<AdminProductResponseDto> response = productService.getAdminProductsPage(filter);
+
+            /// 4=> Assert
+            assertNotNull(response);
+            assertEquals(1, response.getData().size());
+            assertEquals(75, response.getData().get(0).getStockCount());
+        }
+
         ///// Get Deleted Products Page with Filters - RETURN PAGE RESPONSE
         @Test
         void getDeletedProducts_ShouldReturnPagedDeletedProducts() {
