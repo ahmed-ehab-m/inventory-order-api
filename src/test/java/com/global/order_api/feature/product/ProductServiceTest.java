@@ -1,6 +1,7 @@
 package com.global.order_api.feature.product;
 
 import com.global.order_api.core.base.PageResponse;
+import com.global.order_api.core.exception.BusinessLogicException;
 import com.global.order_api.core.exception.ResourceNotFoundException;
 import com.global.order_api.core.service.FileUploadService;
 import com.global.order_api.feature.category.CategoryEntity;
@@ -543,6 +544,77 @@ class ProductServiceTest {
 
             verify(productRepo, times(1)).restoreProduct(anyLong());
         }
+
+        //////////////// REDUCE STOCK States /////////////
+        ///// Reduce Stock - SUCCESS
+        @Test
+        void reduceStock_WhenExistsAndStockSufficient_ShouldReduceAndSave() {
+            /// 1=> Setup Data
+            Long productId = 1L;
+            int requestedQuantity = 2;
+
+            ProductEntity fakeEntity = new ProductEntity();
+            fakeEntity.setId(productId);
+            fakeEntity.setName("Laptop");
+            fakeEntity.setStockCount(5);
+
+            /// 2=> Mocking the Repo
+            when(productRepo.findByIdForUpdate(productId)).thenReturn(Optional.of(fakeEntity));
+
+            /// 3=> Test our function
+            productService.reduceStock(productId, requestedQuantity);
+
+            /// 4=> Assert & Verify
+            assertEquals(3, fakeEntity.getStockCount());
+
+            verify(productRepo, times(1)).findByIdForUpdate(productId);
+
+            verify(productRepo, times(1)).save(fakeEntity);
+        }
+
+        ///// Reduce Stock - FAIL: Insufficient Stock
+        @Test
+        void reduceStock_WhenRequestedQuantityGreaterThanStock_ShouldThrowBusinessLogicException() {
+            /// 1=> Setup Data
+            Long productId = 1L;
+            int requestedQuantity = 10;
+
+            ProductEntity fakeEntity = new ProductEntity();
+            fakeEntity.setId(productId);
+            fakeEntity.setStockCount(5);
+
+            /// 2=> Mocking the Repo
+            when(productRepo.findByIdForUpdate(productId)).thenReturn(Optional.of(fakeEntity));
+
+            /// 3=> Test our function & Assert Exception
+            assertThrows(BusinessLogicException.class, () -> {
+                productService.reduceStock(productId, requestedQuantity);
+            });
+
+            /// 4=> Verify Interactions
+            verify(productRepo, times(1)).findByIdForUpdate(productId);
+            verify(productRepo, never()).save(any());
+        }
+
+        ///// Reduce Stock - FAIL: Product Not Found
+        @Test
+        void reduceStock_WhenProductNotFound_ShouldThrowResourceNotFoundException() {
+            /// 1=> Setup Data
+            Long productId = 999L;
+            int requestedQuantity = 2;
+
+            /// 2=> Mocking the Repo
+            when(productRepo.findByIdForUpdate(productId)).thenReturn(Optional.empty());
+
+            assertThrows(ResourceNotFoundException.class, () -> {
+                productService.reduceStock(productId, requestedQuantity);
+            });
+
+            /// 4=> Verify Interactions
+            verify(productRepo, times(1)).findByIdForUpdate(productId);
+            verify(productRepo, never()).save(any());
+        }
+
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////
