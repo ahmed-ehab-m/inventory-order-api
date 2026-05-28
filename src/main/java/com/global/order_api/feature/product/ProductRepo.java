@@ -35,6 +35,10 @@ public interface ProductRepo extends BaseRepo<ProductEntity,Long> ,JpaSpecificat
 
 	/// default findbyid() => for fast reading
 
+	/// for only stock count for better caching strategy
+	@Query("SELECT p.stockCount FROM ProductEntity p WHERE p.id = :id")
+	Optional<Integer> findStockCountById(@Param("id") Long id);
+
 	// for show only
 	/// get full category not using projection
 	/// because category table not large

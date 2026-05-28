@@ -40,10 +40,10 @@ public class RedisConfig {
                 .serializeValuesWith(RedisSerializationContext
                         .SerializationPair.fromSerializer(RedisSerializer.json()));
 
-        /////////////////////// 5 MINUTES //////////////
+        /////////////////////// 15 MINUTES //////////////
         /// 2=> short ttl for pages
         RedisCacheConfiguration shortTtlConfig= RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofMinutes(5))
+                .entryTtl(Duration.ofMinutes(15))
                 .disableCachingNullValues()
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(RedisSerializer.json()));
 
@@ -65,11 +65,13 @@ public class RedisConfig {
                 /// LONG TTL 1 Day
                 .withCacheConfiguration("categories", longTtlConfig)
                 //// 60 Minutes
+                .withCacheConfiguration("product", defaultConfig)
+//                .withCacheConfiguration("ordersPage", defaultConfig)
+//                .withCacheConfiguration("usersPage", defaultConfig)
+                /// 15 Minutes
                 .withCacheConfiguration("productsPage", shortTtlConfig)
-                .withCacheConfiguration("ordersPage", shortTtlConfig)
-                .withCacheConfiguration("usersPage", shortTtlConfig)
                 /// 5 seconds
-                .withCacheConfiguration("product", microTtlConfig)
+                .withCacheConfiguration("stockCount", microTtlConfig)
                 .build();
     }
 
