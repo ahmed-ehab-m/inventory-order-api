@@ -446,6 +446,52 @@ class ProductRepoTest {
             assertThat(result).isEmpty();
             assertThat(result).isNotPresent();
         }
+
+        //////////////// GET STOCK COUNT BY ID States /////////////
+        ///// Find Stock Count - SUCCESS (ID Exists)
+        @Test
+        void findStockCountById_WhenIdExists_ShouldReturnStockCount() {
+            /// 1=> create category and save it
+            CategoryEntity category = createAndSaveCategory("Smartphones");
+
+            /// 2=> CREATE Product with specific stock count and save it
+            ProductEntity product = createAndSaveProduct("iPhone 15", 35000.0, category, false);
+            product.setStockCount(50);
+            /// hibernate doesn't send update direct to database
+            /// he save it into his memory and take another queries to send all to db
+            /// here we force it to update the database direct
+            productRepo.saveAndFlush(product);
+
+            /// 3=> clear cache to force test to go to read from H2 DataBase
+            entityManager.clear();
+
+            /// 4=> test our function
+            Optional<Integer> result = productRepo.findStockCountById(product.getId());
+
+            /// 5=> assert
+            /// check if function returned a value
+            assertThat(result).isPresent();
+            /// check if the returned value matches the exactly saved stock count
+            assertThat(result.get()).isEqualTo(50);
+        }
+
+        ///// Find Stock Count - FAIL (ID Does Not Exist)
+        @Test
+        void findStockCountById_WhenIdDoesNotExist_ShouldReturnEmptyOptional() {
+            /// 1=> define a non-existing ID
+            Long nonExistingId = 999L;
+
+            /// 2=> clear cache just to be safe
+            entityManager.clear();
+
+            /// 3=> test our function
+            Optional<Integer> result = productRepo.findStockCountById(nonExistingId);
+
+            /// 4=> assert
+            /// check if function returns empty optional safely without throwing SQL exceptions
+            assertThat(result).isEmpty();
+            assertThat(result).isNotPresent();
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////
