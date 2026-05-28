@@ -86,6 +86,7 @@
                     .orElseThrow(() -> new ResourceNotFoundException("Product", "id", id));
         }
         //////////////////
+        /// USER METHOD
         // smart method for pagination
         // take filter => smart object contains page number , size ,sort type , keyword
         // return pageResponse we created in core folder
@@ -106,6 +107,24 @@
             Page<ProductEntity> productPage = productRepo.findAll(spec, pageable);
             List<UserProductResponseDto> dtoList=productMapper.mapToDtoList(productPage.getContent());
             return PageResponse.from(productPage, dtoList);      
+        }
+        //////////////////////////////
+        //////////////////
+        /// ADMIN METHODS (No Caching - Real-Time Data)
+        //////////////////
+        public PageResponse<AdminProductResponseDto> getAdminProductsPage(ProductFilterRequest filter) {
+
+            Sort sort = Sort.by(Sort.Direction.fromString(filter.getSortDirection()), filter.getSortBy());
+
+            Pageable pageable = PageRequest.of(filter.getPage(), filter.getSize(), sort);
+
+            Specification<ProductEntity> spec = ProductSpecification.buildFilter(filter);
+
+            Page<ProductEntity> productPage = productRepo.findAll(spec, pageable);
+
+            List<AdminProductResponseDto> dtoList = productMapper.mapToAdminDtoList(productPage.getContent());
+
+            return PageResponse.from(productPage, dtoList);
         }
         ////////////////////////
         @Cacheable(
