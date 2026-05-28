@@ -81,6 +81,14 @@
                     .orElseThrow(() -> new ResourceNotFoundException("Product", "name", name));
             return productMapper.mapToDto(productEntity);
         }
+        ///////////////////
+        /// LIGHTWEIGHT STOCK READ (Micro-Caching)
+        //////////////////
+        @Cacheable(value = "productStock", key = "#id")
+        public int getProductStockCount(Long id) {
+            return productRepo.findStockCountById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Product", "id", id));
+        }
         //////////////////
         // smart method for pagination
         // take filter => smart object contains page number , size ,sort type , keyword
