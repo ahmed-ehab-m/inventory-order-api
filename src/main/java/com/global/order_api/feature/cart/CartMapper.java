@@ -16,21 +16,20 @@ public interface CartMapper extends BaseMapper<CartEntity,Void ,CartResponseDto>
     CartResponseDto mapToDto(CartEntity entity);
 
     @AfterMapping
-    default void calculateTotalCartPrice(CartEntity entity, @MappingTarget CartResponseDto dto)
-    {
-        if(dto.getCartItems() !=null)
-        {
-            double total=0;
-            for(CartItemResponseDto cartItem : dto.getCartItems() )
-            {
-                total+=cartItem.getSubTotal() == null ? 0 :cartItem.getSubTotal();
+    default void calculateTotalCartPrice(CartEntity entity, @MappingTarget CartResponseDto dto) {
+        if (dto.getCartItems() != null) {
+            double total = 0;
+            for (CartItemResponseDto cartItem : dto.getCartItems()) {
+                total += cartItem.getSubTotal() == null ? 0 : cartItem.getSubTotal();
             }
             dto.setTotalCartPrice(total);
-        }
-        else
-        {
+        } else {
             dto.setTotalCartPrice(0.0);
         }
     }
 
+    /// RAW DTO
+    @Mapping(source = "id", target = "cartId")
+    @Mapping(source = "user.id", target = "userId")
+    RawCartDto mapToRawDto(CartEntity entity);
 }

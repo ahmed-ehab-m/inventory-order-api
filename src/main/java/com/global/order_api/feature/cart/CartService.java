@@ -6,6 +6,8 @@ import com.global.order_api.core.exception.BusinessLogicException;
 import com.global.order_api.core.exception.ResourceNotFoundException;
 import com.global.order_api.feature.product.ProductEntity;
 import com.global.order_api.feature.product.ProductRepo;
+import com.global.order_api.feature.product.ProductService;
+import com.global.order_api.feature.product.UserProductResponseDto;
 import com.global.order_api.feature.user.UserEntity;
 import com.global.order_api.feature.user.UserRepo;
 import org.springframework.cache.annotation.CacheEvict;
@@ -25,42 +27,75 @@ public class CartService extends BaseService<CartEntity,Long> {
     private final CartItemMapper cartItemMapper;
     private final UserRepo userRepo;
     private final ProductRepo productRepo;
+    private final ProductService productService;
 
     public CartService(
-                       CartRepo cartRepo, CartMapper cartMapper, CartItemMapper cartItemMapper, UserRepo userRepo, ProductRepo productRepo) {
+            CartRepo cartRepo, CartMapper cartMapper, CartItemMapper cartItemMapper, UserRepo userRepo, ProductRepo productRepo, ProductService productService) {
         super(cartRepo);
         this.cartRepo=cartRepo;
         this.cartMapper = cartMapper;
         this.cartItemMapper = cartItemMapper;
         this.userRepo = userRepo;
         this.productRepo = productRepo;
+        this.productService = productService;
     }
     ////////////////////CACHING//////////////////////
     /// CART PAGE TTL => 1 DAY = Active session only, no change , writing in db first
     /// === Data Normalization in Cache ===
     /// problem => we want to know if admin change product's data to cache right data not old data in cart
-    /// so we create new dtos (cart , cart item) only for caching
+    /// so we create new DTOS (RawCart , RawCartItem) only for caching
     /// We cache only => user id (for redis debugging) , cart id , items
     /// items => cart item id , product id ,quantity  (not fully product data)
+    ///
     /// so if admin change any product data , in product service we clear cahce of this product
     /// then cart cache we get cache miss then we go to db to get new data again
     /// CACHE STRATEGY => READING = CACHE-ASIDE || WRITING = WRITE-AROUND (DB)
     ////////////////////////////////////////////////
     /// READING METHODS
-    /// Get User Cart
+    /// Get RAW CART => WILL BE CACHED
     @Cacheable(value = "carts",key = "#userId")
+    public RawCartDto getRawCart(Long userId)
+    {
+        CartEntity cart=cartRepo.findByUserId(userId).orElse(null);
+        if(cart == null) return null;
+        return cartMapper.mapToRawDto(cart);
+    }
+    /// Get User Cart
     public CartResponseDto getUserCart(Long userId)
     {
-        Optional<CartEntity> optionalCart= cartRepo.findByUserId(userId);
-        /// if user doesn't  have cart then create new cart don't throw exception
-        if (optionalCart.isEmpty()) {
-            CartResponseDto emptyCart = new CartResponseDto();
+        /// 1=> get user cart from cache
+        RawCartDto rawCartDto=getRawCart(userId);
+        /// 2=> if user doesn't have cart then create new cart don't throw exception
+        if (rawCartDto == null || rawCartDto.getItems().isEmpty()) {
+            CartResponseDto emptyCart= new CartResponseDto();
             emptyCart.setCartItems(new ArrayList<>());
             emptyCart.setTotalCartPrice(0.0);
             return emptyCart;
         }
-        CartEntity cartEntity = optionalCart.get();
-        return cartMapper.mapToDto(cartEntity);
+        /// 3=> Hydration
+        CartResponseDto fullCartResponse= new CartResponseDto();
+        List<CartItemResponseDto> itemsList=new ArrayList<>();
+        double totalPrice= 0.0;
+        /// convert Raw DTOS => RESPONSE DTOS
+        for(RawCartItemDto rawItem : rawCartDto.getItems())
+        {
+            UserProductResponseDto product= productService.getProductByIdWithCategory(rawItem.getProductId());
+            CartItemResponseDto itemResponse = new CartItemResponseDto();
+            itemResponse.setProductId(product.getId());
+            itemResponse.setProductName(product.getName());
+            itemResponse.setProductPrice(product.getPrice().toString());
+            itemResponse.setQuantity(rawItem.getQuantity());
+
+            /// to get recent price of product (not time of user add item to cart)
+            double subTotal= product.getPrice().doubleValue() * rawItem.getQuantity();
+            itemResponse.setSubTotal(subTotal);
+            totalPrice +=subTotal;
+            itemsList.add(itemResponse);
+        }
+        fullCartResponse.setCartItems(itemsList);
+        fullCartResponse.setTotalCartPrice(totalPrice);
+        return fullCartResponse;
+
     }
 
     /// WRITING METHODS

@@ -32,4 +32,8 @@ public interface CartItemMapper extends BaseMapper<CartItemEntity,CartItemReques
         }
 
     }
+    /// RAW ITEM
+    @Mapping(source = "id", target = "cartItemId")
+    @Mapping(source = "product.id", target = "productId")
+    RawCartItemDto mapToRawDto(CartItemEntity entity);
 }
