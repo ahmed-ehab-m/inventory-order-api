@@ -43,7 +43,7 @@ public class CartController {
     /// Add Cart Item
     @Operation(summary = "Add Item to Cart",
             description = "Adds a new product to the user's cart or increases its quantity if it already exists")
-    @PostMapping("/add-cart-item")
+    @PostMapping("/items")
     public ResponseEntity<ApiResponse<CartResponseDto>> addCartItem(
 
             @Valid @RequestBody CartItemRequestDto cartItemRequestDto
@@ -59,7 +59,7 @@ public class CartController {
     /// Update cart item
     @Operation(summary = "Update Item Quantity",
             description = "Directly updates the quantity of a specific item in the cart")
-    @PutMapping("/update-cart-item")
+    @PutMapping("/items/{cartItemId}")
     public ResponseEntity<ApiResponse<CartResponseDto>> updateQuantity(
             @RequestParam Long cartItemId,
             @RequestParam Integer quantity
@@ -76,7 +76,7 @@ public class CartController {
     /// Remove Cart Item
     @Operation(summary = "Remove Item from Cart",
             description = "Removes a specific item completely from the user's cart")
-    @DeleteMapping("/remove-cart-item")
+    @DeleteMapping("/items/{cartItemId}")
     public ResponseEntity<ApiResponse<Void>> removeCartItem(
             @RequestParam Long cartItemId
     )
@@ -91,7 +91,7 @@ public class CartController {
     /// Remove Cart
     @Operation(summary = "Clear Cart",
             description = "Removes all items from the user's cart")
-    @DeleteMapping("/remove-cart")
+    @DeleteMapping("")
     public ResponseEntity<ApiResponse<Void>> removeCart(
     )
     {
