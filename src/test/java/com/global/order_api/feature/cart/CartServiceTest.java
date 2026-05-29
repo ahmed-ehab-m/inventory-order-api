@@ -4,6 +4,8 @@ import com.global.order_api.core.exception.BusinessLogicException;
 import com.global.order_api.core.exception.ResourceNotFoundException;
 import com.global.order_api.feature.product.ProductEntity;
 import com.global.order_api.feature.product.ProductRepo;
+import com.global.order_api.feature.product.ProductService;
+import com.global.order_api.feature.product.UserProductResponseDto;
 import com.global.order_api.feature.user.UserEntity;
 import com.global.order_api.feature.user.UserRepo;
 import org.junit.jupiter.api.DisplayName;
@@ -15,7 +17,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -40,8 +44,13 @@ class CartServiceTest {
     @Mock
     private CartItemMapper cartItemMapper;
 
+    @Mock
+    private ProductService productService;
+
     @InjectMocks
     private CartService cartService;
+
+
 
     ////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////// READING METHODS ////////////////////////////////////
@@ -95,37 +104,57 @@ class CartServiceTest {
             verify(cartMapper, never()).mapToRawDto(any());
         }
 
-        ///// Find by Car ID Exists - RETURN Cart
+        ///// Find by ID Exists - RETURN Hydrated Cart
         @Test
-        void getUserCart_WhenCartExists_ShouldReturnCartDto() {
+        void getUserCart_WhenCartExists_ShouldReturnHydratedCartDto() {
             // 1. Arrange
-            /// returned from repo
             Long userId = 1L;
+            Long productId = 100L;
+
+            /// 1. Mock Database Entity
             CartEntity cartEntity = new CartEntity();
             cartEntity.setId(10L);
 
-            /// expected to return from our service
-            CartResponseDto expectedDto = new CartResponseDto();
-            expectedDto.setTotalCartPrice(500.0);
+            /// 2. Mock Raw Item & Cart
+            RawCartItemDto rawItem = new RawCartItemDto();
+            rawItem.setProductId(productId);
+            rawItem.setQuantity(2);
+            RawCartDto rawCartDto = new RawCartDto();
+            rawCartDto.setCartId(10L);
+            rawCartDto.setUserId(userId);
+            rawCartDto.setItems(List.of(rawItem));
 
+            /// 3. Mock Product Service Response
+            UserProductResponseDto mockProduct = new UserProductResponseDto();
+            mockProduct.setId(productId);
+            mockProduct.setName("Laptop");
+            mockProduct.setPrice(new BigDecimal("250.0"));
+
+            // Mocking the behavior
             when(cartRepo.findByUserId(userId)).thenReturn(Optional.of(cartEntity));
-            when(cartMapper.mapToDto(cartEntity)).thenReturn(expectedDto);
+            when(cartMapper.mapToRawDto(cartEntity)).thenReturn(rawCartDto);
+            when(productService.getProductByIdWithCategory(productId)).thenReturn(mockProduct);
 
             // 2. Act
             CartResponseDto result = cartService.getUserCart(userId);
 
             // 3. Assert
             assertNotNull(result);
-            assertEquals(500.0, result.getTotalCartPrice());
+            assertEquals(1, result.getCartItems().size());
+            assertEquals(500.0, result.getTotalCartPrice()); // 250 * 2 = 500
+            assertEquals("Laptop", result.getCartItems().get(0).getProductName());
+
             verify(cartRepo, times(1)).findByUserId(userId);
-            verify(cartMapper, times(1)).mapToDto(cartEntity);
+            verify(cartMapper, times(1)).mapToRawDto(cartEntity);
+            verify(productService, times(1)).getProductByIdWithCategory(productId);
         }
 
-        ///// Find by ID Doesn't exist - RETURN empty cart
+        ///// Find by ID Doesn't exist (Or Empty Items) - RETURN empty cart
         @Test
         void getUserCart_WhenCartDoesNotExist_ShouldReturnEmptyCartDto() {
             // 1. Arrange
             Long userId = 1L;
+
             when(cartRepo.findByUserId(userId)).thenReturn(Optional.empty());
 
             // 2. Act
@@ -135,8 +164,10 @@ class CartServiceTest {
             assertNotNull(result);
             assertTrue(result.getCartItems().isEmpty());
             assertEquals(0.0, result.getTotalCartPrice());
+
             verify(cartRepo, times(1)).findByUserId(userId);
-            verify(cartMapper, never()).mapToDto(any());
+            verify(cartMapper, never()).mapToRawDto(any());
+            verify(productService, never()).getProductByIdWithCategory(any());
         }
     }
 
