@@ -64,6 +64,7 @@ public class RedisConfig {
                 .cacheDefaults(defaultConfig)
                 /// LONG TTL 1 Day
                 .withCacheConfiguration("categories", longTtlConfig)
+                .withCacheConfiguration("carts", longTtlConfig)
                 //// 60 Minutes
                 .withCacheConfiguration("product", defaultConfig)
 //                .withCacheConfiguration("ordersPage", defaultConfig)

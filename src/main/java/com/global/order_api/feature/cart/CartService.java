@@ -35,7 +35,16 @@ public class CartService extends BaseService<CartEntity,Long> {
         this.userRepo = userRepo;
         this.productRepo = productRepo;
     }
-
+    ////////////////////CACHING//////////////////////
+    /// CART PAGE TTL => 1 DAY = Active session only, no change , writing in db first
+    /// === Data Normalization in Cache ===
+    /// problem => we want to know if admin change product's data to cache right data not old data in cart
+    /// so we create new dtos (cart , cart item) only for caching
+    /// We cache only => user id (for redis debugging) , cart id , items
+    /// items => cart item id , product id ,quantity  (not fully product data)
+    /// so if admin change any product data , in product service we clear cahce of this product
+    /// then cart cache we get cache miss then we go to db to get new data again
+    /// CACHE STRATEGY => READING = CACHE-ASIDE || WRITING = WRITE-AROUND (DB)
     ////////////////////////////////////////////////
     /// READING METHODS
     /// Get User Cart
