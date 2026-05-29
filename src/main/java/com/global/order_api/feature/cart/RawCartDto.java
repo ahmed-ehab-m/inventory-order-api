@@ -12,6 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RawCartDto {
+    private Long userId;
     private Long cartId;
     private List<RawCartItemDto> items;
 }

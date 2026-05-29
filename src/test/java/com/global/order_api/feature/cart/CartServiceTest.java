@@ -50,6 +50,51 @@ class CartServiceTest {
     @DisplayName("1. Get User Cart Tests (GET)")
     class GetUserCartTests {
 
+        ///// Find by RAW Car ID Exists - RETURN Cart
+        @Test
+        void getRawCart_WhenCartExists_ShouldReturnRawCartDto() {
+            // 1. Setup Data
+            Long userId = 1L;
+            CartEntity mockCart = new CartEntity();
+            mockCart.setId(10L);
+
+            RawCartDto expectedDto = new RawCartDto();
+            expectedDto.setCartId(10L);
+            expectedDto.setUserId(userId);
+
+            // 2. Mocking
+            when(cartRepo.findByUserId(userId)).thenReturn(Optional.of(mockCart));
+            when(cartMapper.mapToRawDto(mockCart)).thenReturn(expectedDto);
+
+            // 3. Act
+            RawCartDto result = cartService.getRawCart(userId);
+
+            // 4. Assert
+            assertNotNull(result);
+            assertEquals(10L, result.getCartId());
+
+            verify(cartRepo, times(1)).findByUserId(userId);
+            verify(cartMapper, times(1)).mapToRawDto(mockCart);
+        }
+
+        @Test
+        void getRawCart_WhenCartDoesNotExist_ShouldReturnNull() {
+            // 1. Setup Data
+            Long userId = 1L;
+
+            // 2. Mocking
+            when(cartRepo.findByUserId(userId)).thenReturn(Optional.empty());
+
+            // 3. Act
+            RawCartDto result = cartService.getRawCart(userId);
+
+            // 4. Assert
+            assertNull(result);
+
+            verify(cartRepo, times(1)).findByUserId(userId);
+            verify(cartMapper, never()).mapToRawDto(any());
+        }
+
         ///// Find by Car ID Exists - RETURN Cart
         @Test
         void getUserCart_WhenCartExists_ShouldReturnCartDto() {
