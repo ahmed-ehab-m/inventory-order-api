@@ -45,6 +45,21 @@ public class OrderService extends BaseService<OrderEntity,Long> {
         this.userRepo = userRepo;
         this.cartRepo = cartRepo;
     }
+    ////////////////////CACHING//////////////////////
+    /// USER ORDERS PAGE TTL => Problem => Order status changes
+    /// so
+    /// ADMIN ALL ORDERS => NO CACHING => VERY HEAVY WRITING
+    /// === Data Normalization in Cache ===
+    /// problem => we want to know if admin change product's data to cache right data not old data in cart
+    /// so we create new DTOS (RawCart , RawCartItem) only for caching
+    /// We cache only => user id (for redis debugging) , cart id , items
+    /// items => cart item id , product id ,quantity  (not fully product data)
+    ///
+    /// so if admin change any product data , in product service we clear cahce of this product
+    /// then cart cache we get cache miss then we go to db to get new data again
+    /// CACHE STRATEGY => READING = CACHE-ASIDE || WRITING = WRITE-AROUND (DB)
+    ////////////////////////////////////////////////
+
 
     ////////////////////////////////////////////////
     /// READING METHODS
