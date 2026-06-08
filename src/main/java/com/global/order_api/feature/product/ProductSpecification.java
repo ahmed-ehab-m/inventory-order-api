@@ -14,7 +14,7 @@ import jakarta.persistence.criteria.Predicate;
 /// FOR ADVANCED FILTERS IN RUN TIME
 
 public class ProductSpecification {
-	public static Specification<ProductEntity> buildFilter(ProductFilterRequest filter)
+	public static Specification<ProductEntity> buildFilter(ProductFilterRequest filter , boolean isDeleted)
 	{
 		// root => Entity
 		// criteriaBuilder => holds all tools , Arthimatic + Logical  operations 
@@ -36,13 +36,6 @@ public class ProductSpecification {
 			// Predicate => interface , holds type of action sql
 			// , column name , value , result
 			List<Predicate> predicates = new ArrayList<>();
-			// KEYWORD SEARCH
-			if(filter.getSearchKeyword() !=null && !filter.getSearchKeyword().isBlank())
-			{
-				String keyWord="%"+filter.getSearchKeyword().toLowerCase()+"%";
-				predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("name")),keyWord));
-						
-			}
 			///////////////////////////////////
 			if(filter.getCategoryId() !=null)
 			{
@@ -67,7 +60,9 @@ public class ProductSpecification {
 			{
 				predicates.add(criteriaBuilder.greaterThan(root.get("stockCount"), 0));
 			}
-			predicates.add(criteriaBuilder.equal(root.get("isDeleted"), false));
+			predicates.add(criteriaBuilder.equal(root.get("isDeleted"), isDeleted));
+			/// comment because we use @filter above product entity
+//			predicates.add(criteriaBuilder.equal(root.get("isDeleted"), false));
 			return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
 		};
 	}
