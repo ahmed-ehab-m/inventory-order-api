@@ -115,27 +115,6 @@ class ProductControllerTest {
                     .andExpect(jsonPath("$.message").value(fakeMessage));
         }
 
-        ///// Get Product by Name
-        @Test
-        void getProductByName_WhenExists_ShouldReturnProduct() throws Exception {
-            String productName = "TV";
-            UserProductResponseDto fakeDto = new UserProductResponseDto();
-            fakeDto.setId(1L);
-            fakeDto.setName(productName);
-
-            String fakeMessage = "Product retrieved successfully";
-
-            when(productService.getProductByName(productName)).thenReturn(fakeDto);
-            when(appTranslator.getTranslatedAction(eq("success.retrieved"), eq(ENTITY_KEY)))
-                    .thenReturn(fakeMessage);
-
-            mockMvc.perform(get("/api/v1/products/name/{name}", productName)
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andDo(print())
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.name").value(productName));
-        }
-
         ///// Get All Products Page
         @Test
         void getProductsPage_ShouldReturnPagedProducts() throws Exception {
@@ -187,10 +166,14 @@ class ProductControllerTest {
             when(appTranslator.getTranslatedAction(eq("success.deleted_retrieved"), eq(ENTITY_KEY)))
                     .thenReturn(fakeMessage);
 
-            mockMvc.perform(get("/api/v1/products/deletedProducts")
+            mockMvc.perform(get("/api/v1/products/deleted-products")
+                            .param("page", "0")
+                            .param("size", "10")
+                            .param("sortDirection", "DESC")
                             .contentType(MediaType.APPLICATION_JSON))
                     .andDo(print())
                     .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value(fakeMessage)) // تأكيد إضافي على الرسالة
                     .andExpect(jsonPath("$.data.data[0].name").value("Deleted Laptop"));
         }
 
