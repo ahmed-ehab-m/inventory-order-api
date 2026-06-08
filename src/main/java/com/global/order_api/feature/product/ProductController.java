@@ -70,16 +70,16 @@ public class ProductController {
 		return ResponseEntity.ok(apiResponse);
 	}
 
-	@Operation(summary = "Get Product By Name")
-	@GetMapping("/name/{name}")
-	public ResponseEntity<ApiResponse<UserProductResponseDto>> getProductByName(
-			@Parameter(description = "Exact product name") @PathVariable String name)
-	{
-		UserProductResponseDto productDto=productService.getProductByName(name);
-		String message = appTranslator.getTranslatedAction("success.retrieved", ENTITY_KEY);
-		ApiResponse<UserProductResponseDto> apiResponse=ApiResponse.success(productDto, message);
-		return ResponseEntity.ok(apiResponse);
-	}
+//	@Operation(summary = "Get Product By Name")
+//	@GetMapping("/name/{name}")
+//	public ResponseEntity<ApiResponse<PageResponse<UserProductResponseDto>>> getProductByName(
+//			@Parameter(description = "Exact product name") @PathVariable String name)
+//	{
+//		UserProductResponseDto productDto=productService.(name);
+//		String message = appTranslator.getTranslatedAction("success.retrieved", ENTITY_KEY);
+//		ApiResponse<UserProductResponseDto> apiResponse=ApiResponse.success(productDto, message);
+//		return ResponseEntity.ok(apiResponse);
+//	}
 	////////////////////
 	@Operation(summary = "Get Product Stock Count")
 	@GetMapping("/{id}/stock")
@@ -98,10 +98,10 @@ public class ProductController {
 	/////////////////
 	/// GET SOFT DELETED PRODUCTS (ADMIN ONLY)
 	@Operation(summary = "Get Soft Deleted Products")
-	@GetMapping("/deletedProducts")
+	@GetMapping("/deleted-products")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<ApiResponse<PageResponse<UserProductResponseDto>>> getDeletedProducts(
-			@ModelAttribute ProductFilterRequest filter)
+			@Valid @ModelAttribute ProductFilterRequest filter)
 	{
 		PageResponse<UserProductResponseDto> pageResponse=productService.getDeletedProducts(filter);
 		String message = appTranslator.getTranslatedAction("success.deleted_retrieved", ENTITY_KEY);
@@ -161,7 +161,7 @@ public class ProductController {
 	@Operation(summary = "Hard Delete Product (DANGER)")
 	@DeleteMapping("/{id}/force")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<ApiResponse<Void>> forceDeleteProductCategory(
+	public ResponseEntity<ApiResponse<Void>> forceDeleteProduct(
 			@Parameter(description = "Product ID to hard-delete") @PathVariable Long id
 	)
 	{
