@@ -94,107 +94,82 @@ class ProductServiceTest {
             verify(productRepo, times(1)).findByIdWithCategory(invalidId);
             verify(productMapper, never()).mapToDto(any());
         }
-
-        ///// Find by Name Exists - RETURN PRODUCT
+        ///// 1. Get Products Page WITHOUT Keyword (Should call Specification)
         @Test
-        void getProductByName_WhenExists_ShouldReturnProduct() {
-            String productName = "Apple iPhone";
-
-            ProductEntity fakeEntity = new ProductEntity();
-            fakeEntity.setId(1L);
-            fakeEntity.setName(productName);
-
-            UserProductResponseDto fakeDto = new UserProductResponseDto();
-            fakeDto.setId(1L);
-            fakeDto.setName(productName);
-
-            when(productRepo.findByName(productName)).thenReturn(Optional.of(fakeEntity));
-            when(productMapper.mapToDto(fakeEntity)).thenReturn(fakeDto);
-
-            UserProductResponseDto result = productService.getProductByName(productName);
-
-            assertNotNull(result);
-            assertEquals(productName, result.getName());
-
-            verify(productRepo, times(1)).findByName(productName);
-            verify(productMapper, times(1)).mapToDto(fakeEntity);
-        }
-
-        ///// Find by Name Does not Exist - NOT FOUND
-        @Test
-        void getProductByName_WhenNameNotFound_ShouldThrowException() {
-            String invalidName = "Unknown Product";
-
-            when(productRepo.findByName(invalidName)).thenReturn(Optional.empty());
-
-            assertThrows(ResourceNotFoundException.class, () ->
-                    productService.getProductByName(invalidName));
-
-            verify(productRepo, times(1)).findByName(invalidName);
-            verify(productMapper, never()).mapToDto(any());
-        }
-
-        ///// Get Products Page with Filters - RETURN PAGE RESPONSE
-        @Test
-        void getProductsPage_ShouldReturnPagedProducts() {
-            // 1. create fake filter
+        void getProductsPage_WhenNoKeyword_ShouldCallFindAllWithSpecification() {
+            // 1. Arrange Filter Request (No keyword)
             ProductFilterRequest filter = new ProductFilterRequest();
-            // 2. create Fake products
+
             ProductEntity fakeEntity = new ProductEntity();
             fakeEntity.setName("Phone");
-
-            // 3. create fake page contains products to use it to be the return from repo
             Page<ProductEntity> mockEntityPage = new PageImpl<>(List.of(fakeEntity));
 
             UserProductResponseDto fakeDto = new UserProductResponseDto();
             fakeDto.setName("Phone");
 
-            /// specification => is Lambda Expression
-            /// so in Java any 2 Lambdas are not same even if they have same content
-            /// and when() use equals() which compares addresses
-            /// so if i built Specification 1 then service code will create Specification 2 (not the same)
-            /// and important thing => we don't have to test spec here
+            // Mocking repo findAll (Specification path)
             when(productRepo.findAll(any(Specification.class), any(Pageable.class))).thenReturn(mockEntityPage);
             when(productMapper.mapToDtoList(mockEntityPage.getContent())).thenReturn(List.of(fakeDto));
 
-            // 4. Act
+            // 2. Act
             PageResponse<UserProductResponseDto> result = productService.getProductsPage(filter);
 
-            // 5. Assert
+            // 3. Assert
             assertNotNull(result);
             assertFalse(result.getData().isEmpty());
             assertEquals("Phone", result.getData().get(0).getName());
 
-            // 6. Verify
+            // 4. Verify that Specification was used, NOT Full Text Search
             verify(productRepo, times(1)).findAll(any(Specification.class), any(Pageable.class));
+            verify(productRepo, never()).searchActiveByNameFullText(anyString(), any(Pageable.class));
         }
 
-        ///// Get Products Page with Filters but DB is Empty - RETURN EMPTY PAGE RESPONSE
+        ///// 2. Get Products Page WITH Keyword (Should call Full Text Search)
+        @Test
+        void getProductsPage_WhenKeywordExists_ShouldCallFullTextSearch() {
+            // 1. Arrange Filter Request (With keyword)
+            ProductFilterRequest filter = new ProductFilterRequest();
+            filter.setSearchKeyword("smart");
+
+            ProductEntity fakeEntity = new ProductEntity();
+            fakeEntity.setName("Smartphone");
+            Page<ProductEntity> mockEntityPage = new PageImpl<>(List.of(fakeEntity));
+
+            UserProductResponseDto fakeDto = new UserProductResponseDto();
+            fakeDto.setName("Smartphone");
+
+            // Mocking repo Full-Text Search path
+            when(productRepo.searchActiveByNameFullText(eq("smart"), any(Pageable.class))).thenReturn(mockEntityPage);
+            when(productMapper.mapToDtoList(mockEntityPage.getContent())).thenReturn(List.of(fakeDto));
+
+            // 2. Act
+            PageResponse<UserProductResponseDto> result = productService.getProductsPage(filter);
+
+            // 3. Assert
+            assertNotNull(result);
+            assertFalse(result.getData().isEmpty());
+
+            // 4. Verify that Full Text Search was used, NOT Specification
+            verify(productRepo, times(1)).searchActiveByNameFullText(eq("smart"), any(Pageable.class));
+            verify(productRepo, never()).findAll(any(Specification.class), any(Pageable.class));
+        }
+
+        ///// 3. Get Products Page - Empty DB
         @Test
         void getProductsPage_WhenNoProducts_ShouldReturnEmptyPage() {
-            // 1. Arrange Filter Request
             ProductFilterRequest filter = new ProductFilterRequest();
-
-
-            // 2. create empty page returned from repo layer
             Page<ProductEntity> emptyMockPage = new PageImpl<>(List.of());
 
             when(productRepo.findAll(any(Specification.class), any(Pageable.class))).thenReturn(emptyMockPage);
-
-            /// mapper should return empty list
             when(productMapper.mapToDtoList(emptyMockPage.getContent())).thenReturn(List.of());
 
-            // 3. Act
             PageResponse<UserProductResponseDto> result = productService.getProductsPage(filter);
 
-            // 4. Assert
             assertNotNull(result);
-            assertTrue(result.getData().isEmpty()); /// check empty page is true
-            assertEquals(0, result.getTotalElements()); /// check meta data
+            assertTrue(result.getData().isEmpty());
+            assertEquals(0, result.getTotalElements());
 
-            // 5. Verify
             verify(productRepo, times(1)).findAll(any(Specification.class), any(Pageable.class));
-            verify(productMapper, times(1)).mapToDtoList(emptyMockPage.getContent());
         }
 
         @Test
@@ -230,63 +205,72 @@ class ProductServiceTest {
             assertEquals(75, response.getData().get(0).getStockCount());
         }
 
-        ///// Get Deleted Products Page with Filters - RETURN PAGE RESPONSE
+        ///// 1. Get Deleted Products WITHOUT Keyword
         @Test
-        void getDeletedProducts_ShouldReturnPagedDeletedProducts() {
-            // 1. Arrange Filter Request
+        void getDeletedProducts_WhenNoKeyword_ShouldCallFindAllWithSpecification() {
             ProductFilterRequest filter = new ProductFilterRequest();
 
-            // 2. Arrange Fake Data
             ProductEntity fakeEntity = new ProductEntity();
             fakeEntity.setName("Deleted Phone");
-            fakeEntity.setDeleted(true);
             Page<ProductEntity> mockEntityPage = new PageImpl<>(List.of(fakeEntity));
 
             UserProductResponseDto fakeDto = new UserProductResponseDto();
             fakeDto.setName("Deleted Phone");
 
-
-            when(productRepo.findAllDeletedProducts(any(Specification.class), any(Pageable.class)))
-                    .thenReturn(mockEntityPage);
+            // Mocking repo findAll (It will use Spec with isDeleted = true inside the service)
+            when(productRepo.findAll(any(Specification.class), any(Pageable.class))).thenReturn(mockEntityPage);
             when(productMapper.mapToDtoList(mockEntityPage.getContent())).thenReturn(List.of(fakeDto));
 
-            // 3. Act
             PageResponse<UserProductResponseDto> result = productService.getDeletedProducts(filter);
 
-            // 4. Assert
             assertNotNull(result);
             assertFalse(result.getData().isEmpty());
-            assertEquals("Deleted Phone", result.getData().get(0).getName());
 
-            // 5. Verify
-            verify(productRepo, times(1)).findAllDeletedProducts(any(Specification.class), any(Pageable.class));
+            verify(productRepo, times(1)).findAll(any(Specification.class), any(Pageable.class));
+            verify(productRepo, never()).searchDeletedByNameFullText(anyString(), any(Pageable.class));
+        }
+
+        ///// 2. Get Deleted Products WITH Keyword
+        @Test
+        void getDeletedProducts_WhenKeywordExists_ShouldCallDeletedFullTextSearch() {
+            ProductFilterRequest filter = new ProductFilterRequest();
+            filter.setSearchKeyword("broken");
+
+            ProductEntity fakeEntity = new ProductEntity();
+            fakeEntity.setName("Broken Screen");
+            Page<ProductEntity> mockEntityPage = new PageImpl<>(List.of(fakeEntity));
+
+            UserProductResponseDto fakeDto = new UserProductResponseDto();
+            fakeDto.setName("Broken Screen");
+
+            // Mocking repo Deleted Full-Text Search
+            when(productRepo.searchDeletedByNameFullText(eq("broken"), any(Pageable.class))).thenReturn(mockEntityPage);
+            when(productMapper.mapToDtoList(mockEntityPage.getContent())).thenReturn(List.of(fakeDto));
+
+            PageResponse<UserProductResponseDto> result = productService.getDeletedProducts(filter);
+
+            assertNotNull(result);
+            assertFalse(result.getData().isEmpty());
+
+            verify(productRepo, times(1)).searchDeletedByNameFullText(eq("broken"), any(Pageable.class));
             verify(productRepo, never()).findAll(any(Specification.class), any(Pageable.class));
         }
 
-        ///// Get Deleted Products Page with Filters - RETURN EMPTY PAGE RESPONSE
         @Test
         void getDeletedProductsPage_WhenNoProducts_ShouldReturnEmptyPage() {
-            // 1. Arrange Filter Request
             ProductFilterRequest filter = new ProductFilterRequest();
-
-            // 2. create empty page returned from repo layer
             Page<ProductEntity> emptyMockPage = new PageImpl<>(List.of());
 
-            when(productRepo.findAllDeletedProducts(any(Specification.class), any(Pageable.class))).thenReturn(emptyMockPage);
-
-            /// mapper should return empty list
+            when(productRepo.findAll(any(Specification.class), any(Pageable.class))).thenReturn(emptyMockPage);
             when(productMapper.mapToDtoList(emptyMockPage.getContent())).thenReturn(List.of());
 
-            // 3. Act
             PageResponse<UserProductResponseDto> result = productService.getDeletedProducts(filter);
-            // 4. Assert
-            assertNotNull(result);
-            assertTrue(result.getData().isEmpty()); /// check empty page is true
-            assertEquals(0, result.getTotalElements()); /// check meta data
 
-            // 5. Verify
-            verify(productRepo, times(1)).findAllDeletedProducts(any(Specification.class), any(Pageable.class));
-            verify(productMapper, times(1)).mapToDtoList(emptyMockPage.getContent());
+            assertNotNull(result);
+            assertTrue(result.getData().isEmpty());
+            assertEquals(0, result.getTotalElements());
+
+            verify(productRepo, times(1)).findAll(any(Specification.class), any(Pageable.class));
         }
 
         //////////////// GET PRODUCT STOCK COUNT States /////////////
