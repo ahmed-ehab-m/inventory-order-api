@@ -20,10 +20,14 @@ public interface OrderRepo extends BaseRepo<OrderEntity,Long> , JpaSpecification
     //// GET METHODS
     /// we comment findAll because => we extends JpaSpecificationExecutor
     //// which make findAll work as pagination function
+    //// indexing //////////
+    /// id pk =>cluster index => very fast
     Optional<OrderEntity> findByIdAndUserId(Long id, Long userId);
 
     /// get order even if soft-delete true
-    /// check status and to make hibernate return entity even if soft-deleted
+    /// check status and to make hibernate return status (projection) even if soft-deleted
+    //// indexing //////////
+    /// id pk =>cluster index => very fast
     @Query(value = "SELECT status FROM orders WHERE id = :id", nativeQuery = true)
     Optional<String> findOrderStatusByIdIncludingDeleted(@Param("id") Long id);
 //    @Query(value = "SELECT * FROM orders WHERE id = :id",nativeQuery = true)
