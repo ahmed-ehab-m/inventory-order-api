@@ -3,6 +3,8 @@
     import java.util.List;
 
     import com.global.order_api.core.exception.BusinessLogicException;
+    import jakarta.persistence.EntityManager;
+    import org.hibernate.Session;
     import org.springframework.cache.Cache;
     import org.springframework.cache.CacheManager;
     import org.springframework.cache.annotation.CacheEvict;
@@ -25,6 +27,8 @@
     
     
     @Service
+    /// disable dirty checking to save mem ,cpu
+    @Transactional(readOnly = true)
     public class ProductService extends BaseService<ProductEntity, Long> {
         
         private final ProductRepo productRepo;
@@ -33,9 +37,10 @@
         private final FileUploadService fileUploadService;
         /// to control my cache
         private final CacheManager cacheManager;
-        
+
         public ProductService(ProductRepo productRepo,
-                              ProductMapper productMapper, CategoryRepo categoryRepo , FileUploadService fileUploadService, CacheManager cacheManager) {
+                              ProductMapper productMapper, CategoryRepo categoryRepo , FileUploadService fileUploadService,
+                              CacheManager cacheManager) {
             super(productRepo);
             this.productRepo = productRepo;
             this.productMapper = productMapper;
@@ -70,13 +75,17 @@
             return productMapper.mapToDto(productEntity);
         }
         //////////////////
-        @Cacheable(value = "product",key = "#name")
-        public UserProductResponseDto getProductByName(String name)
-        {
-            ProductEntity productEntity = productRepo.findByName(name)
-                    .orElseThrow(() -> new ResourceNotFoundException("Product", "name", name));
-            return productMapper.mapToDto(productEntity);
-        }
+//        public PageResponse<UserProductResponseDto> getProductByName(String name ,ProductFilterRequest filter)
+//        {
+//            Sort sort=Sort.by(Sort.Direction.fromString(filter.getSortDirection()),filter.getSortBy());
+//            //Pageable => take all user input
+//            // will be translated to SQL
+//            Pageable pageable=PageRequest.of(filter.getPage(), filter.getSize(), sort);
+//            Page<ProductEntity> productPage = productRepo.searchByNameFullText(name, pageable);
+//            List<UserProductResponseDto> dtoList=productMapper.mapToDtoList(productPage.getContent());
+//            return PageResponse.from(productPage, dtoList);
+//
+//        }
         ///////////////////
         /// LIGHTWEIGHT STOCK READ (Micro-Caching)
         //////////////////
@@ -94,20 +103,27 @@
                 value = "productsPage",
                 key = "'defaultHomePage'",
                 condition = "#filter.page == 0 &&" +
-                        " (#filter.keyword == null || #filter.keyword.isEmpty())" +
+                        " (#filter.searchKeyword == null || #filter.searchKeyword.isEmpty())" +
                         " && #filter.categoryId == null")
-        public PageResponse<UserProductResponseDto> getProductsPage(ProductFilterRequest filter) {
-        // take user input => "ASC" OR "DESC" from headers
-            Sort sort=Sort.by(Sort.Direction.fromString(filter.getSortDirection()),filter.getSortBy());
-            //Pageable => take all user input 
-            // will be translated to SQL 
-            Pageable pageable=PageRequest.of(filter.getPage(), filter.getSize(), sort);
-            // holds data + meta data about it
-            Specification<ProductEntity> spec = ProductSpecification.buildFilter(filter);
-            Page<ProductEntity> productPage = productRepo.findAll(spec, pageable);
-            List<UserProductResponseDto> dtoList=productMapper.mapToDtoList(productPage.getContent());
-            return PageResponse.from(productPage, dtoList);      
-        }
+            public PageResponse<UserProductResponseDto> getProductsPage(ProductFilterRequest filter) {
+
+            // take user input => "ASC" OR "DESC" from headers
+                Sort sort=Sort.by(Sort.Direction.fromString(filter.getSortDirection()),filter.getSortBy());
+                //Pageable => take all user input
+                // will be translated to SQL
+                Pageable pageable=PageRequest.of(filter.getPage(), filter.getSize(), sort);
+                Page<ProductEntity> productPage;
+                /// check search word to call full text index
+            if (filter.getSearchKeyword() != null && !filter.getSearchKeyword().isBlank()) {
+                productPage = productRepo.searchActiveByNameFullText(filter.getSearchKeyword(), pageable);
+            }
+            else {
+                    Specification<ProductEntity> spec = ProductSpecification.buildFilter(filter,false);
+                    productPage = productRepo.findAll(spec, pageable);
+                }
+             List<UserProductResponseDto> dtoList=productMapper.mapToDtoList(productPage.getContent());
+                return PageResponse.from(productPage, dtoList);
+            }
         //////////////////////////////
         //////////////////
         /// ADMIN METHODS (No Caching - Real-Time Data)
@@ -118,9 +134,15 @@
 
             Pageable pageable = PageRequest.of(filter.getPage(), filter.getSize(), sort);
 
-            Specification<ProductEntity> spec = ProductSpecification.buildFilter(filter);
-
-            Page<ProductEntity> productPage = productRepo.findAll(spec, pageable);
+            Page<ProductEntity> productPage;
+            /// check search word to call full text index
+            if (filter.getSearchKeyword() != null && !filter.getSearchKeyword().isBlank()) {
+                productPage = productRepo.searchActiveByNameFullText(filter.getSearchKeyword(), pageable);
+            }
+            else {
+                Specification<ProductEntity> spec = ProductSpecification.buildFilter(filter,false);
+                productPage = productRepo.findAll(spec, pageable);
+            }
 
             List<AdminProductResponseDto> dtoList = productMapper.mapToAdminDtoList(productPage.getContent());
 
@@ -131,19 +153,26 @@
                 value = "productsPage",
                 key = "'deletedProductsPage'",
                 condition = "#filter.page == 0 &&" +
-                        " (#filter.keyword == null || #filter.keyword.isEmpty())" +
+                        " (#filter.searchKeyword == null || #filter.searchKeyword.isEmpty())" +
                         " && #filter.categoryId == null")
         public PageResponse<UserProductResponseDto>  getDeletedProducts(ProductFilterRequest filter)
         {
+
             Sort sort=Sort.by(Sort.Direction.fromString(filter.getSortDirection()),filter.getSortBy());
             //Pageable => take all user input 
             // will be translated to SQL 
             Pageable pageable=PageRequest.of(filter.getPage(), filter.getSize(), sort);
             // holds data + meta data about it
-            Specification<ProductEntity> spec = ProductSpecification.buildFilter(filter);
-            Page<ProductEntity> productPage = productRepo.findAllDeletedProducts(spec,pageable);
+            Page<ProductEntity> productPage;
+
+            if (filter.getSearchKeyword() != null && !filter.getSearchKeyword().isBlank()) {
+                productPage = productRepo.searchDeletedByNameFullText(filter.getSearchKeyword(), pageable);
+            } else {
+                Specification<ProductEntity> spec = ProductSpecification.buildFilter(filter, true);
+                productPage = productRepo.findAll(spec, pageable);
+            }
             List<UserProductResponseDto> dtoList=productMapper.mapToDtoList(productPage.getContent());
-            return PageResponse.from(productPage, dtoList); 
+            return PageResponse.from(productPage, dtoList);
         }
         ////////////
         
@@ -197,10 +226,6 @@
             if(productCache !=null)
             {
                 productCache.evict(id);
-                productCache.evict(oldName);
-                /// remove new name cache because if user search with product name and doesn't exist yet
-                /// then admin update product with this new name
-                productCache.evict(existingEntity.getName());
             }
             return productMapper.mapToDto(save(existingEntity));
         }
@@ -239,7 +264,6 @@
             if(productCache !=null)
             {
                 productCache.evict(id);
-                productCache.evict(name);
             }
         }
         
