@@ -2,6 +2,7 @@ package com.global.order_api.feature.user;
 
 import com.global.order_api.core.base.BaseService;
 import com.global.order_api.core.base.PageResponse;
+import com.global.order_api.core.exception.BusinessLogicException;
 import com.global.order_api.core.exception.DuplicateRecordException;
 import com.global.order_api.core.exception.ResourceNotFoundException;
 import com.global.order_api.core.security.JwtService;
@@ -118,7 +119,16 @@ public class UserService extends BaseService<UserEntity,Long> {
     )
     @Transactional
     public void softDeleteUser(Long id) {
-        delete(id);
+        UserEntity user=userRepo.findByIdOrThrow(id);
+        if (user.isDeleted()) {
+            return;
+        }
+        /// change email string
+        /// time stamp ti ensure that email is always unique even if user remove his email again
+        String changedEmail= user.getEmail()+"_deleted_"+System.currentTimeMillis();
+        user.setEmail(changedEmail);
+        user.setDeleted(true);
+        userRepo.save(user);
     }
     /// HARD DELETE METHODS
     @Transactional
@@ -143,9 +153,26 @@ public class UserService extends BaseService<UserEntity,Long> {
     )
     @Transactional
     public void restoreUser(Long id) {
-        if (!userRepo.existsById(id)) {
-            throw new ResourceNotFoundException("User", "id", id);
+        /// get user data
+        UserEntity user = userRepo.findByIdOrThrow(id);
+        /// ensure that email is already deleted
+        if (!user.isDeleted()) {
+            throw new BusinessLogicException("error.account.active");
+        }
+        /// clean deleted email
+        String currentEmail=user.getEmail();
+        int deletedIndex=currentEmail.lastIndexOf("_deleted_");
+        if(deletedIndex !=-1) {
+            String originalEmail = currentEmail.substring(0, deletedIndex);
+
+            /// ensure that original email not of another active user
+            if (userRepo.existsByEmail(originalEmail))
+            {
+                throw new BusinessLogicException("error.account.registered");
+            }
+            user.setEmail(originalEmail);
         }
         userRepo.restoreUser(id);
+        userRepo.save(user);
     }
 }
