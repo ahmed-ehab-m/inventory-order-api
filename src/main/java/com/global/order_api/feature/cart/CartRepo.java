@@ -8,6 +8,8 @@ import java.util.Optional;
 @Repository
 public interface CartRepo extends BaseRepo<CartEntity,Long> {
 
+    //// indexing //////////
+    /// id pk =>cluster index => very fast
     /// Optional => if user doesn't have cart
     /// to return the cart of user
     Optional<CartEntity> findByUserId(Long userId);
