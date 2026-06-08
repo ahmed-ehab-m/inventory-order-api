@@ -77,8 +77,15 @@ public interface ProductRepo extends BaseRepo<ProductEntity,Long> ,JpaSpecificat
 			countQuery = "SELECT count(*) FROM products WHERE MATCH(name) AGAINST(CONCAT(:keyword, '*') IN BOOLEAN MODE) AND is_deleted = false",
 			nativeQuery = true
 	)
-	Page<ProductEntity> findByNameContainingIgnoreCase(@Param("keyword") String keyword,Pageable pageable);
-	
+	Page<ProductEntity> searchActiveByNameFullText(@Param("keyword") String keyword,Pageable pageable);
+
+	//// for Admin
+	@Query(
+			value = "SELECT * FROM products WHERE MATCH(name) AGAINST(CONCAT(:keyword, '*') IN BOOLEAN MODE) AND is_deleted = true",
+			countQuery = "SELECT count(*) FROM products WHERE MATCH(name) AGAINST(CONCAT(:keyword, '*') IN BOOLEAN MODE) AND is_deleted = true",
+			nativeQuery = true
+	)
+	Page<ProductEntity> searchDeletedByNameFullText(@Param("keyword") String keyword, Pageable pageable);
 	////////////////////////////////////////////////////
 
     //// indexing ////
