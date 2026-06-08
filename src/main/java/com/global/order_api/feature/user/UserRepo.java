@@ -17,8 +17,13 @@ import java.util.Optional;
 public interface UserRepo extends BaseRepo<UserEntity,Long>, JpaSpecificationExecutor<UserEntity> {
     /// Static queries needed for basic Business
     /// for login
+    /// Indexing
+    /// email unique => non cluster index => very fast
     Optional<UserEntity> findByEmail(String email);
     /// for better performance
+    /// /// Indexing
+    ///     /// email unique => non cluster index => very fast
+    ///     Optional<UserEntity> findByEmail(String email);
     boolean existsByEmail(String email);
 
     //// GET METHODS
