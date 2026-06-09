@@ -67,7 +67,7 @@ public class RedisConfig {
                 .withCacheConfiguration("carts", longTtlConfig)
                 //// 60 Minutes
                 .withCacheConfiguration("product", defaultConfig)
-//                .withCacheConfiguration("ordersPage", defaultConfig)
+                .withCacheConfiguration("security-users", defaultConfig)
 //                .withCacheConfiguration("usersPage", defaultConfig)
                 /// 15 Minutes
                 .withCacheConfiguration("productsPage", shortTtlConfig)
