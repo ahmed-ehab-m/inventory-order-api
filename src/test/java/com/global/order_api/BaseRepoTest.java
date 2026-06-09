@@ -8,7 +8,8 @@ import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-/// run slice testing for db only
+/// to make spring run dataBase parts only (entities and repos) => make test is very fast
+/// built in => @Transactional to make DB is clean after each test
 @DataJpaTest
 /// to tell junit5 that class contains docker containers to monitor it
 /// to run containers before starting test and remove containers after finishing test

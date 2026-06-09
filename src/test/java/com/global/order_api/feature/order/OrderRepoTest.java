@@ -3,6 +3,7 @@ package com.global.order_api.feature.order;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
+import com.global.order_api.BaseRepoTest;
 import com.global.order_api.feature.category.CategoryEntity;
 import com.global.order_api.feature.product.ProductEntity;
 import com.global.order_api.feature.user.UserEntity;
@@ -18,8 +19,7 @@ import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 
-@DataJpaTest(showSql = false)
-class OrderRepoTest {
+class OrderRepoTest  extends BaseRepoTest {
 
     @Autowired
     private OrderRepo orderRepo;

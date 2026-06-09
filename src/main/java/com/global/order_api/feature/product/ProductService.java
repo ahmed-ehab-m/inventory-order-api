@@ -137,7 +137,8 @@
             Page<ProductEntity> productPage;
             /// check search word to call full text index
             if (filter.getSearchKeyword() != null && !filter.getSearchKeyword().isBlank()) {
-                productPage = productRepo.searchActiveByNameFullText(filter.getSearchKeyword(), pageable);
+                String formattedKeyword = filter.getSearchKeyword().trim() + "*";
+                productPage = productRepo.searchActiveByNameFullText(formattedKeyword, pageable);
             }
             else {
                 Specification<ProductEntity> spec = ProductSpecification.buildFilter(filter,false);
@@ -166,7 +167,8 @@
             Page<ProductEntity> productPage;
 
             if (filter.getSearchKeyword() != null && !filter.getSearchKeyword().isBlank()) {
-                productPage = productRepo.searchDeletedByNameFullText(filter.getSearchKeyword(), pageable);
+                String formattedKeyword = filter.getSearchKeyword().trim() + "*";
+                productPage = productRepo.searchActiveByNameFullText(formattedKeyword, pageable);
             } else {
                 Specification<ProductEntity> spec = ProductSpecification.buildFilter(filter, true);
                 productPage = productRepo.findAll(spec, pageable);

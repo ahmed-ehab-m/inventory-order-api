@@ -3,6 +3,7 @@ package com.global.order_api.feature.user;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
+import com.global.order_api.BaseRepoTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -12,8 +13,7 @@ import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import java.util.Optional;
 import java.util.UUID;
 
-@DataJpaTest(showSql = false)
-class UserRepoTest {
+class UserRepoTest extends BaseRepoTest {
 
     @Autowired
     private UserRepo userRepo;

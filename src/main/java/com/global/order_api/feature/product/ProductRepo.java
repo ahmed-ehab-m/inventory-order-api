@@ -73,16 +73,16 @@ public interface ProductRepo extends BaseRepo<ProductEntity,Long> ,JpaSpecificat
 	/// so we concat it with * to get rows matches this keyword
 	/// boolean mode => to use mathematical operators like *
 	@Query(
-			value = "SELECT * FROM products WHERE MATCH(name) AGAINST(CONCAT(:keyword, '*') IN BOOLEAN MODE) AND is_deleted = false",
-			countQuery = "SELECT count(*) FROM products WHERE MATCH(name) AGAINST(CONCAT(:keyword, '*') IN BOOLEAN MODE) AND is_deleted = false",
+			value = "SELECT * FROM products WHERE MATCH(name) AGAINST(:keyword IN BOOLEAN MODE) AND is_deleted = false",
+			countQuery = "SELECT count(*) FROM products WHERE MATCH(name) AGAINST(:keyword IN BOOLEAN MODE) AND is_deleted = false",
 			nativeQuery = true
 	)
 	Page<ProductEntity> searchActiveByNameFullText(@Param("keyword") String keyword,Pageable pageable);
 
 	//// for Admin
 	@Query(
-			value = "SELECT * FROM products WHERE MATCH(name) AGAINST(CONCAT(:keyword, '*') IN BOOLEAN MODE) AND is_deleted = true",
-			countQuery = "SELECT count(*) FROM products WHERE MATCH(name) AGAINST(CONCAT(:keyword, '*') IN BOOLEAN MODE) AND is_deleted = true",
+			value = "SELECT * FROM products WHERE MATCH(name) AGAINST(:keyword IN BOOLEAN MODE) AND is_deleted = true",
+			countQuery = "SELECT count(*) FROM products WHERE MATCH(name) AGAINST(:keyword IN BOOLEAN MODE) AND is_deleted = true",
 			nativeQuery = true
 	)
 	Page<ProductEntity> searchDeletedByNameFullText(@Param("keyword") String keyword, Pageable pageable);
