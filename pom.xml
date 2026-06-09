@@ -213,18 +213,24 @@
         </dependency>
         <!-- ===== MY SQL TEST CONTAINER DATABASE FOR TESTING ===== -->
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>mysql</artifactId>
             <version>1.19.7</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>1.19.7</version>
             <scope>test</scope>
         </dependency>
-
         <!-- ===== Local Caching ==== -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
