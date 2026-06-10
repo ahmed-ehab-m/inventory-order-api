@@ -7,7 +7,7 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /// web mvc configurer => interface allows us to configure web settings without editing default
-/// use it to override addInterceptor() to add our custom interceptor
+/// use it to override addInterceptor()
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
     @Autowired

@@ -3,6 +3,7 @@ package com.global.order_api.core.rate_limiting;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.global.order_api.core.response.ApiResponse;
+import com.global.order_api.core.utils.AppTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,9 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     /// settings
     private final int MAX_REQUESTS = 10;
     private final int WINDOW_SECONDS = 60;
+
+    @Autowired
+    private  AppTranslator appTranslator;
 
     /// TO convert our api response error model to json
     /// because we are in interceptor layer
@@ -64,7 +68,8 @@ public class RateLimitInterceptor implements HandlerInterceptor {
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             /// call our base response
-            ApiResponse errorResponse =  ApiResponse.error("error.tooMany.request");
+            String message = appTranslator.translateMessage("error.tooMany.request");
+            ApiResponse errorResponse =  ApiResponse.error(message);
             String jsonResponse = objectMapper.writeValueAsString(errorResponse);
             response.getWriter().write(
                     jsonResponse);
