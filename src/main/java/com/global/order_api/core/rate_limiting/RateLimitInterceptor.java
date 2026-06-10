@@ -1,6 +1,7 @@
 package com.global.order_api.core.rate_limiting;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.global.order_api.core.response.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -31,9 +32,12 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     private final int MAX_REQUESTS = 10;
     private final int WINDOW_SECONDS = 60;
 
-    @Autowired /// TO convert our api response error model to json
+    /// TO convert our api response error model to json
     /// because we are in interceptor layer
-    private ObjectMapper objectMapper;
+    /// javatimemodule => because objectmapper don't undestand localdatetime
+    /// so add it
+    private final ObjectMapper objectMapper =
+            new ObjectMapper().registerModule(new JavaTimeModule());
 
     /// handler => the final route that request will go to (method in controller)
     /// to control if any endpoint i want to remove rate limiting on it
@@ -50,6 +54,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         /// 4=> check if this first request
         if(requestCount !=null && requestCount ==1)
         {
+            /// time unit to tell redis we use seconds
             redisTemplate.expire(redisKey,WINDOW_SECONDS, TimeUnit.SECONDS);
         }
         /// 5=> if user get limit 10 requests
