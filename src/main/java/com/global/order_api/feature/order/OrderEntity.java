@@ -1,6 +1,7 @@
 package com.global.order_api.feature.order;
 
 import com.global.order_api.core.base.SoftDeletableEntity;
+import com.global.order_api.feature.payment.PaymentEntity;
 import com.global.order_api.feature.user.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -50,5 +51,9 @@ public class OrderEntity extends SoftDeletableEntity<Long> {
         orderItems.add(orderItemEntity);
         orderItemEntity.setOrder(this);
     }
+
+    /// bi-directional relationship
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PaymentEntity> payments=new ArrayList<>();
 
 }
