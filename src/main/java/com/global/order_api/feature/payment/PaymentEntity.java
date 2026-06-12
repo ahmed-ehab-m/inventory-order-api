@@ -41,6 +41,7 @@ public class PaymentEntity extends BaseEntity<Long> {
     @Column(name = "payment_status",nullable = false,length = 50)
     private PaymentStatus paymentStatus;
 
+    /// string because our system must be robust if payment type come from apis not in our enums
     @Column(name = "payment_method",length = 50)
     private String paymentMethod;
 
