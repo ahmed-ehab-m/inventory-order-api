@@ -17,5 +17,6 @@ public class OrderResponseDto extends BaseResponseDto<Long> {
     private String orderNotes;
     private Long userId;
     private String customerEmail;
+    private PaymentType paymentType;
     private List<OrderItemResponseDto> orderItems;
 }
