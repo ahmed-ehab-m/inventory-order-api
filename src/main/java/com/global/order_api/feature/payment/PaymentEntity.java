@@ -20,6 +20,9 @@ public class PaymentEntity extends BaseEntity<Long> {
     @JoinColumn(name = "order_id")
     private OrderEntity order;
 
+    @Column(name = "payment_order_id",length = 255,nullable = false)
+    private String paymentOrderId;
+
     @Column(name = "amount",nullable = false)
     private BigDecimal amount;
 
