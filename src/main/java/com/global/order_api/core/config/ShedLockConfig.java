@@ -10,6 +10,8 @@ import net.javacrumbs.shedlock.core.LockProvider;
 import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
 import net.javacrumbs.shedlock.spring.annotation.EnableSchedulerLock;
 
+/// if i deploy my project on more than one server
+///
 @Configuration
 @EnableScheduling
 @EnableSchedulerLock(defaultLockAtMostFor = "10m")
@@ -26,6 +28,7 @@ public class ShedLockConfig {
 		return new JdbcTemplateLockProvider(
 			JdbcTemplateLockProvider.Configuration.builder()
 			.withJdbcTemplate(new JdbcTemplate(dataSource))
+					.withTableName("shedLock")
 			.usingDbTime().build()); // db time => to prevent time servers conflict
 	}
 }

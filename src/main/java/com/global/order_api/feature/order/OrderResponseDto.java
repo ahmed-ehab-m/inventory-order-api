@@ -1,6 +1,7 @@
 package com.global.order_api.feature.order;
 
 import com.global.order_api.core.base.BaseResponseDto;
+import com.global.order_api.feature.payment.PaymentResponseDto;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,5 +20,5 @@ public class OrderResponseDto extends BaseResponseDto<Long> {
     private String customerEmail;
     private PaymentType paymentType;
     private List<OrderItemResponseDto> orderItems;
-    private String paymentActionData;
+    private PaymentResponseDto paymentActionData;
 }

@@ -11,6 +11,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -47,6 +49,9 @@ public interface OrderRepo extends BaseRepo<OrderEntity,Long> , JpaSpecification
     @Modifying(clearAutomatically = true)
     @Query(value = "UPDATE orders set is_deleted=false where id = :id",nativeQuery = true)
     void restoreOrder(@Param("id")Long id);
+
+    /// for Scheduling => remove PENDING ORDERS after 24 Hours
+    List<OrderEntity> findByStatusAndCreatedAtBefore(OrderStatus status, LocalDateTime time);
 
 }
 

@@ -4,7 +4,12 @@ import com.global.order_api.core.base.BaseEntity;
 import com.global.order_api.feature.order.OrderEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -13,15 +18,21 @@ import java.math.BigDecimal;
 @Entity
 @Table(name = "payments")
 @Builder
-public class PaymentEntity extends BaseEntity<Long> {
+@EntityListeners(AuditingEntityListener.class)
+public class PaymentEntity{
+
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id")
     private OrderEntity order;
 
-    @Column(name = "payment_order_id",length = 255,nullable = false)
-    private String paymentOrderId;
+    @Column(name = "paymob_order_id",length = 255,nullable = false)
+    private String paymobOrderId;
 
     @Column(name = "amount",nullable = false)
     private BigDecimal amount;
@@ -47,5 +58,13 @@ public class PaymentEntity extends BaseEntity<Long> {
     /// string because our system must be robust if payment type come from apis not in our enums
     @Column(name = "payment_method",length = 50)
     private String paymentMethod;
+
+    @CreatedDate
+    @Column(name ="created_at",updatable = false)
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
 }

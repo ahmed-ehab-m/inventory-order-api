@@ -17,8 +17,8 @@ CREATE TABLE payments(
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     -- ON UPDATE => any one update this record , update the time automatically
     updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    --- comment here paymob server who is control update not actual user
-    --- actual user in orders table
+    -- comment here paymob server who is control update not actual user
+    -- actual user in orders table
 --     created_by  VARCHAR(255),
 --     updated_by  VARCHAR(255),
 

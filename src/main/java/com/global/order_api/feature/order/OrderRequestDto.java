@@ -18,4 +18,5 @@ public class OrderRequestDto {
     private String orderNotes;
     @NotNull(message = "{validation.field.required}")
     private PaymentType paymentType;
+    private String walletNumber; /// if user want to use wallet
 }
