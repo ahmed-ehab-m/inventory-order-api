@@ -79,7 +79,7 @@ public class OrderService extends BaseService<OrderEntity,Long> {
         OrderEntity order = orderRepo.findByIdOrThrow(orderId);
         return orderMapper.mapToDto(order);
     }
-    /// Get order By Id to get order details for user
+    /// Get order By Id to get order detagitils for user
     @Cacheable(value = "orders", key = "#orderId")
     public OrderResponseDto getUserOrderById(Long userId, Long orderId) {
         OrderEntity order = orderRepo.findByIdAndUserId(orderId, userId)
