@@ -2,7 +2,6 @@ package com.global.order_api.feature.order;
 
 import com.global.order_api.core.base.BaseEntity;
 import com.global.order_api.feature.product.ProductEntity;
-import com.global.order_api.feature.user.UserEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,10 +18,10 @@ import java.math.BigDecimal;
 @Table(name = "order_item")
 public class OrderItemEntity extends BaseEntity<Long> {
 
-    @Column(name = "quantity",nullable = false)
+    @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
-    @Column(name = "price",nullable = false)
+    @Column(name = "price", nullable = false)
     private BigDecimal price;
 
     @ManyToOne(fetch = FetchType.LAZY)

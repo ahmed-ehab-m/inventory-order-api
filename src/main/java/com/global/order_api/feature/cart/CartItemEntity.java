@@ -19,13 +19,13 @@ import lombok.*;
 public class CartItemEntity extends BaseEntity<Long> {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cart_id",nullable = false)
+    @JoinColumn(name = "cart_id", nullable = false)
     private CartEntity cart;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id",nullable = false)
+    @JoinColumn(name = "product_id", nullable = false)
     private ProductEntity product;
 
-    @Column(name = "quantity",nullable = false)
+    @Column(name = "quantity", nullable = false)
     private Integer quantity;
 }

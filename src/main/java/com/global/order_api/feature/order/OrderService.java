@@ -14,13 +14,10 @@ import com.global.order_api.feature.product.ProductEntity;
 import com.global.order_api.feature.product.ProductRepo;
 import com.global.order_api.feature.user.UserEntity;
 import com.global.order_api.feature.user.UserRepo;
-import com.global.order_api.feature.user.UserSpecification;
-import jakarta.persistence.criteria.Predicate;
 import lombok.extern.log4j.Log4j2;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -33,11 +30,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
+
 @Log4j2
 @Service
-public class OrderService extends BaseService<OrderEntity,Long> {
+public class OrderService extends BaseService<OrderEntity, Long> {
 
     private final OrderMapper orderMapper;
     private final OrderRepo orderRepo;
@@ -45,16 +42,9 @@ public class OrderService extends BaseService<OrderEntity,Long> {
     private final CartRepo cartRepo;
     private final PaymentService paymentService;
     private final PaymentRepo paymentRepo;
-
-    public OrderService(BaseRepo<OrderEntity, Long> baseRepo, OrderMapper orderMapper, OrderRepo orderRepo, UserRepo userRepo, ProductRepo productRepo, CartService cartService, CartRepo cartRepo, PaymentService paymentService, PaymentRepo paymentRepo) {
-        super(baseRepo);
-        this.orderMapper = orderMapper;
-        this.orderRepo = orderRepo;
-        this.userRepo = userRepo;
-        this.cartRepo = cartRepo;
-        this.paymentService = paymentService;
-        this.paymentRepo = paymentRepo;
-    }
+    /// /
+    @Value("${app.order.cleanup.hours-limit}")
+    private int hoursLimit;
     ////////////////////CACHING//////////////////////
     /// USER ORDERS PAGE TTL => Problem => Order status changes
     /// so
@@ -71,102 +61,108 @@ public class OrderService extends BaseService<OrderEntity,Long> {
     ////////////////////////////////////////////////
 
 
-    ////////////////////////////////////////////////
+    public OrderService(BaseRepo<OrderEntity, Long> baseRepo, OrderMapper orderMapper, OrderRepo orderRepo, UserRepo userRepo, ProductRepo productRepo, CartService cartService, CartRepo cartRepo, PaymentService paymentService, PaymentRepo paymentRepo) {
+        super(baseRepo);
+        this.orderMapper = orderMapper;
+        this.orderRepo = orderRepo;
+        this.userRepo = userRepo;
+        this.cartRepo = cartRepo;
+        this.paymentService = paymentService;
+        this.paymentRepo = paymentRepo;
+    }
+
+    /// /////////////////////////////////////////////
     /// READING METHODS
     /// Get order By Id to get order details for Admin
     public OrderResponseDto getOrderById(Long orderId) {
         OrderEntity order = orderRepo.findByIdOrThrow(orderId);
         return orderMapper.mapToDto(order);
     }
+
     /// Get order By Id to get order details for user
     public OrderResponseDto getUserOrderById(Long userId, Long orderId) {
         OrderEntity order = orderRepo.findByIdAndUserId(orderId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
         return orderMapper.mapToDto(order);
     }
+
     /// Get All Orders
     /// smart method for pagination
-    //// GET ALL ORDERS FOR ADMIN
-    public PageResponse<OrderResponseDto> getAllOrders(OrderFilterRequest filter)
-    {
+    /// / GET ALL ORDERS FOR ADMIN
+    public PageResponse<OrderResponseDto> getAllOrders(OrderFilterRequest filter) {
         ///// 1=> take user input => "ASC" OR "DESC" from headers
-        Sort sort=Sort.by(Sort.Direction.fromString(filter.getSortDirection()),filter.getSortBy());
+        Sort sort = Sort.by(Sort.Direction.fromString(filter.getSortDirection()), filter.getSortBy());
         ////// 2=> Pageable => take all user input page , size , sort
         ///// will be translated to SQL
-        Pageable pageable= PageRequest.of(filter.getPage(),filter.getSize(),sort);
+        Pageable pageable = PageRequest.of(filter.getPage(), filter.getSize(), sort);
         ///// holds data + meta data about it
-        Specification<OrderEntity> finalSpec= OrderSpecification.buildFilter(filter);
+        Specification<OrderEntity> finalSpec = OrderSpecification.buildFilter(filter);
 
         //// 3=> call Repo
-        Page<OrderEntity> orderEntityPage=orderRepo.findAll(finalSpec,pageable);
+        Page<OrderEntity> orderEntityPage = orderRepo.findAll(finalSpec, pageable);
         ///// map Entities to Dtos
-        List<OrderResponseDto> orderResponseDtoList=orderMapper.mapToDtoList(orderEntityPage.getContent());
-        return PageResponse.from(orderEntityPage,orderResponseDtoList);
+        List<OrderResponseDto> orderResponseDtoList = orderMapper.mapToDtoList(orderEntityPage.getContent());
+        return PageResponse.from(orderEntityPage, orderResponseDtoList);
     }
 
-    //// GET ONLY USER ORDERS
+    /// / GET ONLY USER ORDERS
     /// add user id to separate general orders and user orders
-    public PageResponse<OrderResponseDto> getUserOrders(Long userId, OrderFilterRequest filter)
-    {
-        Sort sort=Sort.by(Sort.Direction.fromString(filter.getSortDirection()),filter.getSortBy());
+    public PageResponse<OrderResponseDto> getUserOrders(Long userId, OrderFilterRequest filter) {
+        Sort sort = Sort.by(Sort.Direction.fromString(filter.getSortDirection()), filter.getSortBy());
 
-        Pageable pageable= PageRequest.of(filter.getPage(),filter.getSize(),sort);
+        Pageable pageable = PageRequest.of(filter.getPage(), filter.getSize(), sort);
         //// user get only his orders
-        Specification<OrderEntity> userSpec= (root,query,cb)->
-                cb.equal(root.get("user").get("id"),userId);
+        Specification<OrderEntity> userSpec = (root, query, cb) ->
+                cb.equal(root.get("user").get("id"), userId);
 
-        Specification<OrderEntity> orderSpec= OrderSpecification.buildFilter(filter);
-        Specification<OrderEntity> combinedSpec=orderSpec.and(userSpec);
-        Page<OrderEntity> orderEntityPage=orderRepo.findAll(combinedSpec,pageable);
-        List<OrderResponseDto> orderResponseDtoList=orderMapper.mapToDtoList(orderEntityPage.getContent());
-        return PageResponse.from(orderEntityPage,orderResponseDtoList);
+        Specification<OrderEntity> orderSpec = OrderSpecification.buildFilter(filter);
+        Specification<OrderEntity> combinedSpec = orderSpec.and(userSpec);
+        Page<OrderEntity> orderEntityPage = orderRepo.findAll(combinedSpec, pageable);
+        List<OrderResponseDto> orderResponseDtoList = orderMapper.mapToDtoList(orderEntityPage.getContent());
+        return PageResponse.from(orderEntityPage, orderResponseDtoList);
     }
 
-    ////////////////////////////////////////////////
+    /// /////////////////////////////////////////////
     /// WRITING METHODS
-    //// Create an Order
+    /// / Create an Order
     @Transactional
-    public OrderResponseDto createOrder(Long userId, OrderRequestDto orderRequest)
-    {
+    public OrderResponseDto createOrder(Long userId, OrderRequestDto orderRequest) {
         /// 1=> get user cart
-        CartEntity cartEntity=cartRepo.findByUserId(userId)
+        CartEntity cartEntity = cartRepo.findByUserId(userId)
                 .orElseThrow(
-                        ()-> new ResourceNotFoundException("Cart","id",userId)
+                        () -> new ResourceNotFoundException("Cart", "id", userId)
                 );
         /// 2=> map cart Item Entities to OrderItemEntities
-        List<CartItemEntity> cartItemsEntities=cartEntity.getItems();
+        List<CartItemEntity> cartItemsEntities = cartEntity.getItems();
 
         /// if payment type is ONLINE
         PaymentResponseDto paymentDto = null;
 
         /// 3=> check if cart is empty
-        if(cartItemsEntities ==null || cartItemsEntities.isEmpty())
-        {
+        if (cartItemsEntities == null || cartItemsEntities.isEmpty()) {
             throw new BusinessLogicException("error.cart.empty");
         }
         /// 4 => map order entity now include => shipping address + notes
         OrderEntity orderEntity = orderMapper.mapToEntity(orderRequest);
 
         /// 5=> link order to his user because we ignore it in mapper
-        UserEntity user=userRepo.findByIdOrThrow(userId);
+        UserEntity user = userRepo.findByIdOrThrow(userId);
         orderEntity.setUser(user);
 
 
         BigDecimal totalPrice = BigDecimal.ZERO;
-        for(CartItemEntity cartEntityItem : cartItemsEntities)
-        {
+        for (CartItemEntity cartEntityItem : cartItemsEntities) {
             /// 6 => get product
-            ProductEntity product=cartEntityItem.getProduct();
+            ProductEntity product = cartEntityItem.getProduct();
             /// 7=> get required quantity
-            int quantityNeeded= cartEntityItem.getQuantity();
+            int quantityNeeded = cartEntityItem.getQuantity();
 
             /// 8=> check & decrease stockCount
-            if(product.getStockCount() <quantityNeeded)
-            {
+            if (product.getStockCount() < quantityNeeded) {
                 throw new BusinessLogicException(
-                    "error.insufficient.stock",
-                    new Object[]{quantityNeeded, product.getStockCount()}
-            );
+                        "error.insufficient.stock",
+                        new Object[]{quantityNeeded, product.getStockCount()}
+                );
             }
             product.setStockCount(product.getStockCount() - quantityNeeded);
             /// 9=> fill cart item data to order item
@@ -186,16 +182,15 @@ public class OrderService extends BaseService<OrderEntity,Long> {
         /// 13 => set initial status
         orderEntity.setStatus(OrderStatus.PENDING);
         /// 14=> save order in db
-        OrderEntity savedOrder=orderRepo.save(orderEntity);
+        OrderEntity savedOrder = orderRepo.save(orderEntity);
         /// 15 => check payment type to update status
         /// ONLINE => WALLET, CARDS, FAWRY
-        if(orderRequest.getPaymentType() != PaymentType.CASH)
-        {
+        if (orderRequest.getPaymentType() != PaymentType.CASH) {
             /// which payment method ?
-            String paymentMethod=orderRequest.getPaymentType().name();
+            String paymentMethod = orderRequest.getPaymentType().name();
             ///  get our link
             paymentDto = paymentService.generatePaymentLink(
-                   paymentMethod,
+                    paymentMethod,
                     userId,
                     totalPrice,
                     orderEntity.getId(),
@@ -214,7 +209,7 @@ public class OrderService extends BaseService<OrderEntity,Long> {
         return responseDto;
     }
 
-    //// Cancel an Order
+    /// / Cancel an Order
     /// logic of cancel order
     private void processOrderCancellation(OrderEntity orderEntity) {
         /// 1=> if payment done already (online)
@@ -230,24 +225,23 @@ public class OrderService extends BaseService<OrderEntity,Long> {
             product.setStockCount(product.getStockCount() + quantity);
         }
     }
+
     @Transactional
     /// for user
-    public void cancelOrder(Long userId , Long orderId)
-    {
+    public void cancelOrder(Long userId, Long orderId) {
         /// 1=> get user order
-        OrderEntity orderEntity=orderRepo.findByIdAndUserId(orderId,userId)
+        OrderEntity orderEntity = orderRepo.findByIdAndUserId(orderId, userId)
                 .orElseThrow(
-                        ()->  new ResourceNotFoundException("Order","id",orderId)
+                        () -> new ResourceNotFoundException("Order", "id", orderId)
                 );
         /// 2=> make sure the order not already canceled
-        if(orderEntity.getStatus() != OrderStatus.PENDING && orderEntity.getStatus() != OrderStatus.PROCESSING)
-        {
-            throw new BusinessLogicException("error.order.state"+ orderEntity.getStatus());
+        if (orderEntity.getStatus() != OrderStatus.PENDING && orderEntity.getStatus() != OrderStatus.PROCESSING) {
+            throw new BusinessLogicException("error.order.state" + orderEntity.getStatus());
         }
-             processOrderCancellation(orderEntity);
-        }
+        processOrderCancellation(orderEntity);
+    }
 
-    //////////////////
+    /// ///////////////
     @Transactional
     public void returnDeliveredOrder(Long userId, Long orderId) {
         /// 1=> get user order
@@ -273,16 +267,15 @@ public class OrderService extends BaseService<OrderEntity,Long> {
             product.setStockCount(product.getStockCount() + quantity);
         }
     }
-    //////////////////
+
+    /// ///////////////
     @Transactional
-    public PaymentResponseDto retryPayment(Long userId, Long orderId,String walletNumber)
-    {
+    public PaymentResponseDto retryPayment(Long userId, Long orderId, String walletNumber) {
         /// 1=> get user order
-        OrderEntity order=orderRepo.findByIdAndUserId(orderId,userId)
+        OrderEntity order = orderRepo.findByIdAndUserId(orderId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
         /// 2=> validate order status must be PENDING
-        if(order.getStatus() !=OrderStatus.PENDING)
-        {
+        if (order.getStatus() != OrderStatus.PENDING) {
             throw new BusinessLogicException("Cannot retry payment for order in state: " + order.getStatus());
         }
         /// 3=> validate order Payment  must be ONLINE
@@ -290,8 +283,8 @@ public class OrderService extends BaseService<OrderEntity,Long> {
             throw new BusinessLogicException("Retry payment is only available for online payment methods");
         }
         /// 4=> generate new payment link
-    PaymentResponseDto paymentDto = paymentService.generatePaymentLink(
-                 order.getPaymentType().name(),
+        PaymentResponseDto paymentDto = paymentService.generatePaymentLink(
+                order.getPaymentType().name(),
                 userId,
                 order.getTotalPrice(),
                 orderId,
@@ -300,19 +293,16 @@ public class OrderService extends BaseService<OrderEntity,Long> {
 
     }
 
-
-    //////////////
+    /// ///////////
     @Transactional
-    public OrderResponseDto updateOrderStatusByAdmin(Long orderId,OrderStatus newStatus)
-    {
-        OrderEntity order=orderRepo.findByIdOrThrow(orderId);
+    public OrderResponseDto updateOrderStatusByAdmin(Long orderId, OrderStatus newStatus) {
+        OrderEntity order = orderRepo.findByIdOrThrow(orderId);
         /// admin cancel user order
         if (newStatus == OrderStatus.CANCELLED) {
             if (order.getStatus() != OrderStatus.CANCELLED && order.getStatus() != OrderStatus.DELIVERED) {
                 processOrderCancellation(order);
             }
-        }
-        else {
+        } else {
             /// edit payment table
             order.setStatus(newStatus);
             if (newStatus == OrderStatus.DELIVERED) {
@@ -339,7 +329,7 @@ public class OrderService extends BaseService<OrderEntity,Long> {
 
         /// 2=> Business Logic: Can't delete order in progress
         if (orderEntity.getStatus() == OrderStatus.PENDING || orderEntity.getStatus() == OrderStatus.SHIPPED) {
-            throw new BusinessLogicException("error.order.state"+ orderEntity.getStatus());
+            throw new BusinessLogicException("error.order.state" + orderEntity.getStatus());
         }
 
         /// 3=> apply soft delete (Update Flag)
@@ -347,21 +337,18 @@ public class OrderService extends BaseService<OrderEntity,Long> {
 
     }
 
-    ////
-    @Value("${app.order.cleanup.hours-limit}")
-    private int hoursLimit;
-    @Scheduled(fixedRateString = "${app.order.cleanup.rate}") /// 12 hour
+    @Scheduled(fixedRateString = "${app.order.cleanup.rate}")
+    /// 12 hour
     @SchedulerLock(name = "cancelAbandonedOrdersLock",
             lockAtMostFor = "15m", lockAtLeastFor = "5m") // <--- السطر الجديد
     @Transactional
-    public void cancelPendingOrdersAutomatically()
-    {
+    public void cancelPendingOrdersAutomatically() {
         log.info("CronJob Started: Checking for abandoned orders...");
         /// 1=> select time => any pending order in last hour
         LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(hoursLimit);
         /// 2=> get Pending orders
-        List<OrderEntity> pendingOrders=orderRepo.findByStatusAndCreatedAtBefore(
-                OrderStatus.PENDING,oneHourAgo
+        List<OrderEntity> pendingOrders = orderRepo.findByStatusAndCreatedAtBefore(
+                OrderStatus.PENDING, oneHourAgo
         );
 
         if (pendingOrders.isEmpty()) {

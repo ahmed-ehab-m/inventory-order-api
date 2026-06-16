@@ -1,12 +1,5 @@
 package com.global.order_api.feature.user;
 
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.global.order_api.core.base.PageResponse;
 import com.global.order_api.core.exception.ResourceNotFoundException;
 import com.global.order_api.core.security.JwtFilter;
@@ -30,6 +23,13 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 @WebMvcTest(value = UserController.class,
         excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
                 classes = JwtFilter.class),
@@ -39,28 +39,24 @@ import java.util.List;
         })
 class UserControllerTest {
 
+    private static final String ENTITY_KEY = "entity.user";
     @Autowired
     private MockMvc mockMvc;
-
     @MockitoBean
     private UserService userService;
-
     @MockitoBean
     private AppTranslator appTranslator;
-
     @Autowired
     private ObjectMapper objectMapper;
 
-    private static final String ENTITY_KEY = "entity.user";
-
-    ////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// READING METHODS ///////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// ///////////////////////////////// READING METHODS ///////////////////////////////////
 
     @Nested
     @DisplayName("1. Get Users Tests (GET)")
     class GetUsersTests {
 
-        ///// Get All Users Page (Admin)
+        /// // Get All Users Page (Admin)
         @Test
         void getUsersPage_ShouldReturnPagedUsers() throws Exception {
             UserResponseDto responseDto = new UserResponseDto();
@@ -88,7 +84,7 @@ class UserControllerTest {
                     .andExpect(jsonPath("$.data.totalElements").value(1));
         }
 
-        ///// Get User By ID - Success
+        /// // Get User By ID - Success
         @Test
         void getUserById_ShouldReturnUser() throws Exception {
             Long userId = 1L;
@@ -109,7 +105,7 @@ class UserControllerTest {
                     .andExpect(jsonPath("$.data.id").value(userId));
         }
 
-        ///// Get User By ID - Not Found
+        /// // Get User By ID - Not Found
         @Test
         void getUserById_WhenUserNotFound_ShouldReturnNotFound() throws Exception {
             Long invalidId = 999L;
@@ -130,14 +126,14 @@ class UserControllerTest {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// UPDATE METHODS ///////////////////////////////////
+    /// ////////////////////////////////////////////////////////////////////////////////////
+    /// ///////////////////////////////// UPDATE METHODS ///////////////////////////////////
 
     @Nested
     @DisplayName("2. Update User Tests (PUT)")
     class UpdateUserTests {
 
-        ///// Update User - Success
+        /// // Update User - Success
         @Test
         void updateUser_WithValidData_ShouldReturnUpdatedUser() throws Exception {
             Long userId = 1L;
@@ -164,7 +160,7 @@ class UserControllerTest {
                     .andExpect(jsonPath("$.data.id").value(userId));
         }
 
-        ///// Update User - Not Found
+        /// // Update User - Not Found
         @Test
         void updateUser_WhenUserNotFound_ShouldReturnNotFound() throws Exception {
             Long invalidId = 999L;
@@ -188,7 +184,8 @@ class UserControllerTest {
                     .andExpect(jsonPath("$.success").value(false))
                     .andExpect(jsonPath("$.message").value(fakeErrorMessage));
         }
-        //// invalid DTO
+
+        /// / invalid DTO
         @Test
         void updateUser_WithInvalidData_ShouldReturnBadRequest() throws Exception {
             Long userId = 1L;
@@ -205,7 +202,7 @@ class UserControllerTest {
         }
 
 
-        ///// Soft Delete User - Success
+        /// // Soft Delete User - Success
         @Test
         void softDeleteUser_ShouldReturnOk() throws Exception {
             Long userId = 1L;
@@ -222,7 +219,7 @@ class UserControllerTest {
                     .andExpect(jsonPath("$.message").value(fakeMessage));
         }
 
-        ///// Soft Delete User - Not Found
+        /// // Soft Delete User - Not Found
         @Test
         void softDeleteUser_WhenUserNotFound_ShouldReturnNotFound() throws Exception {
             Long invalidId = 999L;
@@ -243,7 +240,7 @@ class UserControllerTest {
                     .andExpect(jsonPath("$.message").value(fakeErrorMessage));
         }
 
-        ///// Restore User - Success
+        /// // Restore User - Success
         @Test
         void restoreUser_ShouldReturnOk() throws Exception {
             Long userId = 1L;
@@ -260,7 +257,7 @@ class UserControllerTest {
                     .andExpect(jsonPath("$.message").value(fakeMessage));
         }
 
-        ///// Restore User - Not Found
+        /// // Restore User - Not Found
         @Test
         void restoreUser_WhenUserNotFound_ShouldReturnNotFound() throws Exception {
             Long invalidId = 999L;
@@ -282,14 +279,14 @@ class UserControllerTest {
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// DELETE METHODS ////////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// ///////////////////////////////// DELETE METHODS ////////////////////////////////////
 
     @Nested
     @DisplayName("3. Delete User Tests (DELETE)")
     class DeleteUserTests {
 
-        ///// Hard Delete User - Success
+        /// // Hard Delete User - Success
         @Test
         void hardDeleteUser_ShouldReturnOk() throws Exception {
             Long userId = 1L;
@@ -306,7 +303,7 @@ class UserControllerTest {
                     .andExpect(jsonPath("$.message").value(fakeMessage));
         }
 
-        ///// Hard Delete User - Not Found
+        /// // Hard Delete User - Not Found
         @Test
         void hardDeleteUser_WhenUserNotFound_ShouldReturnNotFound() throws Exception {
             Long invalidId = 999L;

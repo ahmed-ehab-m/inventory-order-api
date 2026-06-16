@@ -11,7 +11,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -49,14 +48,14 @@ class SocialAuthServiceTest {
     @InjectMocks
     private SocialAuthService socialAuthService;
 
-    ////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// GOOGLE TESTS //////////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// ///////////////////////////////// GOOGLE TESTS //////////////////////////////////////
 
     @Nested
     @DisplayName("1. Google Login Tests")
     class GoogleLoginTests {
 
-        ///// Google Login - New User
+        /// // Google Login - New User
         @Test
         void loginWithGoogle_WhenUserIsNew_ShouldSaveUserAndReturnToken() throws Exception {
             // 1. Arrange
@@ -98,7 +97,7 @@ class SocialAuthServiceTest {
             verify(userRepo, times(1)).save(any(UserEntity.class));
         }
 
-        ///// Google Login - Existing User - not save user again
+        /// // Google Login - Existing User - not save user again
         @Test
         void loginWithGoogle_WhenUserAlreadyExists_ShouldReturnTokenWithoutSaving() throws Exception {
             String googleToken = "valid_google_token";
@@ -128,7 +127,7 @@ class SocialAuthServiceTest {
             verify(userRepo, never()).save(any(UserEntity.class));
         }
 
-        ///// Google Login - Invalid Token
+        /// // Google Login - Invalid Token
         @Test
         void loginWithGoogle_WhenTokenIsInvalid_ShouldThrowException() throws Exception {
             String invalidToken = "invalid_google_token";
@@ -141,14 +140,14 @@ class SocialAuthServiceTest {
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// GITHUB TESTS //////////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// ///////////////////////////////// GITHUB TESTS //////////////////////////////////////
 
     @Nested
     @DisplayName("2. GitHub Login Tests")
     class GitHubLoginTests {
 
-        ///// GitHub Login - New User
+        /// // GitHub Login - New User
         @Test
         void loginWithGitHub_WhenUserIsNew_ShouldSaveUserAndReturnToken() {
             String githubToken = "valid_github_token";
@@ -187,7 +186,7 @@ class SocialAuthServiceTest {
             verify(userRepo, times(1)).save(any(UserEntity.class));
         }
 
-        ///// GitHub Login - Existing User
+        /// // GitHub Login - Existing User
         @Test
         void loginWithGitHub_WhenUserAlreadyExists_ShouldReturnTokenWithoutSaving() {
             String githubToken = "valid_github_token";
@@ -218,7 +217,7 @@ class SocialAuthServiceTest {
             verify(userRepo, never()).save(any(UserEntity.class));
         }
 
-        ///// GitHub Login - Invalid Token
+        /// // GitHub Login - Invalid Token
         @Test
         void loginWithGitHub_WhenTokenIsInvalid_ShouldThrowException() {
             String invalidToken = "invalid_github_token";

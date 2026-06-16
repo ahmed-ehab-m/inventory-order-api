@@ -47,14 +47,14 @@ class ProductServiceTest {
     private ProductService productService;
 
 
-    ////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////READING METHODS////////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// /////////////////////////////////READING METHODS////////////////////////////////////
 
     @Nested
     @DisplayName("1. Get Product Tests (GET)")
     class GetProductTests {
 
-        ///// Find by ID Exists - RETURN PRODUCT
+        /// // Find by ID Exists - RETURN PRODUCT
         @Test
         void getProductByIdWithCategory_WhenExists_ShouldReturnProduct() {
             Long id = 1L;
@@ -81,7 +81,7 @@ class ProductServiceTest {
             verify(productMapper, times(1)).mapToDto(fakeEntity);
         }
 
-        ///// Find by ID Does not Exist - NOT FOUND
+        /// // Find by ID Does not Exist - NOT FOUND
         @Test
         void getProductByIdWithCategory_WhenIdNotFound_ShouldThrowException() {
             Long invalidId = 999L;
@@ -94,7 +94,8 @@ class ProductServiceTest {
             verify(productRepo, times(1)).findByIdWithCategory(invalidId);
             verify(productMapper, never()).mapToDto(any());
         }
-        ///// 1. Get Products Page WITHOUT Keyword (Should call Specification)
+
+        /// // 1. Get Products Page WITHOUT Keyword (Should call Specification)
         @Test
         void getProductsPage_WhenNoKeyword_ShouldCallFindAllWithSpecification() {
             // 1. Arrange Filter Request (No keyword)
@@ -124,7 +125,7 @@ class ProductServiceTest {
             verify(productRepo, never()).searchActiveByNameFullText(anyString(), any(Pageable.class));
         }
 
-        ///// 2. Get Products Page WITH Keyword (Should call Full Text Search)
+        /// // 2. Get Products Page WITH Keyword (Should call Full Text Search)
         @Test
         void getProductsPage_WhenKeywordExists_ShouldCallFullTextSearch() {
             // 1. Arrange Filter Request (With keyword)
@@ -154,7 +155,7 @@ class ProductServiceTest {
             verify(productRepo, never()).findAll(any(Specification.class), any(Pageable.class));
         }
 
-        ///// 3. Get Products Page - Empty DB
+        /// // 3. Get Products Page - Empty DB
         @Test
         void getProductsPage_WhenNoProducts_ShouldReturnEmptyPage() {
             ProductFilterRequest filter = new ProductFilterRequest();
@@ -205,7 +206,7 @@ class ProductServiceTest {
             assertEquals(75, response.getData().get(0).getStockCount());
         }
 
-        ///// 1. Get Deleted Products WITHOUT Keyword
+        /// // 1. Get Deleted Products WITHOUT Keyword
         @Test
         void getDeletedProducts_WhenNoKeyword_ShouldCallFindAllWithSpecification() {
             ProductFilterRequest filter = new ProductFilterRequest();
@@ -230,7 +231,7 @@ class ProductServiceTest {
             verify(productRepo, never()).searchDeletedByNameFullText(anyString(), any(Pageable.class));
         }
 
-        ///// 2. Get Deleted Products WITH Keyword
+        /// // 2. Get Deleted Products WITH Keyword
         @Test
         void getDeletedProducts_WhenKeywordExists_ShouldCallDeletedFullTextSearch() {
             ProductFilterRequest filter = new ProductFilterRequest();
@@ -273,8 +274,8 @@ class ProductServiceTest {
             verify(productRepo, times(1)).findAll(any(Specification.class), any(Pageable.class));
         }
 
-        //////////////// GET PRODUCT STOCK COUNT States /////////////
-        ///// Get Product Stock Count - SUCCESS
+        /// ///////////// GET PRODUCT STOCK COUNT States /////////////
+        /// // Get Product Stock Count - SUCCESS
         @Test
         void getProductStockCount_WhenProductExists_ShouldReturnStockCount() {
             /// 1=> Setup Data
@@ -293,7 +294,7 @@ class ProductServiceTest {
             verify(productRepo, times(1)).findStockCountById(productId);
         }
 
-        ///// Get Product Stock Count - FAIL: Product Not Found
+        /// // Get Product Stock Count - FAIL: Product Not Found
         @Test
         void getProductStockCount_WhenProductDoesNotExist_ShouldThrowResourceNotFoundException() {
             /// 1=> Setup Data
@@ -312,14 +313,14 @@ class ProductServiceTest {
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////WRITING METHODS////////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// /////////////////////////////////WRITING METHODS////////////////////////////////////
 
     @Nested
     @DisplayName("2. Create Product Tests (POST)")
     class CreateProductTests {
 
-        ///// Create Product WITH Image - RETURN CREATED PRODUCT
+        /// // Create Product WITH Image - RETURN CREATED PRODUCT
         @Test
         void createProduct_WithImage_ShouldUploadImageAndSaveProduct() {
             // 1. Arrange Request & Mocks
@@ -371,7 +372,7 @@ class ProductServiceTest {
             verify(productRepo, times(1)).save(mappedEntity);
         }
 
-        ///// Create Product WITHOUT Image - RETURN CREATED PRODUCT
+        /// // Create Product WITHOUT Image - RETURN CREATED PRODUCT
         @Test
         void createProduct_WithoutImage_ShouldSaveProductWithoutUpload() {
             ProductRequestDto requestDto = new ProductRequestDto();
@@ -391,7 +392,7 @@ class ProductServiceTest {
             verify(productRepo, times(1)).save(any(ProductEntity.class));
         }
 
-        ///// Create Product - Category Not Found - Should Throw Exception
+        /// // Create Product - Category Not Found - Should Throw Exception
         @Test
         void createProduct_WhenCategoryDoesNotExist_ShouldThrowException() {
             // 1. Arrange
@@ -420,14 +421,14 @@ class ProductServiceTest {
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////UPDATE METHODS////////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// /////////////////////////////////UPDATE METHODS////////////////////////////////////
 
     @Nested
     @DisplayName("3. Update Product Tests (PUT)")
     class UpdateProductTests {
 
-        ///// Update Product WITH New Image (Deletes old image) - RETURN UPDATED PRODUCT
+        /// // Update Product WITH New Image (Deletes old image) - RETURN UPDATED PRODUCT
         @Test
         void updateProduct_WithNewImage_ShouldDeleteOldAndUploadNew() {
             Long productId = 1L;
@@ -463,7 +464,7 @@ class ProductServiceTest {
             verify(productRepo, times(1)).save(existingEntity);
         }
 
-        ///// Update Product without changing image - Product Updated
+        /// // Update Product without changing image - Product Updated
         @Test
         void updateProduct_WithoutNewImage_ShouldOnlyUpdateFields() {
             // 1. Arrange
@@ -491,7 +492,7 @@ class ProductServiceTest {
             verify(productRepo, times(1)).save(existingProduct);
         }
 
-        ///// Update Product(without image) with uploading image  - Product Updated
+        /// // Update Product(without image) with uploading image  - Product Updated
         @Test
         void updateProduct_WithNewImageWhenNoOldImageExists_ShouldOnlyUploadNewImage() {
             // 1. Arrange
@@ -526,7 +527,7 @@ class ProductServiceTest {
             verify(productRepo, times(1)).save(existingProduct);
         }
 
-        ///// Update Product But not found in DB - Throw Exception
+        /// // Update Product But not found in DB - Throw Exception
         @Test
         void updateProduct_WhenProductIdDoesNotExist_ShouldThrowException() {
             // 1. Arrange
@@ -548,7 +549,7 @@ class ProductServiceTest {
             verify(productRepo, never()).save(any());
         }
 
-        ///// Update Product But category not found in DB - Throw Exception
+        /// // Update Product But category not found in DB - Throw Exception
         @Test
         void updateProduct_WhenNewCategoryDoesNotExist_ShouldThrowException() {
             // 1. Arrange
@@ -572,8 +573,8 @@ class ProductServiceTest {
             verify(productRepo, never()).save(any());
         }
 
-        ///// Restore Product - Should Call Repo Restore
-        ///// Restore Product - Should Call Repo Restore
+        /// // Restore Product - Should Call Repo Restore
+        /// // Restore Product - Should Call Repo Restore
         @Test
         void restoreProduct_ShouldInvokeRepoRestore() {
             Long productId = 1L;
@@ -600,8 +601,8 @@ class ProductServiceTest {
             verify(productRepo, times(1)).restoreProduct(anyLong());
         }
 
-        //////////////// REDUCE STOCK States /////////////
-        ///// Reduce Stock - SUCCESS
+        /// ///////////// REDUCE STOCK States /////////////
+        /// // Reduce Stock - SUCCESS
         @Test
         void reduceStock_WhenExistsAndStockSufficient_ShouldReduceAndSave() {
             /// 1=> Setup Data
@@ -627,7 +628,7 @@ class ProductServiceTest {
             verify(productRepo, times(1)).save(fakeEntity);
         }
 
-        ///// Reduce Stock - FAIL: Insufficient Stock
+        /// // Reduce Stock - FAIL: Insufficient Stock
         @Test
         void reduceStock_WhenRequestedQuantityGreaterThanStock_ShouldThrowBusinessLogicException() {
             /// 1=> Setup Data
@@ -651,7 +652,7 @@ class ProductServiceTest {
             verify(productRepo, never()).save(any());
         }
 
-        ///// Reduce Stock - FAIL: Product Not Found
+        /// // Reduce Stock - FAIL: Product Not Found
         @Test
         void reduceStock_WhenProductNotFound_ShouldThrowResourceNotFoundException() {
             /// 1=> Setup Data
@@ -672,14 +673,14 @@ class ProductServiceTest {
 
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////DELETE METHODS////////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// /////////////////////////////////DELETE METHODS////////////////////////////////////
 
     @Nested
     @DisplayName("4. Delete Product Tests (DELETE)")
     class DeleteProductTests {
 
-        ///// Hard Delete - Should delete image from Cloudinary then delete product
+        /// // Hard Delete - Should delete image from Cloudinary then delete product
         @Test
         void forceDeleteProduct_WhenImageExists_ShouldDeleteImageAndProduct() {
             Long productId = 1L;
@@ -700,7 +701,7 @@ class ProductServiceTest {
             verify(productRepo, times(1)).hardDeleteProduct(productId);
         }
 
-        ///// Hard Delete - No image - Should only delete product
+        /// // Hard Delete - No image - Should only delete product
         @Test
         void forceDeleteProduct_WhenNoImage_ShouldOnlyDeleteProduct() {
             Long productId = 1L;
@@ -717,7 +718,7 @@ class ProductServiceTest {
             verify(productRepo, times(1)).hardDeleteProduct(productId);
         }
 
-        ///// Hard Delete - When Product ID Does Not Exist - Should Throw Exception
+        /// // Hard Delete - When Product ID Does Not Exist - Should Throw Exception
         @Test
         void forceDeleteProduct_WhenProductIdDoesNotExist_ShouldThrowException() {
             // 1. Arrange
@@ -727,7 +728,7 @@ class ProductServiceTest {
                     .thenThrow(new ResourceNotFoundException("Product", "id", invalidId));
 
             // 2. Act & Assert
-           assertThrows(ResourceNotFoundException.class, () ->
+            assertThrows(ResourceNotFoundException.class, () ->
                     productService.forceDeleteProduct(invalidId));
 
             // 3. Verify
@@ -737,7 +738,7 @@ class ProductServiceTest {
             verify(productRepo, never()).hardDeleteProduct(anyLong());
         }
 
-        ///// Soft Delete - When Product Exists - Should Delete Product
+        /// // Soft Delete - When Product Exists - Should Delete Product
         @Test
         void deleteProduct_WhenExists_ShouldDeleteProduct() {
             // 1. Arrange
@@ -756,7 +757,7 @@ class ProductServiceTest {
             verify(productRepo, times(1)).deleteById(productId);
         }
 
-        ///// Soft Delete - When Id Not Found - Should Throw Exception
+        /// // Soft Delete - When Id Not Found - Should Throw Exception
         @Test
         void deleteProduct_WhenIdNotFound_ShouldThrowException() {
             // 1. Arrange

@@ -12,7 +12,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -51,15 +50,14 @@ class CartServiceTest {
     private CartService cartService;
 
 
-
-    ////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// READING METHODS ////////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// ///////////////////////////////// READING METHODS ////////////////////////////////////
 
     @Nested
     @DisplayName("1. Get User Cart Tests (GET)")
     class GetUserCartTests {
 
-        ///// Find by RAW Car ID Exists - RETURN Cart
+        /// // Find by RAW Car ID Exists - RETURN Cart
         @Test
         void getRawCart_WhenCartExists_ShouldReturnRawCartDto() {
             // 1. Setup Data
@@ -104,7 +102,7 @@ class CartServiceTest {
             verify(cartMapper, never()).mapToRawDto(any());
         }
 
-        ///// Find by ID Exists - RETURN Hydrated Cart
+        /// // Find by ID Exists - RETURN Hydrated Cart
         @Test
         void getUserCart_WhenCartExists_ShouldReturnHydratedCartDto() {
             // 1. Arrange
@@ -149,7 +147,7 @@ class CartServiceTest {
             verify(productService, times(1)).getProductByIdWithCategory(productId);
         }
 
-        ///// Find by ID Doesn't exist (Or Empty Items) - RETURN empty cart
+        /// // Find by ID Doesn't exist (Or Empty Items) - RETURN empty cart
         @Test
         void getUserCart_WhenCartDoesNotExist_ShouldReturnEmptyCartDto() {
             // 1. Arrange
@@ -171,8 +169,8 @@ class CartServiceTest {
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// WRITING METHODS ////////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// ///////////////////////////////// WRITING METHODS ////////////////////////////////////
 
     @Nested
     @DisplayName("2. Add Cart Item Tests (POST)")
@@ -277,8 +275,8 @@ class CartServiceTest {
             verify(cartRepo, times(1)).save(any(CartEntity.class));
         }
 
-        ///// FAILURE CASES FOR ADD ITEM /////
-        //// add cart item but product id not found - Throw exception
+        /// // FAILURE CASES FOR ADD ITEM /////
+        /// / add cart item but product id not found - Throw exception
         @Test
         void addCartItem_WhenProductNotFound_ShouldThrowException() {
             Long userId = 1L;
@@ -297,7 +295,7 @@ class CartServiceTest {
             verify(cartRepo, never()).save(any());
         }
 
-        //// add cart item but quantity required exceeds Stock - Throw exception
+        /// / add cart item but quantity required exceeds Stock - Throw exception
         @Test
         void addCartItem_WhenExistingItemQuantityExceedsStock_ShouldThrowException() {
             Long userId = 1L;
@@ -369,14 +367,14 @@ class CartServiceTest {
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// REMOVE & UPDATE METHODS ////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// ///////////////////////////////// REMOVE & UPDATE METHODS ////////////////////////////
 
     @Nested
     @DisplayName("3. Remove & Update Cart Item Tests")
     class RemoveAndUpdateTests {
 
-        ///// REMOVE SUCCESS /////
+        /// // REMOVE SUCCESS /////
         /// Remove Cart Item - Removed
         @Test
         void removeCartItem_WhenItemExists_ShouldRemoveItem() {
@@ -399,7 +397,7 @@ class CartServiceTest {
             assertTrue(cart.getItems().isEmpty());
         }
 
-        ///// REMOVE FAILURES /////
+        /// // REMOVE FAILURES /////
         /// Remove cart item but cart not found - Throw Exception
         @Test
         void removeCartItem_WhenCartNotFound_ShouldThrowException() {
@@ -425,7 +423,7 @@ class CartServiceTest {
                     cartService.removeCartItem(userId, invalidCartItemId));
         }
 
-        ///// UPDATE SUCCESS /////
+        /// // UPDATE SUCCESS /////
         /// Update product with valid quantity - Update Quantity
         @Test
         void updateItemQuantity_WhenQuantityIsValid_ShouldUpdateQuantity() {
@@ -481,7 +479,7 @@ class CartServiceTest {
             assertTrue(cart.getItems().isEmpty()); // Confirms removeCartItem logic ran
         }
 
-        ///// UPDATE FAILURES /////
+        /// // UPDATE FAILURES /////
         /// Update product with invalid quantity - Throw Exception
         @Test
         void updateItemQuantity_WhenExceedsStock_ShouldThrowException() {
@@ -522,8 +520,8 @@ class CartServiceTest {
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// CLEAR CART METHODS ////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// ///////////////////////////////// CLEAR CART METHODS ////////////////////////////////
 
     @Nested
     @DisplayName("4. Clear Cart Tests")

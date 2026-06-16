@@ -7,22 +7,21 @@ import lombok.Setter;
 @Getter
 @Setter
 public class BaseFilterRequestDto {
-	
-	private String searchKeyword;
-	/// Default values to avoid NullPointerException
-	@Min(value = 0, message = "{error.validation.page.min}")
-	private int page=0;
-	@Min(value = 1, message = "{error.validation.size.min}")
-	private int size=10;
-	private String sortBy="createdAt";
-	private String sortDirection="DESC";
 
-	public String generateCacheKey()
-	{
-		String keyword = (this.getSearchKeyword() != null && !this.getSearchKeyword().isBlank())
-				? this.getSearchKeyword()  : "all";
-		return this.getPage()+"-"+this.getSize()+"-"+
-				this.getSortDirection()+"-"+this.getSortBy()+"-"+keyword;
-	}
-	
+    private String searchKeyword;
+    /// Default values to avoid NullPointerException
+    @Min(value = 0, message = "{error.validation.page.min}")
+    private int page = 0;
+    @Min(value = 1, message = "{error.validation.size.min}")
+    private int size = 10;
+    private String sortBy = "createdAt";
+    private String sortDirection = "DESC";
+
+    public String generateCacheKey() {
+        String keyword = (this.getSearchKeyword() != null && !this.getSearchKeyword().isBlank())
+                ? this.getSearchKeyword() : "all";
+        return this.getPage() + "-" + this.getSize() + "-" +
+                this.getSortDirection() + "-" + this.getSortBy() + "-" + keyword;
+    }
+
 }

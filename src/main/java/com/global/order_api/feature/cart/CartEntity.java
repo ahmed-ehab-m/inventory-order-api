@@ -4,8 +4,6 @@ import com.global.order_api.core.base.BaseEntity;
 import com.global.order_api.feature.user.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import org.checkerframework.checker.units.qual.A;
-import org.hibernate.annotations.SQLDelete;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +21,7 @@ import java.util.List;
 public class CartEntity extends BaseEntity<Long> {
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id",nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
     /// to make bidirectional relationship
@@ -37,13 +35,12 @@ public class CartEntity extends BaseEntity<Long> {
     ///
     /// orphanRemoval => if i delete cartItem from list items
     /// hibernate will remove it from DB
-    @OneToMany(mappedBy = "cart",cascade = CascadeType.ALL , orphanRemoval = true)
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     /// initialize => to avoid NullPointerException when adding new cartItem
-    private List<CartItemEntity> items=new ArrayList<>();
+    private List<CartItemEntity> items = new ArrayList<>();
 
     /// to fix issue => cart_id can't be Null
-    public  void addCartItem(CartItemEntity item)
-    {
+    public void addCartItem(CartItemEntity item) {
         this.items.add(item);
         item.setCart(this);
     }

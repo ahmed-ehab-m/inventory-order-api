@@ -6,9 +6,9 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface CartRepo extends BaseRepo<CartEntity,Long> {
+public interface CartRepo extends BaseRepo<CartEntity, Long> {
 
-    //// indexing //////////
+    /// / indexing //////////
     /// id pk =>cluster index => very fast
     /// Optional => if user doesn't have cart
     /// to return the cart of user

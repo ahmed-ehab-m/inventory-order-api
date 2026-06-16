@@ -7,8 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UserSpecification {
-    //////////////////////////////
-    public  static Specification<UserEntity> buildFilter(UserFilterRequest filter) {
+    /// ///////////////////////////
+    public static Specification<UserEntity> buildFilter(UserFilterRequest filter) {
         return (root, query, criteriaBuilder) -> {
             // List not array because list is more easily add operation
             List<Predicate> predicates = new ArrayList<>();

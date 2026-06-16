@@ -4,8 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,19 +18,22 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.client.RestTemplate;
 
 
-@Configuration /// to make spring boot read this class when starting
-@EnableWebSecurity /// to edit default security filter chain
+@Configuration
+/// to make spring boot read this class when starting
+@EnableWebSecurity
+/// to edit default security filter chain
 @RequiredArgsConstructor
 @EnableMethodSecurity
 public class SecurityConfig {
-    private  final JwtFilter jwtFilter;
-    private  final UserDetailsService userDetailsService;
-    private  final OAuth2SuccessHandler oAuth2SuccessHandler;
-    
+    private final JwtFilter jwtFilter;
+    private final UserDetailsService userDetailsService;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
-    @Bean /// save this return object in context
+
+    @Bean
+    /// save this return object in context
     /// HTTP security => object to edit default security filter chain
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws  Exception{
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 /// Disable CSRF FILTER because i will not depend on JWT Filter
                 .csrf(AbstractHttpConfigurer::disable)
@@ -58,15 +59,16 @@ public class SecurityConfig {
                 /// depends on Jwt Token
                 .sessionManagement((session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                        ))
+                ))
                 .oauth2Login(oauth2 -> oauth2
                         .successHandler((oAuth2SuccessHandler)))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-                return http.build();
+        return http.build();
     }
+
     @Bean
-    public AuthenticationManager authenticationManger(AuthenticationConfiguration config)  {
-        return  config.getAuthenticationManager();
+    public AuthenticationManager authenticationManger(AuthenticationConfiguration config) {
+        return config.getAuthenticationManager();
     }
 
     @Bean

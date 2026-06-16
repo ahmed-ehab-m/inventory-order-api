@@ -18,6 +18,6 @@ public class CartItemRequestDto {
     private Long productId;
 
     @NotNull(message = "{validation.field.required}")
-    @Min(value = 1,message = "{validation.field.positive}")
+    @Min(value = 1, message = "{validation.field.positive}")
     private Integer quantity;
 }

@@ -1,12 +1,5 @@
 package com.global.order_api.feature.cart;
 
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.global.order_api.core.exception.ResourceNotFoundException;
 import com.global.order_api.core.security.JwtFilter;
 import com.global.order_api.core.security.SecurityUtils;
@@ -20,17 +13,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration;
 import org.springframework.boot.security.autoconfigure.web.servlet.SecurityFilterAutoConfiguration;
 import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientAutoConfiguration;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(value = CartController.class,
         excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
@@ -41,31 +40,27 @@ import java.util.List;
         })
 class CartControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockitoBean
-    private CartService cartService;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @MockitoBean
-    private AppTranslator appTranslator;
-
     private static final String ENTITY_KEY = "entity.cart";
     private static final String CART_ITEM_ENTITY_KEY = "entity.cart_item"; // ده للعناصر
     /// to mock user id for security
     private static final Long CURRENT_USER_ID = 1L;
+    @Autowired
+    private MockMvc mockMvc;
+    @MockitoBean
+    private CartService cartService;
+    @Autowired
+    private ObjectMapper objectMapper;
+    @MockitoBean
+    private AppTranslator appTranslator;
 
-    ////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// READING METHODS ///////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// ///////////////////////////////// READING METHODS ///////////////////////////////////
 
     @Nested
     @DisplayName("1. Get Cart Tests (GET)")
     class GetCartTests {
 
-        ///// Get User Cart - Success
+        /// // Get User Cart - Success
         @Test
         void getUserCart_ShouldReturnCart() throws Exception {
             /// fake dto returned from service
@@ -97,14 +92,14 @@ class CartControllerTest {
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// WRITING METHODS ///////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// ///////////////////////////////// WRITING METHODS ///////////////////////////////////
 
     @Nested
     @DisplayName("2. Add Cart Item Tests (POST)")
     class AddCartItemTests {
 
-        ///// Add Item - Success
+        /// // Add Item - Success
         @Test
         void addCartItem_WithValidData_ShouldReturnUpdatedCart() throws Exception {
             CartItemRequestDto requestDto = new CartItemRequestDto();
@@ -139,7 +134,7 @@ class CartControllerTest {
             }
         }
 
-        ///// Add Item - Validation Failed (Null Product ID / Invalid Quantity)
+        /// // Add Item - Validation Failed (Null Product ID / Invalid Quantity)
         @Test
         void addCartItem_WithInvalidData_ShouldReturnBadRequest() throws Exception {
             CartItemRequestDto invalidRequest = new CartItemRequestDto();
@@ -160,14 +155,14 @@ class CartControllerTest {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// UPDATE METHODS ///////////////////////////////////
+    /// ////////////////////////////////////////////////////////////////////////////////////
+    /// ///////////////////////////////// UPDATE METHODS ///////////////////////////////////
 
     @Nested
     @DisplayName("3. Update Cart Item Tests (PUT)")
     class UpdateCartItemTests {
 
-        ///// Update Quantity - Success
+        /// // Update Quantity - Success
         @Test
         void updateQuantity_WithValidData_ShouldReturnOk() throws Exception {
             Long cartItemId = 50L;
@@ -203,7 +198,7 @@ class CartControllerTest {
             }
         }
 
-        ///// Update Quantity - Cart Item Not Found
+        /// // Update Quantity - Cart Item Not Found
         @Test
         void updateQuantity_WhenItemNotFound_ShouldReturnNotFound() throws Exception {
             Long invalidCartItemId = 99L;
@@ -231,14 +226,14 @@ class CartControllerTest {
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// DELETE METHODS ////////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// ///////////////////////////////// DELETE METHODS ////////////////////////////////////
 
     @Nested
     @DisplayName("4. Delete Cart Tests (DELETE)")
     class DeleteCartTests {
 
-        ///// Remove Single Cart Item
+        /// // Remove Single Cart Item
         @Test
         void removeCartItem_ShouldReturnOk() throws Exception {
             Long cartItemId = 50L;
@@ -260,7 +255,7 @@ class CartControllerTest {
             }
         }
 
-        ///// Clear Entire Cart
+        /// // Clear Entire Cart
         @Test
         void removeCart_ShouldReturnOk() throws Exception {
             String fakeMessage = "Cart cleared successfully";

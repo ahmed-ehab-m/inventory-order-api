@@ -1,12 +1,5 @@
 package com.global.order_api.feature.order;
 
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.global.order_api.core.base.PageResponse;
 import com.global.order_api.core.exception.ResourceNotFoundException;
 import com.global.order_api.core.security.JwtFilter;
@@ -33,6 +26,13 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 @WebMvcTest(value = OrderController.class,
         excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
                 classes = JwtFilter.class),
@@ -42,29 +42,45 @@ import java.util.List;
         })
 class OrderControllerTest {
 
+    private static final String ENTITY_KEY = "entity.order";
+    private static final Long CURRENT_USER_ID = 1L;
     @Autowired
     private MockMvc mockMvc;
-
     @MockitoBean
     private OrderService orderService;
-
     @MockitoBean
     private AppTranslator appTranslator;
-
     @Autowired
     private ObjectMapper objectMapper;
 
-    private static final String ENTITY_KEY = "entity.order";
-    private static final Long CURRENT_USER_ID = 1L;
+    /// // Hard Delete Order (Admin) - Order Not Found
+    @Test
+    void hardDeleteOrder_WhenOrderNotFound_ShouldReturnNotFound() throws Exception {
+        Long invalidOrderId = 999L;
+        String errorKey = "error.resource.not.found";
+        String fakeErrorMessage = "Order not found with id: " + invalidOrderId;
+        doThrow(new ResourceNotFoundException("Order", "id", invalidOrderId))
+                .when(orderService).hardDeleteOrder(invalidOrderId);
 
-    ////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// READING METHODS ///////////////////////////////////
+        when(appTranslator.translateMessage(eq(errorKey), ArgumentMatchers.any(Object[].class)))
+                .thenReturn(fakeErrorMessage);
+
+        mockMvc.perform(delete("/api/v1/orders/hard-delete-order/{id}", invalidOrderId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value(fakeErrorMessage));
+    }
+
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// ///////////////////////////////// READING METHODS ///////////////////////////////////
 
     @Nested
     @DisplayName("1. Get Orders Tests (GET)")
     class GetOrdersTests {
 
-        ///// Get All Orders (Admin)
+        /// // Get All Orders (Admin)
         @Test
         void getAllOrders_ShouldReturnPagedOrders() throws Exception {
             OrderResponseDto responseDto = new OrderResponseDto();
@@ -97,7 +113,7 @@ class OrderControllerTest {
                     .andExpect(jsonPath("$.data.totalElements").value(1));
         }
 
-        ///// Get User Orders (Customer)
+        /// // Get User Orders (Customer)
         @Test
         void getUserOrder_ShouldReturnUserOrders() throws Exception {
             OrderResponseDto responseDto = new OrderResponseDto();
@@ -129,7 +145,7 @@ class OrderControllerTest {
             }
         }
 
-        ///// Get User Orders - Invalid Filter (Validation Failed)
+        /// // Get User Orders - Invalid Filter (Validation Failed)
         @Test
         void getUserOrder_WithInvalidFilter_ShouldReturnBadRequest() throws Exception {
             try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
@@ -147,14 +163,14 @@ class OrderControllerTest {
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// WRITING METHODS ///////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// ///////////////////////////////// WRITING METHODS ///////////////////////////////////
 
     @Nested
     @DisplayName("2. Create Order Tests (POST)")
     class CreateOrderTests {
 
-        ///// Create Order - Success
+        /// // Create Order - Success
         @Test
         void createOrder_WithValidData_ShouldReturnCreatedOrder() throws Exception {
             OrderRequestDto requestDto = new OrderRequestDto();
@@ -182,7 +198,7 @@ class OrderControllerTest {
             }
         }
 
-        ///// Create Order - Validation Failed (Empty/Invalid DTO)
+        /// // Create Order - Validation Failed (Empty/Invalid DTO)
         @Test
         void createOrder_WithInvalidData_ShouldReturnBadRequest() throws Exception {
             OrderRequestDto invalidRequest = new OrderRequestDto();
@@ -201,14 +217,14 @@ class OrderControllerTest {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// UPDATE METHODS ///////////////////////////////////
+    /// ////////////////////////////////////////////////////////////////////////////////////
+    /// ///////////////////////////////// UPDATE METHODS ///////////////////////////////////
 
     @Nested
     @DisplayName("3. Update Order Tests (PUT)")
     class UpdateOrderTests {
 
-        ///// Cancel Order - Success
+        /// // Cancel Order - Success
         @Test
         void cancelOrder_ShouldReturnOk() throws Exception {
             Long orderId = 15L;
@@ -231,7 +247,7 @@ class OrderControllerTest {
 
         }
 
-        ///// Cancel Order - Order Not Found
+        /// // Cancel Order - Order Not Found
         @Test
         void cancelOrder_WhenOrderNotFound_ShouldReturnNotFound() throws Exception {
             Long invalidOrderId = 999L;
@@ -256,7 +272,7 @@ class OrderControllerTest {
             }
         }
 
-        ///// Soft Delete Order - Success
+        /// // Soft Delete Order - Success
         @Test
         void softDeleteOrder_ShouldReturnOk() throws Exception {
             Long orderId = 20L;
@@ -277,7 +293,7 @@ class OrderControllerTest {
             }
         }
 
-        ///// Soft Delete Order - Order Not Found
+        /// // Soft Delete Order - Order Not Found
         @Test
         void softDeleteOrder_WhenOrderNotFound_ShouldReturnNotFound() throws Exception {
             Long invalidOrderId = 999L;
@@ -303,14 +319,14 @@ class OrderControllerTest {
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// DELETE METHODS ////////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// ///////////////////////////////// DELETE METHODS ////////////////////////////////////
 
     @Nested
     @DisplayName("4. Delete Order Tests (DELETE)")
     class DeleteOrderTests {
 
-        ///// Hard Delete Order (Admin) - Success
+        /// // Hard Delete Order (Admin) - Success
         @Test
         void hardDeleteOrder_ShouldReturnOk() throws Exception {
             Long orderId = 99L;
@@ -327,24 +343,5 @@ class OrderControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.message").value(fakeMessage));
         }
-    }
-    ///// Hard Delete Order (Admin) - Order Not Found
-    @Test
-    void hardDeleteOrder_WhenOrderNotFound_ShouldReturnNotFound() throws Exception {
-        Long invalidOrderId = 999L;
-        String errorKey = "error.resource.not.found";
-        String fakeErrorMessage = "Order not found with id: " + invalidOrderId;
-        doThrow(new ResourceNotFoundException("Order", "id", invalidOrderId))
-                .when(orderService).hardDeleteOrder(invalidOrderId);
-
-        when(appTranslator.translateMessage(eq(errorKey), ArgumentMatchers.any(Object[].class)))
-                .thenReturn(fakeErrorMessage);
-
-        mockMvc.perform(delete("/api/v1/orders/hard-delete-order/{id}", invalidOrderId)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.message").value(fakeErrorMessage));
     }
 }

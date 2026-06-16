@@ -2,7 +2,7 @@ package com.global.order_api.feature.auth;
 
 import com.global.order_api.core.response.ApiResponse;
 import com.global.order_api.core.utils.AppTranslator;
-import com.global.order_api.feature.user.*;
+import com.global.order_api.feature.user.UserRequestDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
@@ -16,36 +16,34 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("api/v1/auth")
 @RequiredArgsConstructor
-@Tag(name = "Auth Management",description = "APIs for managing Authentication")
-public class AuthController
-{
-    private  final AppTranslator appTranslator;
-    private static  final String ENTITY_KEY="entity.user";
+@Tag(name = "Auth Management", description = "APIs for managing Authentication")
+public class AuthController {
+    private static final String ENTITY_KEY = "entity.user";
+    private final AppTranslator appTranslator;
     private final SocialAuthService socialAuthService;
     private final AuthService authService;
 
     /// Auth METHODS
+    ///
     /// @validated => understand validation groups
     @PostMapping("/register")
     @Operation(summary = "Register New User", description = "Creates a new user account and returns a JWT token. Public access.")
     public ResponseEntity<ApiResponse<AuthResponseDto>> register(
-            @Validated(ValidationGroups.OnRegister.class) @RequestBody UserRequestDto user)
-    {
-        AuthResponseDto authResponseDto=authService.register(user);
-        String message=appTranslator.getTranslatedAction("success.created", ENTITY_KEY);
-        ApiResponse<AuthResponseDto> apiResponse=ApiResponse.success(authResponseDto,message);
-        return  ResponseEntity.ok(apiResponse);
+            @Validated(ValidationGroups.OnRegister.class) @RequestBody UserRequestDto user) {
+        AuthResponseDto authResponseDto = authService.register(user);
+        String message = appTranslator.getTranslatedAction("success.created", ENTITY_KEY);
+        ApiResponse<AuthResponseDto> apiResponse = ApiResponse.success(authResponseDto, message);
+        return ResponseEntity.ok(apiResponse);
     }
 
     @PostMapping("/login")
     @Operation(summary = "User Login", description = "Authenticates a user by email and password, and returns a JWT token. Public access.")
     public ResponseEntity<ApiResponse<AuthResponseDto>> login(
-            @Validated(ValidationGroups.OnLogin.class) @RequestBody UserRequestDto user)
-    {
-        AuthResponseDto authResponseDto=authService.login(user);
-        String message=appTranslator.translateMessage("success.login");
-        ApiResponse<AuthResponseDto> apiResponse=ApiResponse.success(authResponseDto,message);
-        return  ResponseEntity.ok(apiResponse);
+            @Validated(ValidationGroups.OnLogin.class) @RequestBody UserRequestDto user) {
+        AuthResponseDto authResponseDto = authService.login(user);
+        String message = appTranslator.translateMessage("success.login");
+        ApiResponse<AuthResponseDto> apiResponse = ApiResponse.success(authResponseDto, message);
+        return ResponseEntity.ok(apiResponse);
     }
 
     @GetMapping("/success")
@@ -58,10 +56,9 @@ public class AuthController
 
     @Operation(summary = "Logout User", description = "Clears the authentication cookie to log the user out (For Web Clients).")
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<Void>> logout(HttpServletResponse response)
-    {
+    public ResponseEntity<ApiResponse<Void>> logout(HttpServletResponse response) {
         /// 1=> create cookie with the same name
-        Cookie cookie=new Cookie("jwt_token",null);
+        Cookie cookie = new Cookie("jwt_token", null);
         /// 2=> delete cookie from browser
         cookie.setMaxAge(0);
         /// 3=> put same properties to the browser to know that => it is the old cookie
@@ -78,12 +75,12 @@ public class AuthController
         return ResponseEntity.ok(apiResponse);
     }
 
-    ///Mobile Google SignIN
+    /// Mobile Google SignIN
     @Operation(summary = "Google Login for Mobile", description = "Receives a Google token from mobile client and returns a JWT.")
     @PostMapping("/social/google")
     public ResponseEntity<ApiResponse<String>> loginWithGoogleMobile(
             @Valid @RequestBody SocialLoginRequestDto request) {
-        String jwtToken=socialAuthService.loginWithGoogle(request.getToken());
+        String jwtToken = socialAuthService.loginWithGoogle(request.getToken());
         String message = appTranslator.getTranslatedAction("success.login", ENTITY_KEY);
         ApiResponse<String> apiResponse = ApiResponse.success(jwtToken, message != null ? message : "Login successful");
         return ResponseEntity.ok(apiResponse);

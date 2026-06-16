@@ -11,11 +11,12 @@ import lombok.experimental.SuperBuilder;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@SuperBuilder /// to see the id field
+@SuperBuilder
+/// to see the id field
 public class UserResponseDto extends BaseResponseDto<Long> {
-    private  String name;
+    private String name;
     private String email;
-    private  String location;
-    private  String phone;
+    private String location;
+    private String phone;
     private UserRole role;
 }

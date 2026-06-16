@@ -1,10 +1,6 @@
 package com.global.order_api.feature.user;
 
 import com.global.order_api.core.base.BaseRepo;
-import jakarta.validation.Valid;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -14,12 +10,13 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface UserRepo extends BaseRepo<UserEntity,Long>, JpaSpecificationExecutor<UserEntity> {
+public interface UserRepo extends BaseRepo<UserEntity, Long>, JpaSpecificationExecutor<UserEntity> {
     /// Static queries needed for basic Business
     /// for login
     /// Indexing
     /// email unique => non cluster index => very fast
     Optional<UserEntity> findByEmail(String email);
+
     /// for better performance
     /// /// Indexing
     ///     /// email unique => non cluster index => very fast
@@ -33,15 +30,14 @@ public interface UserRepo extends BaseRepo<UserEntity,Long>, JpaSpecificationExe
 //    Page<UserEntity> findAll(Specification<UserEntity> spec ,Pageable pageable);
 
 
-
-    //// HARD DELETE
+    /// / HARD DELETE
     @Modifying
-    @Query(value = "DELETE FROM users where id =:id",nativeQuery = true)
+    @Query(value = "DELETE FROM users where id =:id", nativeQuery = true)
     void hardDeleteUser(@Param("id") Long id);
 
-    //// RESTORE USER
+    /// / RESTORE USER
     @Modifying
-    @Query(value = "UPDATE users set is_deleted=false where id= :id",nativeQuery = true)
+    @Query(value = "UPDATE users set is_deleted=false where id= :id", nativeQuery = true)
     void restoreUser(@Param("id") Long id);
 
 }

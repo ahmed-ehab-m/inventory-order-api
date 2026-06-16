@@ -1,13 +1,5 @@
 package com.global.order_api.feature.product;
 
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.global.order_api.core.base.PageResponse;
 import com.global.order_api.core.exception.FileStorageException;
 import com.global.order_api.core.exception.ResourceNotFoundException;
@@ -27,16 +19,23 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.multipart.MultipartFile;
 import tools.jackson.databind.ObjectMapper;
-import org.springframework.http.MediaType;
 
 import java.math.BigDecimal;
 import java.util.List;
+
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 @WebMvcTest(value = ProductController.class,
@@ -48,29 +47,24 @@ import java.util.List;
         })
 class ProductControllerTest {
 
+    private static final String ENTITY_KEY = "entity.product";
     @Autowired
     private MockMvc mockMvc;
-
     @MockitoBean
     private ProductService productService;
-
     @Autowired
     private ObjectMapper objectMapper;
-
     @MockitoBean
     private AppTranslator appTranslator;
 
-
-    private static final String ENTITY_KEY = "entity.product";
-
-    ////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////READING METHODS////////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// /////////////////////////////////READING METHODS////////////////////////////////////
 
     @Nested
     @DisplayName("1. Get Product Tests (GET)")
     class GetProductTests {
 
-        ///// Find by ID Exists
+        /// // Find by ID Exists
         @Test
         void getProductsByIdWithCategory_WhenIdExists_ShouldReturnProduct() throws Exception {
             long productId = 1L;
@@ -94,7 +88,7 @@ class ProductControllerTest {
                     .andExpect(jsonPath("$.data.name").value("Laptop"));
         }
 
-        ///// Find by ID Does Not Exist
+        /// // Find by ID Does Not Exist
         @Test
         void getProductsByIdWithCategory_WhenIdDoesNotExist_ShouldReturnNotFound() throws Exception {
             long productId = 99L;
@@ -115,7 +109,7 @@ class ProductControllerTest {
                     .andExpect(jsonPath("$.message").value(fakeMessage));
         }
 
-        ///// Get All Products Page
+        /// // Get All Products Page
         @Test
         void getProductsPage_ShouldReturnPagedProducts() throws Exception {
             /// create fake filter
@@ -149,7 +143,7 @@ class ProductControllerTest {
                     .andExpect(jsonPath("$.data.totalElements").value(1));
         }
 
-        ///// Get Soft Deleted Products
+        /// // Get Soft Deleted Products
         @Test
         void getDeletedProducts_ShouldReturnPagedDeletedProducts() throws Exception {
             UserProductResponseDto fakeDto = new UserProductResponseDto();
@@ -182,7 +176,7 @@ class ProductControllerTest {
             /// 1=> Setup Data
             Long productId = 1L;
             int expectedStock = 50;
-            String expectedMessage ="Stock Count retrieved successfully";
+            String expectedMessage = "Stock Count retrieved successfully";
 
             /// 2=> Mock Dependencies
             when(productService.getProductStockCount(productId)).thenReturn(expectedStock);
@@ -205,7 +199,7 @@ class ProductControllerTest {
             verify(appTranslator, times(1)).getTranslatedAction(eq("success.retrieved"), anyString());
         }
 
-        ///// Get Product Stock Count - FAIL: Product Not Found
+        /// // Get Product Stock Count - FAIL: Product Not Found
         @Test
         void getProductStockCount_WhenProductDoesNotExist_ShouldReturn404NotFound() throws Exception {
             /// 1=> Setup Data
@@ -226,7 +220,7 @@ class ProductControllerTest {
             verify(appTranslator, never()).getTranslatedAction(anyString(), anyString());
         }
 
-        ///// Get Admin Products Page
+        /// // Get Admin Products Page
         @Test
         void getAdminProductsPage_ShouldReturnPagedProducts() throws Exception {
             /// create fake filter
@@ -263,14 +257,14 @@ class ProductControllerTest {
 
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////WRITING METHODS////////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// /////////////////////////////////WRITING METHODS////////////////////////////////////
 
     @Nested
     @DisplayName("2. Create Product Tests (POST)")
     class CreateProductTests {
 
-        ///// Create Product - Success
+        /// // Create Product - Success
         @Test
         void createProduct_WithValidDataAndImage_ShouldReturnCreated() throws Exception {
             ProductRequestDto requestDto = new ProductRequestDto();
@@ -316,7 +310,7 @@ class ProductControllerTest {
                     .andExpect(jsonPath("$.data.name").value("New Phone"));
         }
 
-        ///// Create Product - Validation Failed (Empty Name)
+        /// // Create Product - Validation Failed (Empty Name)
         @Test
         void createProduct_WithEmptyName_ShouldReturnBadRequest() throws Exception {
             ProductRequestDto invalidRequest = new ProductRequestDto();
@@ -342,14 +336,14 @@ class ProductControllerTest {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////UPDATE METHODS////////////////////////////////////
+    /// ////////////////////////////////////////////////////////////////////////////////////
+    /// /////////////////////////////////UPDATE METHODS////////////////////////////////////
 
     @Nested
     @DisplayName("3. Update Product Tests (PUT)")
     class UpdateProductTests {
 
-        ///// Update Product - Success
+        /// // Update Product - Success
         @Test
         void updateProduct_WithValidData_ShouldReturnUpdated() throws Exception {
             Long productId = 1L;
@@ -391,7 +385,7 @@ class ProductControllerTest {
                     .andExpect(jsonPath("$.data.name").value("Updated Phone"));
         }
 
-        ///// Update Product - Invalid File Type - Should Return BadRequest (Or appropriate error)
+        /// // Update Product - Invalid File Type - Should Return BadRequest (Or appropriate error)
         @Test
         void updateProduct_WithTextFileInsteadOfImage_ShouldReturnError() throws Exception {
             Long productId = 1L;
@@ -434,14 +428,14 @@ class ProductControllerTest {
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////DELETE METHODS////////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// /////////////////////////////////DELETE METHODS////////////////////////////////////
 
     @Nested
     @DisplayName("4. Delete Product Tests (DELETE & RESTORE)")
     class DeleteProductTests {
 
-        ///// Soft Delete
+        /// // Soft Delete
         @Test
         void deleteProduct_ShouldReturnOk() throws Exception {
             Long productId = 1L;
@@ -458,7 +452,7 @@ class ProductControllerTest {
                     .andExpect(jsonPath("$.message").value(fakeMessage));
         }
 
-        ///// Soft Delete - When Id Not Found - Should Return NotFound (404)
+        /// // Soft Delete - When Id Not Found - Should Return NotFound (404)
         @Test
         void deleteProduct_WhenIdNotFound_ShouldReturnNotFound() throws Exception {
             Long invalidId = 99L;
@@ -480,7 +474,7 @@ class ProductControllerTest {
                     .andExpect(jsonPath("$.message").value(fakeMessage));
         }
 
-        ///// Hard Delete
+        /// // Hard Delete
         @Test
         void forceDeleteProduct_ShouldReturnOk() throws Exception {
             Long productId = 1L;
@@ -496,7 +490,7 @@ class ProductControllerTest {
                     .andExpect(jsonPath("$.message").value(fakeMessage));
         }
 
-        ///// Hard Delete - When Id Not Found - Should Return NotFound (404)
+        /// // Hard Delete - When Id Not Found - Should Return NotFound (404)
         @Test
         void forceDeleteProduct_WhenIdNotFound_ShouldReturnNotFound() throws Exception {
             Long invalidId = 99L;
@@ -519,7 +513,7 @@ class ProductControllerTest {
                     .andExpect(jsonPath("$.message").value(fakeMessage));
         }
 
-        ///// Restore Product
+        /// // Restore Product
         @Test
         void restoreProduct_ShouldReturnOk() throws Exception {
             Long productId = 1L;
@@ -536,7 +530,7 @@ class ProductControllerTest {
                     .andExpect(jsonPath("$.message").value(fakeMessage));
         }
 
-        ///// Restore Product - When Id Not Found - Should Return NotFound (404)
+        /// // Restore Product - When Id Not Found - Should Return NotFound (404)
         @Test
         void restoreProduct_WhenIdNotFound_ShouldReturnNotFound() throws Exception {
             Long invalidId = 99L;

@@ -2,7 +2,6 @@ package com.global.order_api.feature.payment;
 
 import com.global.order_api.core.response.ApiResponse;
 import com.global.order_api.feature.order.OrderRepo;
-import com.global.order_api.feature.order.OrderResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
@@ -30,7 +29,7 @@ public class PaymentController {
             @RequestBody Map<String, Object> paymobResponse) {
         try {
             /// 1=> Using HMAC to ensure this request from Paymob
-            boolean isAuthentic= paymentService.verifyPaymobHmac(hmac ,paymobResponse);
+            boolean isAuthentic = paymentService.verifyPaymobHmac(hmac, paymobResponse);
             if (!isAuthentic) {
                 log.warn("not allowed => different hamc");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -43,7 +42,7 @@ public class PaymentController {
         } catch (Exception e) {
             log.error("error occured during processing webhook ", e);
             return ResponseEntity.ok().build();
-        
+
         }
     }
 }

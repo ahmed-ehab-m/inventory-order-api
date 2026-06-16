@@ -1,9 +1,9 @@
-    package com.global.order_api.feature.payment;
+package com.global.order_api.feature.payment;
 
-    public enum PaymentStatus {
-        PENDING,
-        SUCCESS,
-        FAILED,
-        REFUNDED,
-        CANCELLED
-    }
+public enum PaymentStatus {
+    PENDING,
+    SUCCESS,
+    FAILED,
+    REFUNDED,
+    CANCELLED
+}

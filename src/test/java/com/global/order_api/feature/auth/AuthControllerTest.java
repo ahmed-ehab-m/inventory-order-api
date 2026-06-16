@@ -1,11 +1,5 @@
 package com.global.order_api.feature.auth;
 
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 import com.global.order_api.core.security.JwtFilter;
 import com.global.order_api.core.utils.AppTranslator;
 import com.global.order_api.feature.user.UserRequestDto;
@@ -26,6 +20,13 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 @WebMvcTest(value = AuthController.class,
         excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
                 classes = JwtFilter.class),
@@ -35,31 +36,26 @@ import tools.jackson.databind.ObjectMapper;
         })
 class AuthControllerTest {
 
+    private static final String ENTITY_KEY = "entity.user";
     @Autowired
     private MockMvc mockMvc;
-
     @MockitoBean
     private AuthService authService;
-
     @MockitoBean
     private SocialAuthService socialAuthService;
-
     @MockitoBean
     private AppTranslator appTranslator;
-
     @Autowired
     private ObjectMapper objectMapper;
 
-    private static final String ENTITY_KEY = "entity.user";
-
-    ////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// STANDARD AUTH /////////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// ///////////////////////////////// STANDARD AUTH /////////////////////////////////////
 
     @Nested
     @DisplayName("1. Standard Auth Tests (Register & Login)")
     class StandardAuthTests {
 
-        ///// Register - Success
+        /// // Register - Success
         @Test
         void register_WithValidData_ShouldReturnTokenAndUser() throws Exception {
             UserRequestDto requestDto = new UserRequestDto();
@@ -88,7 +84,7 @@ class AuthControllerTest {
                     .andExpect(jsonPath("$.data.user.id").value(1L));
         }
 
-        ///// Register - Invalid DTO (Bad Request)
+        /// // Register - Invalid DTO (Bad Request)
         @Test
         void register_WithInvalidData_ShouldReturnBadRequest() throws Exception {
             UserRequestDto invalidRequest = new UserRequestDto();
@@ -102,7 +98,7 @@ class AuthControllerTest {
                     .andExpect(jsonPath("$.errors").exists());
         }
 
-        ///// Login - Success
+        /// // Login - Success
         @Test
         void login_WithValidData_ShouldReturnTokenAndUser() throws Exception {
             UserRequestDto requestDto = new UserRequestDto();
@@ -128,7 +124,7 @@ class AuthControllerTest {
                     .andExpect(jsonPath("$.data.token").value("fake-jwt-token"));
         }
 
-        ///// Login - Invalid DTO (Bad Request)
+        /// // Login - Invalid DTO (Bad Request)
         @Test
         void login_WithInvalidData_ShouldReturnBadRequest() throws Exception {
             UserRequestDto invalidRequest = new UserRequestDto();
@@ -143,14 +139,14 @@ class AuthControllerTest {
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// SOCIAL AUTH ///////////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// ///////////////////////////////// SOCIAL AUTH ///////////////////////////////////////
 
     @Nested
     @DisplayName("2. Social Auth Tests (Mobile)")
     class SocialAuthTests {
 
-        ///// Google Login - Success
+        /// // Google Login - Success
         @Test
         void loginWithGoogleMobile_ShouldReturnToken() throws Exception {
             SocialLoginRequestDto requestDto = new SocialLoginRequestDto();
@@ -171,7 +167,7 @@ class AuthControllerTest {
                     .andExpect(jsonPath("$.data").value(fakeJwtToken));
         }
 
-        ///// GitHub Login - Success
+        /// // GitHub Login - Success
         @Test
         void loginWithGitHubMobile_ShouldReturnToken() throws Exception {
             SocialLoginRequestDto requestDto = new SocialLoginRequestDto();
@@ -192,7 +188,7 @@ class AuthControllerTest {
                     .andExpect(jsonPath("$.data").value(fakeJwtToken));
         }
 
-        ///// Social Login - Invalid DTO
+        /// // Social Login - Invalid DTO
         @Test
         void loginWithGoogleMobile_WithInvalidDto_ShouldReturnBadRequest() throws Exception {
             SocialLoginRequestDto invalidRequest = new SocialLoginRequestDto(); // توكن فاضي
@@ -206,14 +202,14 @@ class AuthControllerTest {
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// LOGOUT & OTHERS ///////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// ///////////////////////////////// LOGOUT & OTHERS ///////////////////////////////////
 
     @Nested
     @DisplayName("3. Logout & OAuth2 Success Tests")
     class LogoutAndOthersTests {
 
-        ///// Logout - Should Clear Cookie
+        /// // Logout - Should Clear Cookie
         @Test
         void logout_ShouldClearCookieAndReturnSuccess() throws Exception {
             String fakeMessage = "Successfully logged out";
@@ -229,7 +225,7 @@ class AuthControllerTest {
                     .andExpect(cookie().httpOnly("jwt_token", true));
         }
 
-        ///// OAuth2 Success Redirect
+        /// // OAuth2 Success Redirect
         @Test
         void oauth2Success_ShouldReturnSuccessMessage() throws Exception {
             String fakeMessage = "Successfully logged in via Google/GitHub";

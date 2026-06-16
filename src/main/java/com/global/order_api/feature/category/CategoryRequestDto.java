@@ -14,6 +14,6 @@ import lombok.Setter;
 public class CategoryRequestDto {
     @NotBlank(message = "{validation.field.required}")
     @Size(max = 255)
-	private String name;
-	private String description;
+    private String name;
+    private String description;
 }

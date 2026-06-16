@@ -21,13 +21,12 @@ public class RedisConfig {
     //// redisCacheManager=> responsible for understanding @cache annotations
     //// and cache policies
     //// pass factory to send data to redis after applying policies
-    public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory)
-    {
+    public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
         /////////////////////// 60 MINUTES //////////////
         /// 1=> default configuration for any caching
         /// instead of built configuration of redis from zero
         /// we use default configuration and ew only customize it
-        RedisCacheConfiguration defaultConfig= RedisCacheConfiguration.defaultCacheConfig()
+        RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
                 /// ttl => time to live , to save our memory from filling and if any changing in db
                 .entryTtl(Duration.ofMinutes(60))
                 /// not saving any null values , to free space in mem and avoid NUllpointerException
@@ -42,14 +41,14 @@ public class RedisConfig {
 
         /////////////////////// 15 MINUTES //////////////
         /// 2=> short ttl for pages
-        RedisCacheConfiguration shortTtlConfig= RedisCacheConfiguration.defaultCacheConfig()
+        RedisCacheConfiguration shortTtlConfig = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofMinutes(15))
                 .disableCachingNullValues()
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(RedisSerializer.json()));
 
         /////////////////////// 5 Seconds //////////////
         /// 2=> micro ttl for product
-        RedisCacheConfiguration microTtlConfig= RedisCacheConfiguration.defaultCacheConfig()
+        RedisCacheConfiguration microTtlConfig = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofSeconds(5))
                 .disableCachingNullValues()
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(RedisSerializer.json()));

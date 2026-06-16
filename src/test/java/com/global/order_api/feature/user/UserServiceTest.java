@@ -39,14 +39,14 @@ class UserServiceTest {
     private UserService userService;
 
 
-    ////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////READING METHODS////////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// /////////////////////////////////READING METHODS////////////////////////////////////
 
     @Nested
     @DisplayName("1. Get Users Tests (GET)")
     class GetUsersTests {
 
-        ///// Get User By Id - RETURN DTO
+        /// // Get User By Id - RETURN DTO
         @Test
         void getUserById_WhenUserExists_ShouldReturnDto() {
             // 1. Arrange
@@ -72,7 +72,7 @@ class UserServiceTest {
             verify(userMapper, times(1)).mapToDto(userEntity);
         }
 
-        ///// Get User By Id - Does Not Exist - THROW EXCEPTION
+        /// // Get User By Id - Does Not Exist - THROW EXCEPTION
         @Test
         void getUserById_WhenUserDoesNotExist_ShouldThrowException() {
             Long userId = 999L;
@@ -85,7 +85,7 @@ class UserServiceTest {
             verify(userMapper, never()).mapToDto(any());
         }
 
-        ///// Find By Email - RETURN DTO
+        /// // Find By Email - RETURN DTO
         @Test
         void findByEmail_WhenUserExists_ShouldReturnDto() {
             String email = "test@company.com";
@@ -105,7 +105,7 @@ class UserServiceTest {
             verify(userRepo, times(1)).findByEmail(email);
         }
 
-        ///// Find By Email - Does Not Exist - THROW EXCEPTION
+        /// // Find By Email - Does Not Exist - THROW EXCEPTION
         @Test
         void findByEmail_WhenUserDoesNotExist_ShouldThrowException() {
             String email = "notfound@company.com";
@@ -115,7 +115,7 @@ class UserServiceTest {
             assertThrows(ResourceNotFoundException.class, () -> userService.findByEmail(email));
         }
 
-        ///// Get Users Page - RETURN PAGE RESPONSE
+        /// // Get Users Page - RETURN PAGE RESPONSE
         @Test
         void getUsersPage_ShouldReturnPagedUsers() {
             UserFilterRequest filter = new UserFilterRequest();
@@ -137,7 +137,7 @@ class UserServiceTest {
             verify(userMapper, times(1)).mapToDtoList(anyList());
         }
 
-        ///// Get Users Page - No Users in DB - RETURN EMPTY PAGE
+        /// // Get Users Page - No Users in DB - RETURN EMPTY PAGE
         @Test
         void getUsersPage_WhenNoUsersExist_ShouldReturnEmptyPage() {
             UserFilterRequest filter = new UserFilterRequest();
@@ -156,14 +156,14 @@ class UserServiceTest {
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////WRITING METHODS////////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// /////////////////////////////////WRITING METHODS////////////////////////////////////
 
     @Nested
     @DisplayName("2. Update User Tests (PUT)")
     class UpdateUserTests {
 
-        ///// Update User - Valid Data - Should Update & Return DTO
+        /// // Update User - Valid Data - Should Update & Return DTO
         @Test
         void updateUser_WithValidData_ShouldUpdateUser() {
             // 1. Arrange
@@ -198,7 +198,7 @@ class UserServiceTest {
             verify(userRepo, times(1)).save(existingUser);
         }
 
-        ///// Update User - Email Already Taken - Should Throw Exception
+        /// // Update User - Email Already Taken - Should Throw Exception
         @Test
         void updateUser_WhenEmailIsTaken_ShouldThrowException() {
             Long userId = 1L;
@@ -218,14 +218,14 @@ class UserServiceTest {
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////DELETE METHODS////////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// /////////////////////////////////DELETE METHODS////////////////////////////////////
 
     @Nested
     @DisplayName("3. Delete & Restore User Tests (DELETE / PUT)")
     class DeleteUserTests {
 
-        ///// Soft Delete User
+        /// // Soft Delete User
         @Test
         void softDeleteUser_ShouldCallBaseServiceDelete() {
             Long userId = 1L;
@@ -241,7 +241,7 @@ class UserServiceTest {
             verify(userRepo, times(1)).deleteById(userId); // Verifies that BaseService called save
         }
 
-        ///// Hard Delete User - Exists - Should Hard Delete
+        /// // Hard Delete User - Exists - Should Hard Delete
         @Test
         void hardDeleteUser_WhenUserExists_ShouldHardDelete() {
             Long userId = 1L;
@@ -254,7 +254,7 @@ class UserServiceTest {
             verify(userRepo, times(1)).hardDeleteUser(userId);
         }
 
-        ///// Hard Delete User - Not Exists - Should Throw Exception
+        /// // Hard Delete User - Not Exists - Should Throw Exception
         @Test
         void hardDeleteUser_WhenUserDoesNotExist_ShouldThrowException() {
             Long userId = 999L;
@@ -266,7 +266,7 @@ class UserServiceTest {
             verify(userRepo, never()).hardDeleteUser(any());
         }
 
-        ///// Restore User
+        /// // Restore User
         @Test
         void restoreUser_ShouldCallRepoRestore() {
             Long userId = 1L;
@@ -277,7 +277,8 @@ class UserServiceTest {
 
             verify(userRepo, times(1)).restoreUser(userId);
         }
-        ///// Restore User - Not Exists - Should Throw Exception
+
+        /// // Restore User - Not Exists - Should Throw Exception
         @Test
         void restoreUser_WhenUserDoesNotExist_ShouldThrowException() {
             Long userId = 999L;

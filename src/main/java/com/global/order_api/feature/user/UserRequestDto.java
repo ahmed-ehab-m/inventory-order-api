@@ -15,16 +15,16 @@ import lombok.*;
 
 public class UserRequestDto {
 
-    @NotBlank(message = "{validation.field.required}",groups = {ValidationGroups.OnRegister.class , ValidationGroups.OnUpdate.class})
-    @Size(min = 2,max = 50,message = "{validation.name.size}")
+    @NotBlank(message = "{validation.field.required}", groups = {ValidationGroups.OnRegister.class, ValidationGroups.OnUpdate.class})
+    @Size(min = 2, max = 50, message = "{validation.name.size}")
     private String name;
 
     @Email(groups = {ValidationGroups.OnRegister.class, ValidationGroups.OnLogin.class, ValidationGroups.OnUpdate.class})
     @NotBlank(message = "{validation.field.required}")
-    private  String email;
+    private String email;
 
-    @NotBlank(message = "{validation.field.required}",groups = {ValidationGroups.OnRegister.class, ValidationGroups.OnLogin.class,})
-    @Size(min = 8,message = "{validation.password.size}")
+    @NotBlank(message = "{validation.field.required}", groups = {ValidationGroups.OnRegister.class, ValidationGroups.OnLogin.class,})
+    @Size(min = 8, message = "{validation.password.size}")
     private String password;
 
 

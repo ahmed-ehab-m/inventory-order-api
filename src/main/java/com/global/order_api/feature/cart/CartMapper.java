@@ -8,10 +8,10 @@ import org.mapstruct.MappingTarget;
 
 /// map struct uses cart item mapper in map list of cart items
 @Mapper(uses = {CartItemMapper.class})
-public interface CartMapper extends BaseMapper<CartEntity,Void ,CartResponseDto> {
+public interface CartMapper extends BaseMapper<CartEntity, Void, CartResponseDto> {
 
     /// map List<CartItemEntity> to List<CartIremReposneDto>
-    @Mapping(source = "items",target = "cartItems")
+    @Mapping(source = "items", target = "cartItems")
     @Mapping(target = "totalCartPrice", ignore = true)
     CartResponseDto mapToDto(CartEntity entity);
 

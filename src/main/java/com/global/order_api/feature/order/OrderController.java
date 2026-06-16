@@ -5,17 +5,11 @@ import com.global.order_api.core.base.PageResponse;
 import com.global.order_api.core.response.ApiResponse;
 import com.global.order_api.core.security.SecurityUtils;
 import com.global.order_api.core.utils.AppTranslator;
-import com.global.order_api.feature.cart.CartItemRequestDto;
-import com.global.order_api.feature.cart.CartResponseDto;
-import com.global.order_api.feature.cart.CartService;
 import com.global.order_api.feature.payment.PaymentResponseDto;
-import com.global.order_api.feature.user.UserFilterRequest;
-import com.global.order_api.feature.user.UserResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -27,11 +21,11 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Order Management", description = "APIs for managing e-commerce orders for both Admins and Customers")
 public class OrderController {
 
+    private static final String ENTITY_KEY = "entity.order";
     private final OrderService orderService;
     private final AppTranslator appTranslator;
-    private static final String ENTITY_KEY = "entity.order";
 
-    ///GET METHODS
+    /// GET METHODS
     /// get all orders for ADMIN
     @TrackExecutionTime
     @GetMapping("")
@@ -40,13 +34,13 @@ public class OrderController {
             description = "Retrieves a paginated list of all orders in the system with filtering. Accessible only by Admins.")
     public ResponseEntity<ApiResponse<PageResponse<OrderResponseDto>>> getAllOrders(
             @Valid @ModelAttribute OrderFilterRequest filter
-    )
-    {
-        PageResponse<OrderResponseDto> pageResponse=orderService.getAllOrders(filter);
-        String message=appTranslator.getTranslatedAction("success.retrieved", ENTITY_KEY);
-        ApiResponse<PageResponse<OrderResponseDto>> apiResponse=ApiResponse.success(pageResponse,message);
-        return  ResponseEntity.ok(apiResponse);
+    ) {
+        PageResponse<OrderResponseDto> pageResponse = orderService.getAllOrders(filter);
+        String message = appTranslator.getTranslatedAction("success.retrieved", ENTITY_KEY);
+        ApiResponse<PageResponse<OrderResponseDto>> apiResponse = ApiResponse.success(pageResponse, message);
+        return ResponseEntity.ok(apiResponse);
     }
+
     /// get order by id for Admin
     @TrackExecutionTime
     @GetMapping("/{id}")
@@ -61,6 +55,7 @@ public class OrderController {
         ApiResponse<OrderResponseDto> apiResponse = ApiResponse.success(orderResponse, message);
         return ResponseEntity.ok(apiResponse);
     }
+
     /// get order by id for User
     @TrackExecutionTime
     @GetMapping("/me/{id}")
@@ -84,16 +79,15 @@ public class OrderController {
             description = "Retrieves a paginated list of orders for the currently authenticated user.")
     public ResponseEntity<ApiResponse<PageResponse<OrderResponseDto>>> getUserOrder(
             @Valid @ModelAttribute OrderFilterRequest filter
-    )
-    {
+    ) {
         Long userId = SecurityUtils.getCurrentUserId();
-        PageResponse<OrderResponseDto> pageResponse=orderService.getUserOrders(userId,filter);
-        String message=appTranslator.getTranslatedAction("success.retrieved", ENTITY_KEY);
-        ApiResponse<PageResponse<OrderResponseDto>> apiResponse=ApiResponse.success(pageResponse,message);
-        return  ResponseEntity.ok(apiResponse);
+        PageResponse<OrderResponseDto> pageResponse = orderService.getUserOrders(userId, filter);
+        String message = appTranslator.getTranslatedAction("success.retrieved", ENTITY_KEY);
+        ApiResponse<PageResponse<OrderResponseDto>> apiResponse = ApiResponse.success(pageResponse, message);
+        return ResponseEntity.ok(apiResponse);
     }
 
-    ////////////////////////////////////////////
+    /// /////////////////////////////////////////
     /// WRITING METHODS
     /// Create an order
     @PostMapping("")
@@ -101,12 +95,11 @@ public class OrderController {
             description = "Creates a new order based on the user's cart items, clears the cart, and deducts from stock.")
     public ResponseEntity<ApiResponse<OrderResponseDto>> createOrder(
             @Valid @RequestBody OrderRequestDto orderRequestDto
-    )
-    {
+    ) {
         Long userId = SecurityUtils.getCurrentUserId();
-        OrderResponseDto orderResponseDto=orderService.createOrder(userId,orderRequestDto);
+        OrderResponseDto orderResponseDto = orderService.createOrder(userId, orderRequestDto);
         String message = appTranslator.getTranslatedAction("success.created", ENTITY_KEY);
-        ApiResponse<OrderResponseDto> apiResponse=ApiResponse.success(orderResponseDto,message);
+        ApiResponse<OrderResponseDto> apiResponse = ApiResponse.success(orderResponseDto, message);
         return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse); /// 201
     }
 
@@ -116,15 +109,15 @@ public class OrderController {
             description = "Cancels a PENDING order and restores the product quantities to the stock.")
     public ResponseEntity<ApiResponse<Void>> cancelOrder(
             @PathVariable(name = "id") Long orderId
-    )
-    {
+    ) {
         Long userId = SecurityUtils.getCurrentUserId();
-        orderService.cancelOrder(userId,orderId);
+        orderService.cancelOrder(userId, orderId);
         String message = appTranslator.getTranslatedAction("success.updated", ENTITY_KEY);
-        ApiResponse<Void> apiResponse=ApiResponse.success(null,message);
+        ApiResponse<Void> apiResponse = ApiResponse.success(null, message);
         return ResponseEntity.ok(apiResponse);
     }
-    //////////////////////////
+
+    /// ///////////////////////
     @PutMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Update Order Status (Admin Only)",
@@ -138,7 +131,7 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponse.success(orderResponse, message));
     }
 
-    ///////////////
+    /// ////////////
     @PutMapping("/{orderId}/return")
     @Operation(summary = "Return Order Status",
             description = "Allows Users to return orders")
@@ -146,12 +139,12 @@ public class OrderController {
             @PathVariable Long orderId
     ) {
         Long userId = SecurityUtils.getCurrentUserId();
-         orderService.returnDeliveredOrder(userId, orderId);
+        orderService.returnDeliveredOrder(userId, orderId);
         String message = appTranslator.getTranslatedAction("success.updated", ENTITY_KEY);
         return ResponseEntity.ok(ApiResponse.success(null, message));
     }
 
-    //////////////
+    /// ///////////
     @GetMapping("/{id}/retry-payment")
     @Operation(summary = "Retry Order Payment",
             description = "Generates a new Paymob payment link for a pending order that previously failed.")
@@ -176,12 +169,11 @@ public class OrderController {
             description = "Archives an order so it no longer appears in the user's history, but keeps it in the database for financial records.")
     public ResponseEntity<ApiResponse<Void>> softDeleteOrder(
             @PathVariable(name = "id") Long orderId
-    )
-    {
+    ) {
         Long userId = SecurityUtils.getCurrentUserId();
-        orderService.softDeleteOrder(userId,orderId);
+        orderService.softDeleteOrder(userId, orderId);
         String message = appTranslator.getTranslatedAction("success.deleted", ENTITY_KEY);
-        ApiResponse<Void> apiResponse=ApiResponse.success(null,message);
+        ApiResponse<Void> apiResponse = ApiResponse.success(null, message);
         return ResponseEntity.ok(apiResponse);
     }
 
@@ -192,11 +184,10 @@ public class OrderController {
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> hardDeleteOrder(
             @PathVariable(name = "id") Long orderId
-    )
-    {
+    ) {
         orderService.hardDeleteOrder(orderId);
         String message = appTranslator.getTranslatedAction("success.deleted", ENTITY_KEY);
-        ApiResponse<Void> apiResponse=ApiResponse.success(null,message);
+        ApiResponse<Void> apiResponse = ApiResponse.success(null, message);
         return ResponseEntity.ok(apiResponse);
     }
 

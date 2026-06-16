@@ -8,7 +8,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -47,14 +46,14 @@ class AuthServiceTest {
         authService = new AuthService(userRepo, userMapper, passwordEncoder, authenticationManager, jwtService);
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// REGISTER METHODS //////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// ///////////////////////////////// REGISTER METHODS //////////////////////////////////
 
     @Nested
     @DisplayName("1. Register Tests")
     class RegisterTests {
 
-        ///// Register - Success (New Email)
+        /// // Register - Success (New Email)
         @Test
         void register_WithValidData_ShouldReturnAuthResponse() {
             // 1. Arrange new user data from register form
@@ -98,7 +97,7 @@ class AuthServiceTest {
             verify(passwordEncoder, times(1)).encode("password123");
         }
 
-        ///// Register - Failed (Email Already Exists)
+        /// // Register - Failed (Email Already Exists)
         @Test
         void register_WhenEmailExists_ShouldThrowException() {
             // 1. Arrange
@@ -115,14 +114,14 @@ class AuthServiceTest {
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// LOGIN METHODS /////////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// ///////////////////////////////// LOGIN METHODS /////////////////////////////////////
 
     @Nested
     @DisplayName("2. Login Tests")
     class LoginTests {
 
-        ///// Login - Success (Correct Credentials)
+        /// // Login - Success (Correct Credentials)
         @Test
         void login_WithValidCredentials_ShouldReturnAuthResponse() {
             // 1. Arrange
@@ -160,7 +159,7 @@ class AuthServiceTest {
             verify(jwtService, times(1)).generateToken(any(UserPrincipal.class));
         }
 
-        ///// Login - Failed (Bad Credentials)
+        /// // Login - Failed (Bad Credentials)
         @Test
         void login_WithInvalidCredentials_ShouldThrowException() {
             // 1. Arrange

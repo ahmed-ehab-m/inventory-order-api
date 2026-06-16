@@ -1,14 +1,11 @@
 package com.global.order_api.core.base;
 
-import java.time.LocalDateTime;
-
-import org.hibernate.annotations.SQLRestriction;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLRestriction;
 
 @Getter // (Serialization)for jackson to convert object to json using get to get values to put it into json
 @Setter // 
@@ -19,8 +16,8 @@ import lombok.Setter;
 // tell hibernate any sql statement created for this class add this statment to select statements
 // for select only => to get where is deleted =false
 @SQLRestriction("is_deleted =false")
-public abstract class SoftDeletableEntity<ID> extends BaseEntity<ID>{
-	
-	@Column(name = "is_deleted", nullable = false)
-	private boolean isDeleted=false; // default value
+public abstract class SoftDeletableEntity<ID> extends BaseEntity<ID> {
+
+    @Column(name = "is_deleted", nullable = false)
+    private boolean isDeleted = false; // default value
 }

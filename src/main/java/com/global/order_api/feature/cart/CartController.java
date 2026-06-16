@@ -18,27 +18,26 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("api/v1/cart")
 public class CartController {
 
-    private final CartService cartService;
-    private final AppTranslator appTranslator;
     private static final String ENTITY_KEY = "entity.cart";
     private static final String CART_ITEM_ENTITY_KEY = "entity.cart_item"; // ده للعناصر
+    private final CartService cartService;
+    private final AppTranslator appTranslator;
 
-    ///////////////////////////////////////
-    ///GET METHODS
+    /// ////////////////////////////////////
+    /// GET METHODS
     @Operation(summary = "Get User Cart",
             description = "Retrieves the cart andupdateQuantity all its items for a specific user")
     @TrackExecutionTime
     @GetMapping("")
-    public ResponseEntity<ApiResponse<CartResponseDto>> getUserCart()
-    {
+    public ResponseEntity<ApiResponse<CartResponseDto>> getUserCart() {
         Long userId = SecurityUtils.getCurrentUserId();
-        CartResponseDto cartResponseDto=cartService.getUserCart(userId);
+        CartResponseDto cartResponseDto = cartService.getUserCart(userId);
         String message = appTranslator.getTranslatedAction("success.retrieved", ENTITY_KEY);
-        ApiResponse<CartResponseDto> apiResponse=ApiResponse.success(cartResponseDto,message);
+        ApiResponse<CartResponseDto> apiResponse = ApiResponse.success(cartResponseDto, message);
         return ResponseEntity.ok(apiResponse);
     }
 
-    ////////////////////////////////////////////
+    /// /////////////////////////////////////////
     /// WRITING METHODS
     /// Add Cart Item
     @Operation(summary = "Add Item to Cart",
@@ -47,12 +46,11 @@ public class CartController {
     public ResponseEntity<ApiResponse<CartResponseDto>> addCartItem(
 
             @Valid @RequestBody CartItemRequestDto cartItemRequestDto
-    )
-    {
+    ) {
         Long userId = SecurityUtils.getCurrentUserId();
-        CartResponseDto cartResponseDto=cartService.addCartItem(userId,cartItemRequestDto);
+        CartResponseDto cartResponseDto = cartService.addCartItem(userId, cartItemRequestDto);
         String message = appTranslator.getTranslatedAction("success.added", CART_ITEM_ENTITY_KEY);
-        ApiResponse<CartResponseDto> apiResponse=ApiResponse.success(cartResponseDto,message);
+        ApiResponse<CartResponseDto> apiResponse = ApiResponse.success(cartResponseDto, message);
         return ResponseEntity.ok(apiResponse);
     }
 
@@ -63,12 +61,11 @@ public class CartController {
     public ResponseEntity<ApiResponse<CartResponseDto>> updateQuantity(
             @RequestParam Long cartItemId,
             @RequestParam Integer quantity
-    )
-    {
+    ) {
         Long userId = SecurityUtils.getCurrentUserId();
-        CartResponseDto cartResponseDto= cartService.updateItemQuantity(userId,cartItemId,quantity);
+        CartResponseDto cartResponseDto = cartService.updateItemQuantity(userId, cartItemId, quantity);
         String message = appTranslator.getTranslatedAction("success.updated", CART_ITEM_ENTITY_KEY);
-        ApiResponse<CartResponseDto>apiResponse=ApiResponse.success(cartResponseDto,message);
+        ApiResponse<CartResponseDto> apiResponse = ApiResponse.success(cartResponseDto, message);
         return ResponseEntity.ok(apiResponse);
     }
 
@@ -79,12 +76,11 @@ public class CartController {
     @DeleteMapping("/items/{cartItemId}")
     public ResponseEntity<ApiResponse<Void>> removeCartItem(
             @RequestParam Long cartItemId
-    )
-    {
+    ) {
         Long userId = SecurityUtils.getCurrentUserId();
-        cartService.removeCartItem(userId,cartItemId);
+        cartService.removeCartItem(userId, cartItemId);
         String message = appTranslator.getTranslatedAction("success.deleted", CART_ITEM_ENTITY_KEY);
-        ApiResponse<Void>apiResponse=ApiResponse.success(null,message);
+        ApiResponse<Void> apiResponse = ApiResponse.success(null, message);
         return ResponseEntity.ok(apiResponse);
     }
 
@@ -93,12 +89,11 @@ public class CartController {
             description = "Removes all items from the user's cart")
     @DeleteMapping("")
     public ResponseEntity<ApiResponse<Void>> removeCart(
-    )
-    {
+    ) {
         Long userId = SecurityUtils.getCurrentUserId();
         cartService.clearCart(userId);
         String message = appTranslator.getTranslatedAction("success.deleted", ENTITY_KEY);
-        ApiResponse<Void>apiResponse=ApiResponse.success(null,message);
+        ApiResponse<Void> apiResponse = ApiResponse.success(null, message);
         return ResponseEntity.ok(apiResponse);
     }
 

@@ -1,20 +1,10 @@
 package com.global.order_api.feature.category;
 
-import org.hibernate.annotations.SQLDelete;
-
 import com.global.order_api.core.base.BaseEntity;
-import com.global.order_api.core.base.SoftDeletableEntity;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.SuperBuilder;
+import lombok.*;
 
 @Entity
 @Table(name = "categories")
@@ -29,10 +19,10 @@ import lombok.experimental.SuperBuilder;
 // to enable softdelete
 // tell hibernate that => any delete method called
 //@SQLDelete(sql="UPDATE categories SET is_deleted=true WHERE ID=?")
-public class CategoryEntity extends BaseEntity<Long>{
-	
-	@Column(name = "name",nullable = false ,unique = true, length = 255)
-	private String name;		
+public class CategoryEntity extends BaseEntity<Long> {
+
+    @Column(name = "name", nullable = false, unique = true, length = 255)
+    private String name;
     @Column(name = "description", columnDefinition = "TEXT")
-	private String description;
+    private String description;
 }

@@ -1,8 +1,5 @@
 package com.global.order_api.feature.product;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.global.order_api.BaseRepoTest;
 import com.global.order_api.feature.category.CategoryEntity;
 import org.junit.jupiter.api.Disabled;
@@ -15,11 +12,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
 import java.util.Optional;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 
 class ProductRepoTest extends BaseRepoTest {
@@ -34,18 +32,35 @@ class ProductRepoTest extends BaseRepoTest {
     @Autowired
     private TestEntityManager entityManager;
 
-    ///////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////READING METHODS////////////////////////////////////
+    /// ////////////////////////////////////////////////////////////////
+    /// //////////////////// HELPER METHODS ////////////////////////////
+    /// ////////////////////////////////////////////////////////////////
+
+    private CategoryEntity createAndSaveCategory(String name) {
+        CategoryEntity category = new CategoryEntity();
+        category.setName(name);
+        return entityManager.persistAndFlush(category);
+    }
+
+    private ProductEntity createAndSaveProduct(String name, double price, CategoryEntity category, boolean isDeleted) {
+        ProductEntity product = new ProductEntity();
+        product.setName(name);
+        product.setPrice(BigDecimal.valueOf(price));
+        product.setCategory(category);
+        product.setDeleted(isDeleted);
+        return entityManager.persistAndFlush(product);
+    }
+
+    /// ////////////////////////////////////////////////////////////////////////////////////
+    /// /////////////////////////////////READING METHODS////////////////////////////////////
     @Nested
     @DisplayName("1. Get Product Tests (GET)")
-    class GetProductTests
-    {
+    class GetProductTests {
 
-        //////////////// GET CATEGORY BY ID States/////////////
-        ///// Find Product with category  by ID Exists - RETURN Product
+        /// ///////////// GET CATEGORY BY ID States/////////////
+        /// // Find Product with category  by ID Exists - RETURN Product
         @Test
-        void findProductByIdWithCategory_WhenIdExists_ShouldReturnProductAndCategory()
-        {
+        void findProductByIdWithCategory_WhenIdExists_ShouldReturnProductAndCategory() {
             /// 1=> create category and save it
             CategoryEntity category = createAndSaveCategory("New Electronics");
 
@@ -56,7 +71,7 @@ class ProductRepoTest extends BaseRepoTest {
             entityManager.clear();
 
             /// 4=> test our function
-            Optional<ProductEntity> result=productRepo.findByIdWithCategory(product.getId());
+            Optional<ProductEntity> result = productRepo.findByIdWithCategory(product.getId());
 
             /// 5=> assert
             /// check if function return the product
@@ -69,29 +84,27 @@ class ProductRepoTest extends BaseRepoTest {
             assertThat(result.get().getCategory().getName()).isEqualTo("New Electronics");
         }
 
-        ///// Find Product with category  by ID doesn't Exist - Return not found
+        /// // Find Product with category  by ID doesn't Exist - Return not found
         @Test
-        void findProductByIdWithCategory_WhenIdDoesNotExist_ShouldReturnNotFound()
-        {
+        void findProductByIdWithCategory_WhenIdDoesNotExist_ShouldReturnNotFound() {
 
             /// 1=> clear cache to force test to go to read from H2 DataBase
             entityManager.clear();
 
             /// 2=> test our function
-            Optional<ProductEntity> result=productRepo.findByIdWithCategory(10L);
+            Optional<ProductEntity> result = productRepo.findByIdWithCategory(10L);
 
             /// 3=> assert
             /// check if function return Empty
             assertThat(result).isEmpty();
         }
 
-        ///// Find All Products with category  - RETURN ALL PRODUCTS
+        /// // Find All Products with category  - RETURN ALL PRODUCTS
         /// if table name changed
         /// and to see n+1 problem was solved or not
         /// and check sql statement that join is right or not and sql statement overall
         @Test
-        void findAll_ShouldReturnPageOfProductsWithTheirCategories()
-        {
+        void findAll_ShouldReturnPageOfProductsWithTheirCategories() {
             /// 1=> create category and save it
             CategoryEntity category = createAndSaveCategory("Smartphones_Page_Test");
 
@@ -103,10 +116,10 @@ class ProductRepoTest extends BaseRepoTest {
             entityManager.clear();
 
             /// 4=> create pageable to pass it into out test function
-            Pageable pageable= PageRequest.of(0,2, Sort.by("name").ascending());
+            Pageable pageable = PageRequest.of(0, 2, Sort.by("name").ascending());
 
             /// 5=> test our function
-            Page<ProductEntity> resultPage=productRepo.findAll(pageable);
+            Page<ProductEntity> resultPage = productRepo.findAll(pageable);
 
             /// 6=> assert
             assertThat(resultPage).isNotNull();
@@ -120,18 +133,17 @@ class ProductRepoTest extends BaseRepoTest {
             assertThat(firstProduct.getCategory().getName()).isEqualTo("Smartphones_Page_Test");
         }
 
-        ///// Find All Products with category but DB is Empty - RETURN Empty Page
+        /// // Find All Products with category but DB is Empty - RETURN Empty Page
         @Test
-        void findAll_ShouldReturnEmptyPage()
-        {
+        void findAll_ShouldReturnEmptyPage() {
             /// 1=> clear cache
             entityManager.clear();
 
             /// 2=> create pageable to pass it into out test function
-            Pageable pageable= PageRequest.of(0,2, Sort.by("name").ascending());
+            Pageable pageable = PageRequest.of(0, 2, Sort.by("name").ascending());
 
             /// 3=> test our function
-            Page<ProductEntity> resultPage=productRepo.findAll(pageable);
+            Page<ProductEntity> resultPage = productRepo.findAll(pageable);
 
             /// 4=> assert
             assertThat(resultPage).isNotNull();
@@ -140,7 +152,7 @@ class ProductRepoTest extends BaseRepoTest {
 
         }
 
-        //////////////// FULL TEXT SEARCH TESTS (ACTIVE PRODUCTS) /////////////
+        /// ///////////// FULL TEXT SEARCH TESTS (ACTIVE PRODUCTS) /////////////
 
         @Test
         @Disabled("Skipped due to MySQL InnoDB Full-Text commit constraints in test environment")
@@ -161,7 +173,6 @@ class ProductRepoTest extends BaseRepoTest {
         }
 
         @Test
-
         void searchActiveByNameFullText_WhenNoMatch_ShouldReturnEmptyPage() {
             CategoryEntity category = createAndSaveCategory("Smartphones");
             createAndSaveProduct("Samsung Galaxy", 35000.0, category, false);
@@ -175,7 +186,7 @@ class ProductRepoTest extends BaseRepoTest {
             assertThat(resultPage.getContent().isEmpty()).isTrue();
         }
 
-        //////////////// FULL TEXT SEARCH TESTS (DELETED PRODUCTS) /////////////
+        /// ///////////// FULL TEXT SEARCH TESTS (DELETED PRODUCTS) /////////////
 
 
         @Test
@@ -206,10 +217,9 @@ class ProductRepoTest extends BaseRepoTest {
             assertThat(resultPage.getContent().isEmpty()).isTrue();
         }
 
-        ///// Find Product by Category Id with category  by ID Exists - RETURN Products Page
+        /// // Find Product by Category Id with category  by ID Exists - RETURN Products Page
         @Test
-        void findProductByCategoryIdWithCategory_WhenIdExists_ShouldReturnProductsPage()
-        {
+        void findProductByCategoryIdWithCategory_WhenIdExists_ShouldReturnProductsPage() {
             /// 1=> create category and save it
             CategoryEntity category = createAndSaveCategory("New Electronics");
 
@@ -220,9 +230,9 @@ class ProductRepoTest extends BaseRepoTest {
             /// 3=> clear cache to force test to go to read from H2 DataBase
             entityManager.clear();
             /// 4=> create pageable to pass it into out test function
-            Pageable pageable= PageRequest.of(0,2, Sort.by("name").ascending());
+            Pageable pageable = PageRequest.of(0, 2, Sort.by("name").ascending());
             /// 5=> test our function
-            Page<ProductEntity> resultPage=productRepo.findByCategoryId(category.getId(),pageable);
+            Page<ProductEntity> resultPage = productRepo.findByCategoryId(category.getId(), pageable);
 
             /// 6=> assert
             assertThat(resultPage).isNotNull();
@@ -236,10 +246,9 @@ class ProductRepoTest extends BaseRepoTest {
             assertThat(firstProduct.getCategory().getName()).isEqualTo("New Electronics");
         }
 
-        ///// Find Product by Category Id with category  by ID doesn't Exist - RETURN Empty Page
+        /// // Find Product by Category Id with category  by ID doesn't Exist - RETURN Empty Page
         @Test
-        void findProductByCategoryIdWithCategory_WhenIdDoesNotExist_ShouldReturnEmptyPage()
-        {
+        void findProductByCategoryIdWithCategory_WhenIdDoesNotExist_ShouldReturnEmptyPage() {
 
             /// 1=> tegory and save it
             CategoryEntity category = createAndSaveCategory("New Electronics");
@@ -250,9 +259,9 @@ class ProductRepoTest extends BaseRepoTest {
             /// 3=> clear cache to force test to go to read from H2 DataBase
             entityManager.clear();
 
-            Pageable pageable= PageRequest.of(0,2, Sort.by("name").ascending());
+            Pageable pageable = PageRequest.of(0, 2, Sort.by("name").ascending());
             /// 5=> test our function
-            Page<ProductEntity> resultPage=productRepo.findByCategoryId(5L,pageable);
+            Page<ProductEntity> resultPage = productRepo.findByCategoryId(5L, pageable);
 
             /// 5=> assert
             /// check if function return Empty
@@ -260,10 +269,9 @@ class ProductRepoTest extends BaseRepoTest {
             assertThat(resultPage.getContent().isEmpty()).isTrue();
         }
 
-        ///// Find All Soft Deleted Products - RETURN ALL PRODUCTSl
+        /// // Find All Soft Deleted Products - RETURN ALL PRODUCTSl
         @Test
-        void findAllSoftDeletedProducts_ShouldReturnPageOfProducts()
-        {
+        void findAllSoftDeletedProducts_ShouldReturnPageOfProducts() {
             /// 1=> create category and save it
             CategoryEntity category = createAndSaveCategory("Smartphones_Page_Test");
 
@@ -275,10 +283,10 @@ class ProductRepoTest extends BaseRepoTest {
             entityManager.clear();
 
             /// 4=> create pageable to pass it into out test function
-            Pageable pageable= PageRequest.of(0,2, Sort.by("name").ascending());
+            Pageable pageable = PageRequest.of(0, 2, Sort.by("name").ascending());
 
             /// 5=> test our function
-            Page<ProductEntity> resultPage=productRepo.findAll(pageable);
+            Page<ProductEntity> resultPage = productRepo.findAll(pageable);
 
             /// 6=> assert
             assertThat(resultPage).isNotNull();
@@ -292,18 +300,17 @@ class ProductRepoTest extends BaseRepoTest {
             assertThat(firstProduct.getCategory().getName()).isEqualTo("Smartphones_Page_Test");
         }
 
-        ///// Find All Products with category but DB is Empty - RETURN Empty Page
+        /// // Find All Products with category but DB is Empty - RETURN Empty Page
         @Test
-        void findAllSoftDeletedProducts_ShouldReturnEmptyPage()
-        {
+        void findAllSoftDeletedProducts_ShouldReturnEmptyPage() {
             /// 1=> clear cache
             entityManager.clear();
 
             /// 2=> create pageable to pass it into out test function
-            Pageable pageable= PageRequest.of(0,2, Sort.by("name").ascending());
+            Pageable pageable = PageRequest.of(0, 2, Sort.by("name").ascending());
 
             /// 3=> test our function
-            Page<ProductEntity> resultPage=productRepo.findAll(pageable);
+            Page<ProductEntity> resultPage = productRepo.findAll(pageable);
 
             /// 4=> assert
             assertThat(resultPage).isNotNull();
@@ -312,10 +319,9 @@ class ProductRepoTest extends BaseRepoTest {
 
         }
 
-        ///// Find Product Image Url Even if deleted - RETURN URL from Cloudinary
+        /// // Find Product Image Url Even if deleted - RETURN URL from Cloudinary
         @Test
-        void findProductImageUrlEvenIfDeleted_ShouldReturnUrl()
-        {
+        void findProductImageUrlEvenIfDeleted_ShouldReturnUrl() {
             /// 1=> create category and save it
             CategoryEntity category = createAndSaveCategory("Smartphones_Page_Test");
 
@@ -333,31 +339,29 @@ class ProductRepoTest extends BaseRepoTest {
             entityManager.clear();
 
             /// 4=> test our function
-            Optional<String> imageUrl= productRepo.getImageUrlByIdEvenIfDeleted(product1.getId());
+            Optional<String> imageUrl = productRepo.getImageUrlByIdEvenIfDeleted(product1.getId());
             /// 6=> assert
             /// contains => 1. check the value is present
             /// 2. check the value match the another value
             assertThat(imageUrl).contains("fake image url for testing");
         }
 
-        ///// Find Product Image Url Even if deleted id not found - RETURN Empty object
+        /// // Find Product Image Url Even if deleted id not found - RETURN Empty object
         @Test
-        void findProductImageUrlEvenIfDeleted_IdNotFound_ShouldReturnEmptyObject()
-        {
+        void findProductImageUrlEvenIfDeleted_IdNotFound_ShouldReturnEmptyObject() {
             /// 1=> clear cache
             entityManager.clear();
 
             /// 2=> test our function
-            Optional<String> imageUrl=productRepo.getImageUrlByIdEvenIfDeleted(10L);
+            Optional<String> imageUrl = productRepo.getImageUrlByIdEvenIfDeleted(10L);
             /// 3=> assert
             assertThat(imageUrl).isNotPresent();
         }
 
-        //////////////// GET PRODUCT FOR UPDATE State /////////////
-        ///// Find Product by ID with Pessimistic Lock - RETURN Product
+        /// ///////////// GET PRODUCT FOR UPDATE State /////////////
+        /// // Find Product by ID with Pessimistic Lock - RETURN Product
         @Test
-        void findByIdForUpdate_WhenIdExists_ShouldReturnProduct()
-        {
+        void findByIdForUpdate_WhenIdExists_ShouldReturnProduct() {
             /// 1=> create category and save it
             CategoryEntity category = createAndSaveCategory("New Electronics");
 
@@ -376,13 +380,12 @@ class ProductRepoTest extends BaseRepoTest {
             /// check the name
             assertThat(result.get().getName()).isEqualTo("Laptop");
 
-             assertThat(result.get().getStockCount()).isNotNull();
+            assertThat(result.get().getStockCount()).isNotNull();
         }
 
-        ///// Find Product by ID with Pessimistic Lock - RETURN Empty Optional when ID does not exist
+        /// // Find Product by ID with Pessimistic Lock - RETURN Empty Optional when ID does not exist
         @Test
-        void findByIdForUpdate_WhenIdDoesNotExist_ShouldReturnEmptyOptional()
-        {
+        void findByIdForUpdate_WhenIdDoesNotExist_ShouldReturnEmptyOptional() {
             /// 1=> define a non-existing ID
             Long nonExistingId = 999L;
 
@@ -398,8 +401,8 @@ class ProductRepoTest extends BaseRepoTest {
             assertThat(result).isNotPresent();
         }
 
-        //////////////// GET STOCK COUNT BY ID States /////////////
-        ///// Find Stock Count - SUCCESS (ID Exists)
+        /// ///////////// GET STOCK COUNT BY ID States /////////////
+        /// // Find Stock Count - SUCCESS (ID Exists)
         @Test
         void findStockCountById_WhenIdExists_ShouldReturnStockCount() {
             /// 1=> create category and save it
@@ -426,7 +429,7 @@ class ProductRepoTest extends BaseRepoTest {
             assertThat(result.get()).isEqualTo(50);
         }
 
-        ///// Find Stock Count - FAIL (ID Does Not Exist)
+        /// // Find Stock Count - FAIL (ID Does Not Exist)
         @Test
         void findStockCountById_WhenIdDoesNotExist_ShouldReturnEmptyOptional() {
             /// 1=> define a non-existing ID
@@ -445,17 +448,15 @@ class ProductRepoTest extends BaseRepoTest {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////WRITING METHODS////////////////////////////////////
+    /// ////////////////////////////////////////////////////////////////////////////////////
+    /// /////////////////////////////////WRITING METHODS////////////////////////////////////
 
     @Nested
     @DisplayName("2. Update Product fields Tests (PUT)")
-    class UpdateProductTest
-    {
-        ///// move Products ToDefaultCategory - Products are moved
+    class UpdateProductTest {
+        /// // move Products ToDefaultCategory - Products are moved
         @Test
-        void moveProductsToDefaultCategory_ShouldUpdateCategoryIdto999()
-        {
+        void moveProductsToDefaultCategory_ShouldUpdateCategoryIdto999() {
             /// 1=> create category
             CategoryEntity oldCategory = createAndSaveCategory("Category_To_Be_Deleted");
 
@@ -480,7 +481,7 @@ class ProductRepoTest extends BaseRepoTest {
 
         }
 
-        ///// move Products ToDefaultCategory but category doesn't exist - Products not moved
+        /// // move Products ToDefaultCategory but category doesn't exist - Products not moved
         @Test
         void moveProductsToDefaultCategory_WhenCategoryIdDoesNotExist_ShouldNotAffectOtherProducts() {
             // === Arrange ===
@@ -499,10 +500,9 @@ class ProductRepoTest extends BaseRepoTest {
             assertThat(checkedProduct.get().getCategory().getId()).isEqualTo(realCategory.getId());
         }
 
-        ///// restore Product - Product restored again
+        /// // restore Product - Product restored again
         @Test
-        void restoreProductsToDefaultCategory_ShouldSetIsDeletedTrue()
-        {
+        void restoreProductsToDefaultCategory_ShouldSetIsDeletedTrue() {
             /// 1=> create category
             CategoryEntity oldCategory = createAndSaveCategory("Category_To_Be_Deleted");
 
@@ -518,7 +518,7 @@ class ProductRepoTest extends BaseRepoTest {
             assertThat(updatedProduct1.get().isDeleted()).isFalse();
         }
 
-        //// restore product - id not found - should not throw exception
+        /// / restore product - id not found - should not throw exception
         @Test
         void restoreProduct_WhenIdDoesNotExist_ShouldNotThrowException() {
             Long fakeId = 9999L;
@@ -526,16 +526,14 @@ class ProductRepoTest extends BaseRepoTest {
         }
     }
 
-    ///////////////////////////////////////////
+    /// ////////////////////////////////////////
 
     @Nested
     @DisplayName("3. Delete Product Tests (Delete)")
-    class DeleteProductTest
-    {
+    class DeleteProductTest {
         /// hard delete product using id - deleted successfully
         @Test
-        void hardDeleteProductById_ShouldDeleteProduct()
-        {
+        void hardDeleteProductById_ShouldDeleteProduct() {
             /// 1=> create category
             CategoryEntity oldCategory = createAndSaveCategory("Category_To_Be_Deleted");
 
@@ -551,8 +549,7 @@ class ProductRepoTest extends BaseRepoTest {
 
         /// hard delete product using id - Should Not Throw Exception
         @Test
-        void hardDeleteProductById_WhenIdDoesNotExist_ShouldNotThrowException()
-        {
+        void hardDeleteProductById_WhenIdDoesNotExist_ShouldNotThrowException() {
             assertDoesNotThrow(() -> productRepo.hardDeleteProduct(9999L));
         }
 
@@ -583,24 +580,4 @@ class ProductRepoTest extends BaseRepoTest {
             assertThat(((Number) count).intValue()).isEqualTo(1);
         }
     }
-
-
-    ///////////////////////////////////////////////////////////////////
-    /////////////////////// HELPER METHODS ////////////////////////////
-    ///////////////////////////////////////////////////////////////////
-
-    private CategoryEntity createAndSaveCategory(String name) {
-        CategoryEntity category = new CategoryEntity();
-        category.setName(name);
-        return entityManager.persistAndFlush(category);
-    }
-
-    private ProductEntity createAndSaveProduct(String name, double price, CategoryEntity category, boolean isDeleted) {
-        ProductEntity product = new ProductEntity();
-        product.setName(name);
-        product.setPrice(BigDecimal.valueOf(price));
-        product.setCategory(category);
-        product.setDeleted(isDeleted);
-        return entityManager.persistAndFlush(product);
-    }
-  }
+}

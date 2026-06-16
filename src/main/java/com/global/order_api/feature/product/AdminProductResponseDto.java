@@ -17,7 +17,7 @@ public class AdminProductResponseDto extends BaseResponseDto<Long> {
     private String description;
     private String image;
     private BigDecimal price;
-	private int stockCount;
+    private int stockCount;
 
     private Long categoryId;
     private String categoryName;

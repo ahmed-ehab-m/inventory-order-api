@@ -1,7 +1,6 @@
 package com.global.order_api.feature.cart;
 
 import com.global.order_api.core.base.BaseResponseDto;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

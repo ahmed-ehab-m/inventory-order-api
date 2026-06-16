@@ -1,17 +1,17 @@
 package com.global.order_api.feature.user;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-
 import com.global.order_api.BaseRepoTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
+
 import java.util.Optional;
 import java.util.UUID;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 class UserRepoTest extends BaseRepoTest {
 
@@ -21,8 +21,22 @@ class UserRepoTest extends BaseRepoTest {
     @Autowired
     private TestEntityManager entityManager;
 
-    ///////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// READING METHODS ////////////////////////////////////
+    /// ////////////////////////////////////////////////////////////////
+    /// //////////////////// HELPER METHODS ////////////////////////////
+    /// ////////////////////////////////////////////////////////////////
+
+    private UserEntity createAndSaveUser(String email, boolean isDeleted) {
+        UserEntity user = new UserEntity();
+        user.setName("Test User");
+        user.setEmail(email != null ? email : "test_" + UUID.randomUUID().toString() + "@gmail.com");
+        user.setPassword("hashedPassword123");
+        user.setRole(UserRole.USER);
+        user.setDeleted(isDeleted); // Assuming you have setDeleted() from BaseEntity
+        return entityManager.persistAndFlush(user);
+    }
+
+    /// ////////////////////////////////////////////////////////////////////////////////////
+    /// ///////////////////////////////// READING METHODS ////////////////////////////////////
     /// test Derived Queries because=>
     /// soft delete
     /// Refactoring Safety if any field name changed
@@ -32,7 +46,7 @@ class UserRepoTest extends BaseRepoTest {
     @DisplayName("1. Get User Tests (GET)")
     class GetUserTests {
 
-        ///// Find By Email - Exists (Return User)
+        /// // Find By Email - Exists (Return User)
         @Test
         void findByEmail_WhenEmailExists_ShouldReturnUser() {
             // 1=> Create fake User
@@ -51,7 +65,7 @@ class UserRepoTest extends BaseRepoTest {
             assertThat(result.get().getName()).isEqualTo(user.getName());
         }
 
-        ///// Find By Email - Not Exists (Return Empty)
+        /// // Find By Email - Not Exists (Return Empty)
         @Test
         void findByEmail_WhenEmailDoesNotExist_ShouldReturnEmpty() {
             entityManager.clear();
@@ -59,7 +73,7 @@ class UserRepoTest extends BaseRepoTest {
             assertThat(result).isEmpty();
         }
 
-        ///// Exists By Email - Email Exists (Return True)
+        /// // Exists By Email - Email Exists (Return True)
         @Test
         void existsByEmail_WhenEmailExists_ShouldReturnTrue() {
             String targetEmail = "exists@company.com";
@@ -72,7 +86,7 @@ class UserRepoTest extends BaseRepoTest {
             assertThat(exists).isTrue();
         }
 
-        ///// Exists By Email - Email Not Exists (Return False)
+        /// // Exists By Email - Email Not Exists (Return False)
         @Test
         void existsByEmail_WhenEmailDoesNotExist_ShouldReturnFalse() {
             entityManager.clear();
@@ -81,14 +95,14 @@ class UserRepoTest extends BaseRepoTest {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// UPDATE METHODS ///////////////////////////////////
+    /// ////////////////////////////////////////////////////////////////////////////////////
+    /// ///////////////////////////////// UPDATE METHODS ///////////////////////////////////
 
     @Nested
     @DisplayName("2. Update & Restore User Tests (PUT)")
     class UpdateUserTests {
 
-        ///// Restore User - Should set is_deleted to false
+        /// // Restore User - Should set is_deleted to false
         @Test
         void restoreUser_ShouldSetIsDeletedFalse() {
             // Create soft-deleted user (isDeleted = true)
@@ -111,21 +125,21 @@ class UserRepoTest extends BaseRepoTest {
             assertThat(((Boolean) isDeleted)).isFalse();
         }
 
-        ///// Restore User - When Id Does Not Exist (Should Not Throw)
+        /// // Restore User - When Id Does Not Exist (Should Not Throw)
         @Test
         void restoreUser_WhenIdDoesNotExist_ShouldNotThrowException() {
             assertDoesNotThrow(() -> userRepo.restoreUser(999L));
         }
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// DELETE METHODS ///////////////////////////////////
+    /// ////////////////////////////////////////////////////////////////////////////////////
+    /// ///////////////////////////////// DELETE METHODS ///////////////////////////////////
 
     @Nested
     @DisplayName("3. Delete User Tests (DELETE)")
     class DeleteUserTests {
 
-        ///// Hard Delete User
+        /// // Hard Delete User
         @Test
         void hardDeleteUser_ShouldDeleteUserCompletely() {
             UserEntity user = createAndSaveUser("todelete@company.com", false);
@@ -142,24 +156,10 @@ class UserRepoTest extends BaseRepoTest {
             assertThat(deletedUser).isEmpty();
         }
 
-        ///// Hard Delete User - When Id Does Not Exist (Should Not Throw)
+        /// // Hard Delete User - When Id Does Not Exist (Should Not Throw)
         @Test
         void hardDeleteUser_WhenIdDoesNotExist_ShouldNotThrowException() {
             assertDoesNotThrow(() -> userRepo.hardDeleteUser(999L));
         }
-    }
-
-    ///////////////////////////////////////////////////////////////////
-    /////////////////////// HELPER METHODS ////////////////////////////
-    ///////////////////////////////////////////////////////////////////
-
-    private UserEntity createAndSaveUser(String email, boolean isDeleted) {
-        UserEntity user = new UserEntity();
-        user.setName("Test User");
-        user.setEmail(email != null ? email : "test_" + UUID.randomUUID().toString() + "@gmail.com");
-        user.setPassword("hashedPassword123");
-        user.setRole(UserRole.USER);
-        user.setDeleted(isDeleted); // Assuming you have setDeleted() from BaseEntity
-        return entityManager.persistAndFlush(user);
     }
 }

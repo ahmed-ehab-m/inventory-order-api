@@ -1,12 +1,5 @@
 package com.global.order_api.feature.category;
 
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import com.global.order_api.core.base.PageResponse;
 import com.global.order_api.core.exception.DuplicateRecordException;
 import com.global.order_api.core.exception.ResourceNotFoundException;
@@ -25,20 +18,28 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
-import org.springframework.http.MediaType;
 
 import java.util.List;
+
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 /// make slicing testing => turn on only web layer and ignore other layers
 /// tell spring we will test this controller to save memory of other controllers
-@WebMvcTest(value = CategoryController.class ,
+@WebMvcTest(value = CategoryController.class,
         /// exclude security layer
         excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
-        classes = JwtFilter.class),
+                classes = JwtFilter.class),
         excludeAutoConfiguration = {SecurityAutoConfiguration.class,
                 SecurityFilterAutoConfiguration.class,
                 OAuth2ClientAutoConfiguration.class
@@ -59,7 +60,8 @@ class CategoryControllerTest {
     /// so we send request in json format
     /// so we call objectMapper to make Serialization like {"name":"labtop"}
     @Autowired
-    private ObjectMapper objectMapper; /// translator from java/json to json/java
+    private ObjectMapper objectMapper;
+    /// translator from java/json to json/java
     @MockitoBean
     private AppTranslator appTranslator;
 
@@ -74,19 +76,18 @@ class CategoryControllerTest {
     /// test mode => throw exception and fail test to solve the problem
     /// @Nested => to create inner classes in primary test class
 
-    ///////////////////////////////////////////////////////////////////
-    ////////////////////////////////////READING METHODS////////////////////////////////////
+    /// ////////////////////////////////////////////////////////////////
+    /// /////////////////////////////////READING METHODS////////////////////////////////////
 
     @Nested
     @DisplayName("1. Get Category Tests (GET)")
-    class GetCategoryTests{
+    class GetCategoryTests {
 
-        //////////////// GET CATEGORY BY ID States/////////////
-        ///// Find by ID Exists - RETURN CATEGORY
+        /// ///////////// GET CATEGORY BY ID States/////////////
+        /// // Find by ID Exists - RETURN CATEGORY
         @Test
-        void findCategoryById_WhenIdExists_ShouldReturnCategoryWithSuccessMessage() throws Exception
-        {
-            long categoryId=1L;
+        void findCategoryById_WhenIdExists_ShouldReturnCategoryWithSuccessMessage() throws Exception {
+            long categoryId = 1L;
             /// 1=> create expected response from service
             CategoryResponseDto fakeDto = new CategoryResponseDto();
             fakeDto.setId(categoryId);
@@ -98,12 +99,12 @@ class CategoryControllerTest {
             /// 2=> give our scenario to our mocks
             when(categoryService.findCategoryById(categoryId)).thenReturn(fakeDto);
 
-            when(appTranslator.getTranslatedAction(eq("success.retrieved"),anyString()))
+            when(appTranslator.getTranslatedAction(eq("success.retrieved"), anyString()))
                     .thenReturn(fakeMessage);
 
             /// 3=> test our function
             /// pass url of endpoint
-            mockMvc.perform(get("/api/v1/categories/{id}",categoryId)
+            mockMvc.perform(get("/api/v1/categories/{id}", categoryId)
                             .contentType(MediaType.APPLICATION_JSON))
                     /// check our return ApiResponse
                     /// check status code
@@ -115,25 +116,24 @@ class CategoryControllerTest {
                     .andExpect(jsonPath("$.data.name").value("Electronics"));
         }
 
-        ///// Find by ID Does not Exist - NOT FOUND
+        /// // Find by ID Does not Exist - NOT FOUND
         @Test
-        void findCategoryById_WhenIdDoesNotExist_ShouldReturnNotFound() throws Exception
-        {
-            long categoryId=20L;
+        void findCategoryById_WhenIdDoesNotExist_ShouldReturnNotFound() throws Exception {
+            long categoryId = 20L;
             /// expected Message
-            String fakeMessage = "Category with id "+categoryId+" could not be found.";
+            String fakeMessage = "Category with id " + categoryId + " could not be found.";
             String errorKey = "error.resource.not.found";
-            Object[] args=new Object[]{"id",categoryId};
+            Object[] args = new Object[]{"id", categoryId};
             /// 2=> give our scenario to our mocks
             when(categoryService.findCategoryById(categoryId)).thenThrow(
-                    new ResourceNotFoundException(errorKey,args)
+                    new ResourceNotFoundException(errorKey, args)
             );
             /// method in GlobalExceptionHandler and base repo
             when(appTranslator.translateMessage(eq(errorKey), ArgumentMatchers.any(Object[].class)))
                     .thenReturn(fakeMessage);
             /// 3=> test our function
             /// pass url of endpoint
-            mockMvc.perform(get("/api/v1/categories/{id}",categoryId)
+            mockMvc.perform(get("/api/v1/categories/{id}", categoryId)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andDo(print()) /// to see details in console when test passed
             /// check our return ApiResponse
@@ -144,25 +144,24 @@ class CategoryControllerTest {
                     .andExpect(jsonPath("$.timeStamp").exists());
         }
 
-        ///////////////// GET ALL CATEGORIES/////////////
+        /// ////////////// GET ALL CATEGORIES/////////////
         @Test
-        void findAllCategories_ShouldReturnAllCategoriesWithSuccessMessage() throws Exception
-        {
+        void findAllCategories_ShouldReturnAllCategoriesWithSuccessMessage() throws Exception {
             /// 1=> create fake user filter
-            CategoryFilterRequestDto filterRequestDto=new CategoryFilterRequestDto();
+            CategoryFilterRequestDto filterRequestDto = new CategoryFilterRequestDto();
             filterRequestDto.setPage(0);
             filterRequestDto.setSize(10);
 
             /// 2=> mock the return from service PageResponse<CategoryResponseDto>
-            CategoryResponseDto fakeResponseDto=new CategoryResponseDto();
+            CategoryResponseDto fakeResponseDto = new CategoryResponseDto();
             fakeResponseDto.setId(1l);
             fakeResponseDto.setName("Books");
 
-            List<CategoryResponseDto> dtos=List.of(fakeResponseDto);
+            List<CategoryResponseDto> dtos = List.of(fakeResponseDto);
 
-            Page<CategoryResponseDto> page=new PageImpl<>(dtos);
-            PageResponse<CategoryResponseDto> fakePage= PageResponse.from(
-                    page,dtos
+            Page<CategoryResponseDto> page = new PageImpl<>(dtos);
+            PageResponse<CategoryResponseDto> fakePage = PageResponse.from(
+                    page, dtos
             );
 
             /// 3=> give our scenario to our mocks
@@ -171,7 +170,7 @@ class CategoryControllerTest {
 
             /// expected Message
             String fakeMessage = "Category retrieved successfully";
-            when(appTranslator.getTranslatedAction(eq("success.retrieved"),anyString()))
+            when(appTranslator.getTranslatedAction(eq("success.retrieved"), anyString()))
                     .thenReturn(fakeMessage);
 
             /// 4=> test our function
@@ -196,10 +195,9 @@ class CategoryControllerTest {
                     .andExpect(jsonPath("$.data.currentPage").value(0));
         }
 
-        ///////////////// GET ALL CATEGORIES FOR USERS (Public) /////////////
+        /// ////////////// GET ALL CATEGORIES FOR USERS (Public) /////////////
         @Test
-        void getCategories_ShouldReturnAllCategoriesListWithSuccessMessage() throws Exception
-        {
+        void getCategories_ShouldReturnAllCategoriesListWithSuccessMessage() throws Exception {
             /// 1=> create fake data to be returned by service
             CategoryResponseDto fakeResponseDto = new CategoryResponseDto();
             fakeResponseDto.setId(1L);
@@ -235,13 +233,12 @@ class CategoryControllerTest {
                     .andExpect(jsonPath("$.data[0].name").value("Electronics"));
         }
 
-        ////////////////////////////////////////////////////////////////
-        //////////////// GET CATEGORY BY Name States/////////////
+        /// /////////////////////////////////////////////////////////////
+        /// ///////////// GET CATEGORY BY Name States/////////////
         /// Get Category by Name - RETURN CATEGORY
         @Test
-        void findCategoryByName_WhenNameExists_ShouldReturnCategoryWithSuccessMessage() throws Exception
-        {
-            String categoryName="Mobiles";
+        void findCategoryByName_WhenNameExists_ShouldReturnCategoryWithSuccessMessage() throws Exception {
+            String categoryName = "Mobiles";
             /// 1=> create expected response from service
             CategoryResponseDto fakeDto = new CategoryResponseDto();
             fakeDto.setId(1L);
@@ -253,12 +250,12 @@ class CategoryControllerTest {
             /// 2=> give our scenario to our mocks
             when(categoryService.findCategoryByName(categoryName)).thenReturn(fakeDto);
 
-            when(appTranslator.getTranslatedAction(eq("success.retrieved"),eq("entity.category")))
+            when(appTranslator.getTranslatedAction(eq("success.retrieved"), eq("entity.category")))
                     .thenReturn(fakeMessage);
 
             /// 3=> test our function
             /// pass url of endpoint
-            mockMvc.perform(get("/api/v1/categories/name/{name}",categoryName)
+            mockMvc.perform(get("/api/v1/categories/name/{name}", categoryName)
                             .contentType(MediaType.APPLICATION_JSON))
                     /// check our return ApiResponse
                     /// check status code
@@ -273,16 +270,15 @@ class CategoryControllerTest {
 
         /// Get Category by Name not in DB - Category NOT FOUND
         @Test
-        void findCategoryByName_WhenNameDoesNotExist_ShouldReturnNotFound() throws Exception
-        {
-            String categoryName="TV";
+        void findCategoryByName_WhenNameDoesNotExist_ShouldReturnNotFound() throws Exception {
+            String categoryName = "TV";
             /// expected Message
-            String fakeMessage = "Category with name "+categoryName+" could not be found.";
+            String fakeMessage = "Category with name " + categoryName + " could not be found.";
             String errorKey = "error.resource.not.found";
-            Object[] args=new Object[]{"name",categoryName};
+            Object[] args = new Object[]{"name", categoryName};
             /// 2=> give our scenario to our mocks
             when(categoryService.findCategoryByName(categoryName)).thenThrow(
-                    new ResourceNotFoundException(errorKey,args)
+                    new ResourceNotFoundException(errorKey, args)
             );
             /// method in GlobalExceptionHandler and base repo
             /// pass any not args => because mockito compare using equals()
@@ -291,7 +287,7 @@ class CategoryControllerTest {
                     .thenReturn(fakeMessage);
             /// 3=> test our function
             /// pass url of endpoint
-            mockMvc.perform(get("/api/v1/categories/name/{name}",categoryName)
+            mockMvc.perform(get("/api/v1/categories/name/{name}", categoryName)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andDo(print()) /// to see details in console when test passed
             /// check our return ApiResponse
@@ -303,23 +299,21 @@ class CategoryControllerTest {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////WRITING METHODS////////////////////////////////////
+    /// ////////////////////////////////////////////////////////////////////////////////////
+    /// /////////////////////////////////WRITING METHODS////////////////////////////////////
 
     @Nested
     @DisplayName("2. Create Category Tests (POST)")
-    class CreateCategoryTest
-    {
-        ///// Create Category with new name - Category Created
+    class CreateCategoryTest {
+        /// // Create Category with new name - Category Created
         @Test
-        void createCategory_WhenNameDoesNotExist_ShouldReturnCategoryWithSuccessMessage() throws Exception
-        {
+        void createCategory_WhenNameDoesNotExist_ShouldReturnCategoryWithSuccessMessage() throws Exception {
             /// 1=> create fake request dta
-            CategoryRequestDto fakeRequestDto=new CategoryRequestDto();
+            CategoryRequestDto fakeRequestDto = new CategoryRequestDto();
             fakeRequestDto.setName("Mobiles");
 
             /// 2=> create fake response from service
-            CategoryResponseDto fakeResponseDto=new CategoryResponseDto();
+            CategoryResponseDto fakeResponseDto = new CategoryResponseDto();
             fakeResponseDto.setName("Mobiles");
             fakeResponseDto.setId(7L);
             /// 3=> expected Message
@@ -328,7 +322,7 @@ class CategoryControllerTest {
             /// 4=> give our scenario to our mocks
             when(categoryService.createCategory(fakeRequestDto)).thenReturn(fakeResponseDto);
 
-            when(appTranslator.getTranslatedAction(eq("success.created"),eq("entity.category")))
+            when(appTranslator.getTranslatedAction(eq("success.created"), eq("entity.category")))
                     .thenReturn(fakeMessage);
 
             /// 3=> test our function
@@ -347,13 +341,12 @@ class CategoryControllerTest {
                     .andExpect(jsonPath("$.message").value(fakeMessage));
         }
 
-        ///// Create Category with another category name - Category NOT Created
+        /// // Create Category with another category name - Category NOT Created
         @Test
-        void createCategory_WhenNameExists_ShouldReturnNotCreated() throws Exception
-        {
-            String categoryName="Books";
+        void createCategory_WhenNameExists_ShouldReturnNotCreated() throws Exception {
+            String categoryName = "Books";
             /// 1=> create fake request dta
-            CategoryRequestDto fakeRequestDto=new CategoryRequestDto();
+            CategoryRequestDto fakeRequestDto = new CategoryRequestDto();
             fakeRequestDto.setName(categoryName);
 
 //        /// 2=> create fake response from sevice
@@ -362,14 +355,14 @@ class CategoryControllerTest {
 //        fakeResponseDto.setId(7L);
             /// 2=> expected Message
             String errorKey = "error.resource.duplicate";
-            String fakeMessage = "Category with name "+categoryName+" already exists.";
+            String fakeMessage = "Category with name " + categoryName + " already exists.";
 
             /// 4=> give our scenario to our mocks
             /// problem here => after serialization controller make new object with these data
             /// and mockito compare addresses no values
             /// so using any
             when(categoryService.createCategory(ArgumentMatchers.any(CategoryRequestDto.class))).thenThrow(
-                    new DuplicateRecordException("Category","name",categoryName)
+                    new DuplicateRecordException("Category", "name", categoryName)
             );
 
             when(appTranslator.translateMessage(eq(errorKey), ArgumentMatchers.any(Object[].class)))
@@ -389,16 +382,15 @@ class CategoryControllerTest {
                     .andExpect(jsonPath("$.timeStamp").exists());
         }
 
-        ///// Create Category with empty name - Category NOT Created
+        /// // Create Category with empty name - Category NOT Created
         @Test
-        void createCategory_WhenNameIsEmpty_ShouldReturnBadRequest() throws Exception
-        {
+        void createCategory_WhenNameIsEmpty_ShouldReturnBadRequest() throws Exception {
 
-            CategoryRequestDto invalidRequestDto=new CategoryRequestDto();
+            CategoryRequestDto invalidRequestDto = new CategoryRequestDto();
             invalidRequestDto.setName(""); /// empty name
-        /// request will not go to service layer because we use @Valid
-            String fakeMessage="Validation failed.";
-            String errorKey="error.validation";
+            /// request will not go to service layer because we use @Valid
+            String fakeMessage = "Validation failed.";
+            String errorKey = "error.validation";
             when(appTranslator.translateMessage(eq(errorKey)))
                     .thenReturn(fakeMessage);
 
@@ -415,24 +407,22 @@ class CategoryControllerTest {
         }
     }
 
-    ///////////////////////////////////////////
+    /// ////////////////////////////////////////
     @Nested
     @DisplayName("3. Update Category Tests (PUT)")
-    class UpdateCategoryTest
-    {
-        ///// Update Category with same or Different name - Category Updated
+    class UpdateCategoryTest {
+        /// // Update Category with same or Different name - Category Updated
         @Test
-        void updateCategory_WhenSameOrDifferentName_ShouldReturnCategoryWithSuccessMessage() throws Exception
-        {
-            String categoryNameExists="Books";
-            Long categoryId=1L;
+        void updateCategory_WhenSameOrDifferentName_ShouldReturnCategoryWithSuccessMessage() throws Exception {
+            String categoryNameExists = "Books";
+            Long categoryId = 1L;
             /// 1=> create fake request dta
-            CategoryRequestDto fakeRequestDto=new CategoryRequestDto();
+            CategoryRequestDto fakeRequestDto = new CategoryRequestDto();
             fakeRequestDto.setName(categoryNameExists);
             fakeRequestDto.setDescription("new description");
 
             /// 2=> create fake response from service
-            CategoryResponseDto fakeResponseDto=new CategoryResponseDto();
+            CategoryResponseDto fakeResponseDto = new CategoryResponseDto();
             fakeResponseDto.setName("Mobiles");
             fakeResponseDto.setId(categoryId);
             fakeResponseDto.setDescription("new description");
@@ -442,12 +432,12 @@ class CategoryControllerTest {
             when(categoryService.updateCategory(ArgumentMatchers.any(CategoryRequestDto.class),
                     eq(categoryId))).thenReturn(fakeResponseDto);
 
-            when(appTranslator.getTranslatedAction(eq("success.updated"),eq("entity.category")))
+            when(appTranslator.getTranslatedAction(eq("success.updated"), eq("entity.category")))
                     .thenReturn(fakeMessage);
 
             /// 3=> test our function
             /// pass url of endpoint
-            mockMvc.perform(put("/api/v1/categories/{id}",categoryId)
+            mockMvc.perform(put("/api/v1/categories/{id}", categoryId)
                             /// convert dto to json
                             /// content add it into body of http request
                             /// in controller endpoint (@RequestBody) so jackson make Deserialization
@@ -461,30 +451,29 @@ class CategoryControllerTest {
                     .andExpect(jsonPath("$.message").value(fakeMessage));
         }
 
-        ///// Update Category But Id Not Found - Category Not Updated
+        /// // Update Category But Id Not Found - Category Not Updated
         @Test
-        void updateCategory_WhenIdNotFound_ShouldReturnNotFound() throws Exception
-        {
-            String newCategoryName="TVs";
-            Long categoryId=11L;
+        void updateCategory_WhenIdNotFound_ShouldReturnNotFound() throws Exception {
+            String newCategoryName = "TVs";
+            Long categoryId = 11L;
             /// 1=> create fake request dta
-            CategoryRequestDto fakeRequestDto=new CategoryRequestDto();
+            CategoryRequestDto fakeRequestDto = new CategoryRequestDto();
             fakeRequestDto.setName(newCategoryName);
-            String fakeMessage = "Category with id "+categoryId+" could not be found.";
+            String fakeMessage = "Category with id " + categoryId + " could not be found.";
             String errorKey = "error.resource.not.found";
-            Object[] args=new Object[]{"id",categoryId};
+            Object[] args = new Object[]{"id", categoryId};
 
             /// 2=> give our scenario to our mocks
             when(categoryService.updateCategory(ArgumentMatchers.any(CategoryRequestDto.class),
                     eq(categoryId))).thenThrow(
-                    new ResourceNotFoundException(errorKey,args)
+                    new ResourceNotFoundException(errorKey, args)
             );
             /// method in GlobalExceptionHandler and base repo
             when(appTranslator.translateMessage(eq(errorKey), ArgumentMatchers.any(Object[].class)))
                     .thenReturn(fakeMessage);
             /// 3=> test our function
             /// pass url of endpoint
-            mockMvc.perform(put("/api/v1/categories/{id}",categoryId)
+            mockMvc.perform(put("/api/v1/categories/{id}", categoryId)
                             .content(objectMapper.writeValueAsString(fakeRequestDto))
                             .contentType(MediaType.APPLICATION_JSON))
                     .andDo(print()) /// to see details in console when test passed
@@ -496,29 +485,28 @@ class CategoryControllerTest {
                     .andExpect(jsonPath("$.timeStamp").exists());
         }
 
-        ///// Update Category with another category name - Category Not Updated
+        /// // Update Category with another category name - Category Not Updated
         @Test
-        void updateCategory_WhenNameAlreadyExists_ShouldReturnNotUpdated() throws Exception
-        {
-            String newCategoryName="Books";
-            Long categoryId=2L;
+        void updateCategory_WhenNameAlreadyExists_ShouldReturnNotUpdated() throws Exception {
+            String newCategoryName = "Books";
+            Long categoryId = 2L;
             /// 1=> create fake request dta
-            CategoryRequestDto fakeRequestDto=new CategoryRequestDto();
+            CategoryRequestDto fakeRequestDto = new CategoryRequestDto();
             fakeRequestDto.setName(newCategoryName);
             String errorKey = "error.resource.duplicate";
-            String fakeMessage = "Category with name "+newCategoryName+" already exists.";
+            String fakeMessage = "Category with name " + newCategoryName + " already exists.";
 
             /// 2=> give our scenario to our mocks
             when(categoryService.updateCategory(ArgumentMatchers.any(CategoryRequestDto.class),
                     eq(categoryId))).thenThrow(
-                    new DuplicateRecordException("Category","name",newCategoryName)
+                    new DuplicateRecordException("Category", "name", newCategoryName)
             );
             /// method in GlobalExceptionHandler and base repo
             when(appTranslator.translateMessage(eq(errorKey), ArgumentMatchers.any(Object[].class)))
                     .thenReturn(fakeMessage);
             /// 3=> test our function
             /// pass url of endpoint
-            mockMvc.perform(put("/api/v1/categories/{id}",categoryId)
+            mockMvc.perform(put("/api/v1/categories/{id}", categoryId)
                             .content(objectMapper.writeValueAsString(fakeRequestDto))
                             .contentType(MediaType.APPLICATION_JSON))
                     .andDo(print()) /// to see details in console when test passed
@@ -531,25 +519,24 @@ class CategoryControllerTest {
         }
     }
 
-    ///////////////////////////////////////////
+    /// ////////////////////////////////////////
     @Nested
     @DisplayName("4. Delete Category Tests (DELETE)")
     class DeleteCategoryTests {
-        ///// Delete Category by Id  - Category Deleted
+        /// // Delete Category by Id  - Category Deleted
         @Test
-        void deleteCategory_WhenIdFoundInDB_ShouldDeleteCategory() throws Exception
-        {
-            Long categoryId=1L;
+        void deleteCategory_WhenIdFoundInDB_ShouldDeleteCategory() throws Exception {
+            Long categoryId = 1L;
             String fakeMessage = "Category deleted successfully";
 
             doNothing().when(categoryService).deleteCategory(categoryId);
 
-            when(appTranslator.getTranslatedAction(eq("success.deleted"),eq("entity.category")))
+            when(appTranslator.getTranslatedAction(eq("success.deleted"), eq("entity.category")))
                     .thenReturn(fakeMessage);
 
             /// 3=> test our function
             /// pass url of endpoint
-            mockMvc.perform(delete("/api/v1/categories/{id}",categoryId)
+            mockMvc.perform(delete("/api/v1/categories/{id}", categoryId)
                             /// convert dto to json
                             /// content add it into body of http request
                             /// in controller endpoint (@RequestBody) so jackson make Deserialization)
@@ -563,18 +550,17 @@ class CategoryControllerTest {
 
         }
 
-        ///// Delete Category by Id not found in DB  - Category Not Deleted
+        /// // Delete Category by Id not found in DB  - Category Not Deleted
         @Test
-        void deleteCategory_WhenIdNotFoundInDB_ShouldReturnNotDeleted() throws Exception
-        {
-            Long categoryId=10L;
+        void deleteCategory_WhenIdNotFoundInDB_ShouldReturnNotDeleted() throws Exception {
+            Long categoryId = 10L;
 
-            String fakeMessage = "Category with id "+categoryId+" could not be found.";
+            String fakeMessage = "Category with id " + categoryId + " could not be found.";
             String errorKey = "error.resource.not.found";
-            Object[] args=new Object[]{"id",categoryId};
+            Object[] args = new Object[]{"id", categoryId};
 
             /// 2=> give our scenario to our mocks
-            doThrow( new ResourceNotFoundException(errorKey,args))
+            doThrow(new ResourceNotFoundException(errorKey, args))
                     .when(categoryService)
                     .deleteCategory(eq(categoryId));
 
@@ -584,7 +570,7 @@ class CategoryControllerTest {
 
             /// 3=> test our function
             /// pass url of endpoint
-            mockMvc.perform(delete("/api/v1/categories/{id}",categoryId)
+            mockMvc.perform(delete("/api/v1/categories/{id}", categoryId)
                             /// convert dto to json
                             /// content add it into body of http request
                             /// in controller endpoint (@RequestBody) so jackson make Deserialization)

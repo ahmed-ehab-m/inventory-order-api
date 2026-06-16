@@ -4,42 +4,40 @@ import lombok.Getter;
 
 @Getter
 public abstract class BaseException extends RuntimeException {
-	
-	// final for immutability
-	// final to prevent any code editing the message had a value
-	// and to prevent nullpointerExcpetion
-	// thread safety
-	private final String messageKey;
-	private final Object[] args;
-	
-	public BaseException(String messageKey)
-	{
-		// to know RunTimeException class our message
-		// to return our message in the console not null
-		super(messageKey); 
-		// we copy our message into our variable to send it to global exception handler
-		// to present it or translate it
-		this.messageKey=messageKey;
-		this.args=null;
-	}
-	
-	// ... => args can be empty or any number
-	// and send the argument direct not should put it into array
-	public BaseException(String messageKey, Object... args) {
+
+    // final for immutability
+    // final to prevent any code editing the message had a value
+    // and to prevent nullpointerExcpetion
+    // thread safety
+    private final String messageKey;
+    private final Object[] args;
+
+    public BaseException(String messageKey) {
+        // to know RunTimeException class our message
+        // to return our message in the console not null
+        super(messageKey);
+        // we copy our message into our variable to send it to global exception handler
+        // to present it or translate it
+        this.messageKey = messageKey;
+        this.args = null;
+    }
+
+    // ... => args can be empty or any number
+    // and send the argument direct not should put it into array
+    public BaseException(String messageKey, Object... args) {
         super(messageKey);
         this.messageKey = messageKey;
         this.args = args;
     }
-	
-	// for me not user => logs in console in checked exceptions
-	// to see the full cause (e) of exception (caused by) not just a message
-	
-	public BaseException(String messageKey ,Throwable cause)
-	{
-		super(messageKey,cause);
+
+    // for me not user => logs in console in checked exceptions
+    // to see the full cause (e) of exception (caused by) not just a message
+
+    public BaseException(String messageKey, Throwable cause) {
+        super(messageKey, cause);
         this.messageKey = messageKey;
         this.args = null;
-	}
-	
+    }
+
 }
 

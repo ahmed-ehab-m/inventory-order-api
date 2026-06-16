@@ -2,12 +2,12 @@
 <Configuration status="WARN">
 
     <Properties>
-           <!-- create log folder -->
+        <!-- create log folder -->
         <Property name="LOG_PATH">${env:LOG_DIR:-logs}</Property>
         <Property name="CONSOLE_PATTERN">
             %style{%d{yyyy-MM-dd HH:mm:ss}}{cyan} [%t] %highlight{%-5level} %style{%logger{36}}{yellow} - %msg%n
         </Property>
-        
+
         <Property name="FILE_PATTERN">
             %d{yyyy-MM-dd HH:mm:ss} [%t] %-5level %logger{36} - %msg%n
         </Property>
@@ -22,8 +22,8 @@
 
         <!-- File: بيكتب كل اللوجز -->
         <RollingFile name="FileAppender"
-            fileName="${LOG_PATH}/app.log"
-            filePattern="${LOG_PATH}/archived/app-%d{yyyy-MM-dd}-%i.log.gz">
+                     fileName="${LOG_PATH}/app.log"
+                     filePattern="${LOG_PATH}/archived/app-%d{yyyy-MM-dd}-%i.log.gz">
             <PatternLayout pattern="${FILE_PATTERN}"/>
             <Policies>
                 <TimeBasedTriggeringPolicy/>
@@ -34,8 +34,8 @@
 
         <!-- Error File: Errors بس -->
         <RollingFile name="ErrorFileAppender"
-            fileName="${LOG_PATH}/error.log"
-            filePattern="${LOG_PATH}/archived/error-%d{yyyy-MM-dd}-%i.log.gz">
+                     fileName="${LOG_PATH}/error.log"
+                     filePattern="${LOG_PATH}/archived/error-%d{yyyy-MM-dd}-%i.log.gz">
             <PatternLayout pattern="${FILE_PATTERN}"/>
             <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
             <Policies>
@@ -46,16 +46,17 @@
         </RollingFile>
 
     </Appenders>
-	
-    <Loggers>
-    	<Logger name="org.hibernate.SQL" level="debug" additivity="false">
-        <AppenderRef ref="ConsoleAppender"/> </Logger>
 
-	    <Logger name="org.hibernate.orm.jdbc.bind" level="trace" additivity="false">
-	        <AppenderRef ref="ConsoleAppender"/>
-	    </Logger>	    
-		<Logger name="javax.management" level="INFO" />
-        <Logger name="sun.rmi" level="INFO" />
+    <Loggers>
+        <Logger name="org.hibernate.SQL" level="debug" additivity="false">
+            <AppenderRef ref="ConsoleAppender"/>
+        </Logger>
+
+        <Logger name="org.hibernate.orm.jdbc.bind" level="trace" additivity="false">
+            <AppenderRef ref="ConsoleAppender"/>
+        </Logger>
+        <Logger name="javax.management" level="INFO"/>
+        <Logger name="sun.rmi" level="INFO"/>
         <!-- Development Profile -->
         <SpringProfile name="dev">
             <Root level="INFO">
@@ -66,7 +67,7 @@
         <!-- Production Profile -->
         <SpringProfile name="prod">
             <Root level="INFO">
-            	 <AppenderRef ref="FileAppender"/>
+                <AppenderRef ref="FileAppender"/>
                 <AppenderRef ref="ErrorFileAppender"/>
             </Root>
         </SpringProfile>

@@ -7,14 +7,14 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 public class UserPrincipal implements UserDetails {
     private UserEntity user;
-    public  UserPrincipal(UserEntity user)
-    {
-        this.user=user;
+
+    public UserPrincipal(UserEntity user) {
+        this.user = user;
     }
+
     /// methods which spring security use it to authenticate
     @Override
     // ROLE
@@ -24,7 +24,7 @@ public class UserPrincipal implements UserDetails {
         return Collections.singleton(
                 /// Spring Security Role => Must Start with "ROLE_"
                 /// SimpleGrantedAuthority => Object Which Spring Security Can read
-                new SimpleGrantedAuthority("ROLE_"+ user.getRole().name()) /// .name => return string
+                new SimpleGrantedAuthority("ROLE_" + user.getRole().name()) /// .name => return string
         );
     }
 
@@ -39,6 +39,7 @@ public class UserPrincipal implements UserDetails {
     public String getUsername() {
         return user.getEmail();
     }
+
     @Override
     public boolean isAccountNonExpired() {
         return true;
@@ -58,16 +59,16 @@ public class UserPrincipal implements UserDetails {
     public boolean isEnabled() {
         return !user.isDeleted();
     }
+
     /// for me
     /// to get user data more easily in Controller
-    public Long getId()
-    {
+    public Long getId() {
         return user.getId();
     }
+
     /// for me
     /// to get user data more easily in Controller
-    public UserEntity getUser()
-    {
+    public UserEntity getUser() {
         return this.user;
     }
 

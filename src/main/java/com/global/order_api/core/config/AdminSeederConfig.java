@@ -15,30 +15,29 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Log4j2
-@Order(1) /// because it work on any environment
+@Order(1)
+/// because it work on any environment
 public class AdminSeederConfig implements CommandLineRunner {
 
     private final UserRepo userRepo;
-    private  final PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
     @Value("${app.admin.email}")
     private String adminEmail;
     @Value("${app.admin.password}")
-    private  String adminPassword;
+    private String adminPassword;
 
     @Override
     public void run(String... args) throws Exception {
 
-        if(userRepo.findByEmail(adminEmail).isEmpty())
-        {
-            UserEntity admin=new UserEntity();
+        if (userRepo.findByEmail(adminEmail).isEmpty()) {
+            UserEntity admin = new UserEntity();
             admin.setName("Super Admin");
             admin.setEmail(adminEmail);
             admin.setPassword(passwordEncoder.encode(adminPassword));
             admin.setRole(UserRole.ADMIN);
             userRepo.save(admin);
             log.info("admin email created successfully");
-        }
-        else {
+        } else {
             log.info("admin email founded");
         }
     }

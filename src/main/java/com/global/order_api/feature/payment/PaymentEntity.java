@@ -1,6 +1,5 @@
 package com.global.order_api.feature.payment;
 
-import com.global.order_api.core.base.BaseEntity;
 import com.global.order_api.feature.order.OrderEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,7 +18,7 @@ import java.time.LocalDateTime;
 @Table(name = "payments")
 @Builder
 @EntityListeners(AuditingEntityListener.class)
-public class PaymentEntity{
+public class PaymentEntity {
 
 
     @Id
@@ -31,36 +30,36 @@ public class PaymentEntity{
     @JoinColumn(name = "order_id")
     private OrderEntity order;
 
-    @Column(name = "paymob_order_id",length = 255,nullable = false)
+    @Column(name = "paymob_order_id", length = 255, nullable = false)
     private String paymobOrderId;
 
-    @Column(name = "amount",nullable = false)
+    @Column(name = "amount", nullable = false)
     private BigDecimal amount;
 
 
     @Builder.Default
-    @Column(name = "currency",length = 10)
-    private String currency=" EGP";
+    @Column(name = "currency", length = 10)
+    private String currency = " EGP";
 
-    @Column(name = "transaction_id",length = 255)
+    @Column(name = "transaction_id", length = 255)
     private String transactionId;
 
-    @Column(name = "provider_response_code",length = 255)
+    @Column(name = "provider_response_code", length = 255)
     private String providerResponseCode;
 
-    @Column(name = "provider_message",length = 255)
+    @Column(name = "provider_message", length = 255)
     private String providerMessage;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "payment_status",nullable = false,length = 50)
+    @Column(name = "payment_status", nullable = false, length = 50)
     private PaymentStatus paymentStatus;
 
     /// string because our system must be robust if payment type come from apis not in our enums
-    @Column(name = "payment_method",length = 50)
+    @Column(name = "payment_method", length = 50)
     private String paymentMethod;
 
     @CreatedDate
-    @Column(name ="created_at",updatable = false)
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @LastModifiedDate

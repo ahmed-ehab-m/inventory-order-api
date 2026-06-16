@@ -22,6 +22,15 @@ import java.util.concurrent.TimeUnit;
 /// afterCompletion => run after response already go to user
 public class RateLimitInterceptor implements HandlerInterceptor {
 
+    /// settings
+    private final int MAX_REQUESTS = 10;
+    private final int WINDOW_SECONDS = 60;
+    /// TO convert our api response error model to json
+    /// because we are in interceptor layer
+    /// javatimemodule => because objectmapper don't undestand localdatetime
+    /// so add it
+    private final ObjectMapper objectMapper =
+            new ObjectMapper().registerModule(new JavaTimeModule());
     /// template = Design Pattern to avoid complex code
     /// to call redis we should open connection + try catch + close connection
     /// String => to make data readable in redis without encryption or symbols
@@ -29,47 +38,33 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     /// to binary
     @Autowired
     private StringRedisTemplate redisTemplate;
-    /// settings
-    private final int MAX_REQUESTS = 10;
-    private final int WINDOW_SECONDS = 60;
-
     @Autowired
-    private  AppTranslator appTranslator;
-
-    /// TO convert our api response error model to json
-    /// because we are in interceptor layer
-    /// javatimemodule => because objectmapper don't undestand localdatetime
-    /// so add it
-    private final ObjectMapper objectMapper =
-            new ObjectMapper().registerModule(new JavaTimeModule());
+    private AppTranslator appTranslator;
 
     /// handler => the final route that request will go to (method in controller)
     /// to control if any endpoint i want to remove rate limiting on it
     @Override
-    public boolean preHandle(HttpServletRequest request , HttpServletResponse response, Object hander)
-            throws Exception
-    {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object hander)
+            throws Exception {
         /// 1=> get user IP Address
-        String clientIp= request.getRemoteAddr();
+        String clientIp = request.getRemoteAddr();
         /// 2=> create redis key
-        String redisKey= "rate_limit:" + clientIp;
+        String redisKey = "rate_limit:" + clientIp;
         /// 3=> increase redis counter +1
         Long requestCount = redisTemplate.opsForValue().increment(redisKey);
         /// 4=> check if this first request
-        if(requestCount !=null && requestCount ==1)
-        {
+        if (requestCount != null && requestCount == 1) {
             /// time unit to tell redis we use seconds
-            redisTemplate.expire(redisKey,WINDOW_SECONDS, TimeUnit.SECONDS);
+            redisTemplate.expire(redisKey, WINDOW_SECONDS, TimeUnit.SECONDS);
         }
         /// 5=> if user get limit 10 requests
-        if(requestCount !=null && requestCount > MAX_REQUESTS)
-        {
+        if (requestCount != null && requestCount > MAX_REQUESTS) {
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value()); /// 429
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             /// call our base response
             String message = appTranslator.translateMessage("error.tooMany.request");
-            ApiResponse errorResponse =  ApiResponse.error(message);
+            ApiResponse errorResponse = ApiResponse.error(message);
             String jsonResponse = objectMapper.writeValueAsString(errorResponse);
             response.getWriter().write(
                     jsonResponse);

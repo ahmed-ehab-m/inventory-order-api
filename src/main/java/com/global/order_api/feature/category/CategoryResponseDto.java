@@ -11,9 +11,8 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CategoryResponseDto extends  BaseResponseDto<Long> 
-{	
-	private Long id; // important for front-end
+public class CategoryResponseDto extends BaseResponseDto<Long> {
+    private Long id; // important for front-end
     private String name;
     private String description;
 }

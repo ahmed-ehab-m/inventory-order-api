@@ -1,6 +1,5 @@
 package com.global.order_api.feature.cart;
 
-import com.global.order_api.core.base.BaseRepo;
 import com.global.order_api.core.base.BaseService;
 import com.global.order_api.core.exception.BusinessLogicException;
 import com.global.order_api.core.exception.ResourceNotFoundException;
@@ -20,7 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class CartService extends BaseService<CartEntity,Long> {
+public class CartService extends BaseService<CartEntity, Long> {
 
     private final CartRepo cartRepo;
     private final CartMapper cartMapper;
@@ -32,14 +31,15 @@ public class CartService extends BaseService<CartEntity,Long> {
     public CartService(
             CartRepo cartRepo, CartMapper cartMapper, CartItemMapper cartItemMapper, UserRepo userRepo, ProductRepo productRepo, ProductService productService) {
         super(cartRepo);
-        this.cartRepo=cartRepo;
+        this.cartRepo = cartRepo;
         this.cartMapper = cartMapper;
         this.cartItemMapper = cartItemMapper;
         this.userRepo = userRepo;
         this.productRepo = productRepo;
         this.productService = productService;
     }
-    ////////////////////CACHING//////////////////////
+
+    /// /////////////////CACHING//////////////////////
     /// CART PAGE TTL => 1 DAY = Active session only, no change , writing in db first
     /// === Data Normalization in Cache ===
     /// problem => we want to know if admin change product's data to cache right data not old data in cart
@@ -50,36 +50,34 @@ public class CartService extends BaseService<CartEntity,Long> {
     /// so if admin change any product data , in product service we clear cahce of this product
     /// then cart cache we get cache miss then we go to db to get new data again
     /// CACHE STRATEGY => READING = CACHE-ASIDE || WRITING = WRITE-AROUND (DB)
-    ////////////////////////////////////////////////
+    /// /////////////////////////////////////////////
     /// READING METHODS
     /// Get RAW CART => WILL BE CACHED
-    @Cacheable(value = "carts",key = "#userId")
-    public RawCartDto getRawCart(Long userId)
-    {
-        CartEntity cart=cartRepo.findByUserId(userId).orElse(null);
-        if(cart == null) return null;
+    @Cacheable(value = "carts", key = "#userId")
+    public RawCartDto getRawCart(Long userId) {
+        CartEntity cart = cartRepo.findByUserId(userId).orElse(null);
+        if (cart == null) return null;
         return cartMapper.mapToRawDto(cart);
     }
+
     /// Get User Cart
-    public CartResponseDto getUserCart(Long userId)
-    {
+    public CartResponseDto getUserCart(Long userId) {
         /// 1=> get user cart from cache
-        RawCartDto rawCartDto=getRawCart(userId);
+        RawCartDto rawCartDto = getRawCart(userId);
         /// 2=> if user doesn't have cart then create new cart don't throw exception
         if (rawCartDto == null || rawCartDto.getItems().isEmpty()) {
-            CartResponseDto emptyCart= new CartResponseDto();
+            CartResponseDto emptyCart = new CartResponseDto();
             emptyCart.setCartItems(new ArrayList<>());
             emptyCart.setTotalCartPrice(0.0);
             return emptyCart;
         }
         /// 3=> Hydration
-        CartResponseDto fullCartResponse= new CartResponseDto();
-        List<CartItemResponseDto> itemsList=new ArrayList<>();
-        double totalPrice= 0.0;
+        CartResponseDto fullCartResponse = new CartResponseDto();
+        List<CartItemResponseDto> itemsList = new ArrayList<>();
+        double totalPrice = 0.0;
         /// convert Raw DTOS => RESPONSE DTOS
-        for(RawCartItemDto rawItem : rawCartDto.getItems())
-        {
-            UserProductResponseDto product= productService.getProductByIdWithCategory(rawItem.getProductId());
+        for (RawCartItemDto rawItem : rawCartDto.getItems()) {
+            UserProductResponseDto product = productService.getProductByIdWithCategory(rawItem.getProductId());
             CartItemResponseDto itemResponse = new CartItemResponseDto();
             itemResponse.setProductId(product.getId());
             itemResponse.setProductName(product.getName());
@@ -87,9 +85,9 @@ public class CartService extends BaseService<CartEntity,Long> {
             itemResponse.setQuantity(rawItem.getQuantity());
 
             /// to get recent price of product (not time of user add item to cart)
-            double subTotal= product.getPrice().doubleValue() * rawItem.getQuantity();
+            double subTotal = product.getPrice().doubleValue() * rawItem.getQuantity();
             itemResponse.setSubTotal(subTotal);
-            totalPrice +=subTotal;
+            totalPrice += subTotal;
             itemsList.add(itemResponse);
         }
         fullCartResponse.setCartItems(itemsList);
@@ -102,21 +100,21 @@ public class CartService extends BaseService<CartEntity,Long> {
     /// add cart item
     @CacheEvict(value = "carts", key = "#userId")
     @Transactional
-    public CartResponseDto addCartItem(Long userId ,CartItemRequestDto cartItemRequestDto) {
+    public CartResponseDto addCartItem(Long userId, CartItemRequestDto cartItemRequestDto) {
         /// 1=> Get current user cart OR
-        CartEntity cart=cartRepo.findByUserId(userId)
+        CartEntity cart = cartRepo.findByUserId(userId)
                 /// create cart to add items
-                .orElseGet(()->{
+                .orElseGet(() -> {
                     CartEntity newCart = new CartEntity();
                     /// link user to Cart
-                    UserEntity user=userRepo.findById(userId)
+                    UserEntity user = userRepo.findById(userId)
                             .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
                     newCart.setUser(user);
                     return newCart;
                 });
         /// 2=> check if product already existed in DB
         /// to pass it in new cart
-        ProductEntity product=productRepo.findByIdOrThrow(cartItemRequestDto.getProductId());
+        ProductEntity product = productRepo.findByIdOrThrow(cartItemRequestDto.getProductId());
 
         /// 3=> check if product already existed in cart
         /// using stream instead of call DB again ,because we already get the Cart already
@@ -128,8 +126,8 @@ public class CartService extends BaseService<CartEntity,Long> {
         /// ++ quantity of product in cart
         if (existingItem.isPresent()) {
 
-            CartItemEntity item=existingItem.get();
-            Integer newQuantity=item.getQuantity()+ cartItemRequestDto.getQuantity();
+            CartItemEntity item = existingItem.get();
+            Integer newQuantity = item.getQuantity() + cartItemRequestDto.getQuantity();
             item.setQuantity(newQuantity);
             if (newQuantity > product.getStockCount()) {
                 throw new BusinessLogicException(
@@ -137,9 +135,7 @@ public class CartService extends BaseService<CartEntity,Long> {
                         new Object[]{newQuantity, product.getStockCount()}
                 );
             }
-        }
-        else
-        {
+        } else {
             /// check stock count
             if (cartItemRequestDto.getQuantity() > product.getStockCount()) {
                 throw new BusinessLogicException(
@@ -147,51 +143,48 @@ public class CartService extends BaseService<CartEntity,Long> {
                         new Object[]{cartItemRequestDto.getQuantity(), product.getStockCount()}
                 );
             }
-            CartItemEntity newItem=cartItemMapper.mapToEntity(cartItemRequestDto);
+            CartItemEntity newItem = cartItemMapper.mapToEntity(cartItemRequestDto);
             /// add the product
             newItem.setProduct(product);
             /// link the new item with cart to add cart_id
             cart.addCartItem(newItem);
         }
         /// 4=> save the cart in db
-        CartEntity savedCart=cartRepo.save(cart);
+        CartEntity savedCart = cartRepo.save(cart);
         return cartMapper.mapToDto(savedCart);
     }
 
     /// remove cartItem
-    @CacheEvict(value = "carts",key = "#userId")
+    @CacheEvict(value = "carts", key = "#userId")
     @Transactional
-    public void removeCartItem(Long userId ,Long cartItemId) {
+    public void removeCartItem(Long userId, Long cartItemId) {
         /// 1=> Get current user cart OR
-        CartEntity cart=cartRepo.findByUserId(userId)
-                .orElseThrow(()->new ResourceNotFoundException("Cart", "user id", userId));
+        CartEntity cart = cartRepo.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart", "user id", userId));
         /// 2=> remove cart item from cart items list
-        boolean isRemoved=cart.getItems().removeIf(item->item.getId().equals(cartItemId));
-        if(!isRemoved)
-        {
-          throw new ResourceNotFoundException("CartItem", "id", cartItemId);
+        boolean isRemoved = cart.getItems().removeIf(item -> item.getId().equals(cartItemId));
+        if (!isRemoved) {
+            throw new ResourceNotFoundException("CartItem", "id", cartItemId);
         }
 
     }
 
     /// update quantity
     /// pass to direct value to update item quantity
-    @CacheEvict(value = "carts",key = "#userId")
+    @CacheEvict(value = "carts", key = "#userId")
     @Transactional
-    public  CartResponseDto updateItemQuantity(Long userId,long cartItemId,Integer newQuantity)
-    {
+    public CartResponseDto updateItemQuantity(Long userId, long cartItemId, Integer newQuantity) {
         /// 1=> Get current user cart OR throw exception
-        CartEntity cart=cartRepo.findByUserId(userId)
-                .orElseThrow(()->new ResourceNotFoundException("Cart", "user id", userId));
+        CartEntity cart = cartRepo.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart", "user id", userId));
         /// 2=> if quantity == 0
-        if(newQuantity<=0)
-        {
-            removeCartItem(userId,cartItemId);
+        if (newQuantity <= 0) {
+            removeCartItem(userId, cartItemId);
             return cartMapper.mapToDto(cart); /// return the cart after remove items
         }
 
         /// 3=> check product stock count
-            /// get the product from list
+        /// get the product from list
         CartItemEntity itemToUpdate = cart.getItems().stream()
                 .filter(item -> item.getId().equals(cartItemId))
                 .findFirst()
@@ -213,11 +206,10 @@ public class CartService extends BaseService<CartEntity,Long> {
     }
 
     /// clear cart after creating order
-    @CacheEvict(value = "carts",key = "#userId")
+    @CacheEvict(value = "carts", key = "#userId")
     @Transactional
-    public void clearCart(long userId)
-    {
-        CartEntity cart=cartRepo.findByUserId(userId)
+    public void clearCart(long userId) {
+        CartEntity cart = cartRepo.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cart", "user id", userId));
         cart.getItems().clear();
         cartRepo.save(cart);

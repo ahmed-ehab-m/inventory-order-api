@@ -1,1 +1,2 @@
-create FULLTEXT index idx_products_name_fulltext on products(name);
+create
+FULLTEXT index idx_products_name_fulltext on products(name);

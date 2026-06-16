@@ -24,16 +24,16 @@ import java.util.List;
 public class OrderEntity extends SoftDeletableEntity<Long> {
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status",nullable = false,length = 50)
+    @Column(name = "status", nullable = false, length = 50)
     private OrderStatus status;
 
-    @Column(name = "total_price",nullable = false)
+    @Column(name = "total_price", nullable = false)
     private BigDecimal totalPrice;
 
-    @Column(name = "shipping_address",length = 500)
+    @Column(name = "shipping_address", length = 500)
     private String shippingAddress;
 
-    @Column(name = "order_notes",nullable = true,length = 500)
+    @Column(name = "order_notes", nullable = true, length = 500)
     private String orderNotes;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -45,19 +45,17 @@ public class OrderEntity extends SoftDeletableEntity<Long> {
     private PaymentType paymentType;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OrderItemEntity> orderItems=new ArrayList<>();
+    private List<OrderItemEntity> orderItems = new ArrayList<>();
+    /// bi-directional relationship
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PaymentEntity> payments = new ArrayList<>();
 
-    public void addOrderItem(OrderItemEntity orderItemEntity)
-    {
+    public void addOrderItem(OrderItemEntity orderItemEntity) {
         if (this.orderItems == null) {
             this.orderItems = new ArrayList<>();
         }
         orderItems.add(orderItemEntity);
         orderItemEntity.setOrder(this);
     }
-
-    /// bi-directional relationship
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PaymentEntity> payments=new ArrayList<>();
 
 }

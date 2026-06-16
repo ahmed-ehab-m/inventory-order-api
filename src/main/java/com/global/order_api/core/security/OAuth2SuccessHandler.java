@@ -21,26 +21,26 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
-    private  final UserRepo userRepo;
+    private final UserRepo userRepo;
     private final JwtService jwtService;
     @Value("${app.frontend-url}")
     private String frontendUrl;
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws
-            IOException, ServletException
-    {
+            IOException, ServletException {
         /// extract user details from google/githup
-        OAuth2User oAuth2User=(OAuth2User) authentication.getPrincipal();
-        String email=oAuth2User.getAttribute("email");
-        String rawName=oAuth2User.getAttribute("name");
+        OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+        String email = oAuth2User.getAttribute("email");
+        String rawName = oAuth2User.getAttribute("name");
         /// because GitHub may dont't send "name" send "login"
-        final String name=(rawName !=null) ? rawName : oAuth2User.getAttribute("login");
+        final String name = (rawName != null) ? rawName : oAuth2User.getAttribute("login");
         /// search the user in db or create a new user
-        UserEntity user=userRepo.findByEmail(email)
-                .orElseGet(()->
+        UserEntity user = userRepo.findByEmail(email)
+                .orElseGet(() ->
                 {
-                    UserEntity newUser=new UserEntity();
+                    UserEntity newUser = new UserEntity();
                     newUser.setEmail(email);
                     newUser.setName(name);
                     newUser.setRole(UserRole.USER); /// default
@@ -48,14 +48,14 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                     return userRepo.save(newUser);
                 });
         /// GENERATE JWT TOKEN
-        UserPrincipal principal=new UserPrincipal(user);
-        String token=jwtService.generateToken(principal);
+        UserPrincipal principal = new UserPrincipal(user);
+        String token = jwtService.generateToken(principal);
         /// CREATE HTTP ONLY COOKIE TO SEND JWT TOKEN TO FRONT-END
-        Cookie cookie= new Cookie("jwt_token",token);
+        Cookie cookie = new Cookie("jwt_token", token);
         cookie.setHttpOnly(true); /// prevent JS from reading it
         cookie.setSecure(false);
         cookie.setPath("/"); /// cookie will be sent with any request
-        cookie.setMaxAge(10*60*60); /// 10 hours
+        cookie.setMaxAge(10 * 60 * 60); /// 10 hours
         response.addCookie(cookie); /// add the cookie to our response
         /// redirect user to simple end point
         getRedirectStrategy().sendRedirect(request, response, "/api/v1/auth/success");

@@ -2,7 +2,6 @@ package com.global.order_api.feature.order;
 
 import com.global.order_api.core.base.PageResponse;
 import com.global.order_api.core.exception.BusinessLogicException;
-import com.global.order_api.core.exception.ResourceNotFoundException;
 import com.global.order_api.feature.cart.CartEntity;
 import com.global.order_api.feature.cart.CartItemEntity;
 import com.global.order_api.feature.cart.CartRepo;
@@ -49,14 +48,14 @@ class OrderServiceTest {
     private OrderService orderService;
 
 
-    ////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////READING METHODS////////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// /////////////////////////////////READING METHODS////////////////////////////////////
 
     @Nested
     @DisplayName("1. Get Orders Tests (GET)")
     class GetOrdersTests {
 
-        ///// Get All Orders (Admin) - RETURN PAGE RESPONSE
+        /// // Get All Orders (Admin) - RETURN PAGE RESPONSE
         @Test
         void getAllOrders_ShouldReturnPagedOrders() {
             /// 1. create fake filter and page
@@ -85,7 +84,7 @@ class OrderServiceTest {
             verify(orderMapper, times(1)).mapToDtoList(anyList());
         }
 
-        ///// Get All Orders (Admin) - No Orders in DB - RETURN EMPTY PAGE
+        /// // Get All Orders (Admin) - No Orders in DB - RETURN EMPTY PAGE
         @Test
         void getAllOrders_WhenNoOrdersExist_ShouldReturnEmptyPage() {
             // 1. Arrange
@@ -109,7 +108,7 @@ class OrderServiceTest {
             verify(orderMapper, times(1)).mapToDtoList(emptyMockPage.getContent());
         }
 
-        ///// Get User Orders - RETURN PAGE RESPONSE
+        /// // Get User Orders - RETURN PAGE RESPONSE
         @Test
         void getUserOrders_ShouldReturnPagedOrdersForSpecificUser() {
             Long userId = 1L;
@@ -128,7 +127,7 @@ class OrderServiceTest {
             verify(orderRepo, times(1)).findAll(any(Specification.class), any(Pageable.class));
         }
 
-        ///// Get User Orders - User Does Not Exist OR Has No Orders - RETURN EMPTY PAGE
+        /// // Get User Orders - User Does Not Exist OR Has No Orders - RETURN EMPTY PAGE
         @Test
         void getUserOrders_WhenUserHasNoOrders_ShouldReturnEmptyPage() {
             // 1. Arrange
@@ -152,14 +151,14 @@ class OrderServiceTest {
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////WRITING METHODS////////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// /////////////////////////////////WRITING METHODS////////////////////////////////////
 
     @Nested
     @DisplayName("2. Create & Cancel Order Tests (POST / PUT)")
     class CreateAndCancelOrderTests {
 
-        ///// Create Order - Valid Cart & Stock - Should Create Order & Clear Cart
+        /// // Create Order - Valid Cart & Stock - Should Create Order & Clear Cart
         @Test
         void createOrder_WithValidCartAndStock_ShouldCreateOrder() {
             // 1. Arrange
@@ -213,7 +212,7 @@ class OrderServiceTest {
             verify(orderRepo, times(1)).save(mappedOrder);
         }
 
-        ///// Create Order - Empty Cart - Should Throw Exception
+        /// // Create Order - Empty Cart - Should Throw Exception
         @Test
         void createOrder_WhenCartIsEmpty_ShouldThrowException() {
             Long userId = 1L;
@@ -230,7 +229,7 @@ class OrderServiceTest {
             verify(cartRepo, never()).delete(any());
         }
 
-        ///// Create Order - Insufficient Stock - Should Throw Exception
+        /// // Create Order - Insufficient Stock - Should Throw Exception
         @Test
         void createOrder_WhenInsufficientStock_ShouldThrowException() {
             Long userId = 1L;
@@ -255,7 +254,7 @@ class OrderServiceTest {
             verify(orderRepo, never()).save(any());
         }
 
-        ///// Cancel Order - PENDING Status - Should Cancel and Restore Stock
+        /// // Cancel Order - PENDING Status - Should Cancel and Restore Stock
         @Test
         void cancelOrder_WhenStatusIsPending_ShouldCancelAndRestoreStock() {
             Long userId = 1L;
@@ -282,7 +281,7 @@ class OrderServiceTest {
             assertEquals(8, product.getStockCount()); // Stock should increase: 5 + 3
         }
 
-        ///// Cancel Order - NOT PENDING Status - Should Throw Exception
+        /// // Cancel Order - NOT PENDING Status - Should Throw Exception
         @Test
         void cancelOrder_WhenStatusIsNotPending_ShouldThrowException() {
             Long userId = 1L;
@@ -297,14 +296,14 @@ class OrderServiceTest {
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////DELETE METHODS////////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// /////////////////////////////////DELETE METHODS////////////////////////////////////
 
     @Nested
     @DisplayName("3. Delete Order Tests (DELETE)")
     class DeleteOrderTests {
 
-        ///// Soft Delete - Valid Status - Should Delete Order
+        /// // Soft Delete - Valid Status - Should Delete Order
         @Test
         void softDeleteOrder_WhenStatusIsDelivered_ShouldDeleteOrder() {
             Long userId = 1L;
@@ -321,7 +320,7 @@ class OrderServiceTest {
             verify(orderRepo, times(1)).delete(order);
         }
 
-        ///// Soft Delete - In Progress Status (PENDING/SHIPPED) - Should Throw Exception
+        /// // Soft Delete - In Progress Status (PENDING/SHIPPED) - Should Throw Exception
         @Test
         void softDeleteOrder_WhenStatusIsInProgress_ShouldThrowException() {
             Long userId = 1L;
@@ -336,7 +335,7 @@ class OrderServiceTest {
 //            verify(orderRepo, never()).delete(any());
         }
 
-        ///// Hard Delete - Cancelled Status - Should Hard Delete
+        /// // Hard Delete - Cancelled Status - Should Hard Delete
         @Test
         void hardDeleteOrder_WhenStatusIsCancelled_ShouldHardDeleteOrderAndItems() {
             Long orderId = 10L;
@@ -351,7 +350,7 @@ class OrderServiceTest {
             verify(orderRepo, times(1)).hardDelete(orderId);
         }
 
-        ///// Hard Delete - Not Cancelled Status - Should Throw Exception
+        /// // Hard Delete - Not Cancelled Status - Should Throw Exception
         @Test
         void hardDeleteOrder_WhenStatusIsNotCancelled_ShouldThrowException() {
             Long orderId = 10L;
