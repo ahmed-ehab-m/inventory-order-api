@@ -9,12 +9,16 @@ import com.global.order_api.feature.cart.CartEntity;
 import com.global.order_api.feature.cart.CartItemEntity;
 import com.global.order_api.feature.cart.CartRepo;
 import com.global.order_api.feature.cart.CartService;
+import com.global.order_api.feature.payment.*;
 import com.global.order_api.feature.product.ProductEntity;
 import com.global.order_api.feature.product.ProductRepo;
 import com.global.order_api.feature.user.UserEntity;
 import com.global.order_api.feature.user.UserRepo;
 import com.global.order_api.feature.user.UserSpecification;
 import jakarta.persistence.criteria.Predicate;
+import lombok.extern.log4j.Log4j2;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -23,13 +27,15 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
+@Log4j2
 @Service
 public class OrderService extends BaseService<OrderEntity,Long> {
 
@@ -37,13 +43,17 @@ public class OrderService extends BaseService<OrderEntity,Long> {
     private final OrderRepo orderRepo;
     private final UserRepo userRepo;
     private final CartRepo cartRepo;
+    private final PaymentService paymentService;
+    private final PaymentRepo paymentRepo;
 
-    public OrderService(BaseRepo<OrderEntity, Long> baseRepo, OrderMapper orderMapper, OrderRepo orderRepo, UserRepo userRepo, ProductRepo productRepo, CartService cartService, CartRepo cartRepo) {
+    public OrderService(BaseRepo<OrderEntity, Long> baseRepo, OrderMapper orderMapper, OrderRepo orderRepo, UserRepo userRepo, ProductRepo productRepo, CartService cartService, CartRepo cartRepo, PaymentService paymentService, PaymentRepo paymentRepo) {
         super(baseRepo);
         this.orderMapper = orderMapper;
         this.orderRepo = orderRepo;
         this.userRepo = userRepo;
         this.cartRepo = cartRepo;
+        this.paymentService = paymentService;
+        this.paymentRepo = paymentRepo;
     }
     ////////////////////CACHING//////////////////////
     /// USER ORDERS PAGE TTL => Problem => Order status changes
@@ -123,8 +133,11 @@ public class OrderService extends BaseService<OrderEntity,Long> {
                 .orElseThrow(
                         ()-> new ResourceNotFoundException("Cart","id",userId)
                 );
-        /// 2=> map cart Item Entity to OrderItemEntity
+        /// 2=> map cart Item Entities to OrderItemEntities
         List<CartItemEntity> cartItemsEntities=cartEntity.getItems();
+
+        /// if payment type is ONLINE
+        PaymentResponseDto paymentDto = null;
 
         /// 3=> check if cart is empty
         if(cartItemsEntities ==null || cartItemsEntities.isEmpty())
@@ -137,6 +150,7 @@ public class OrderService extends BaseService<OrderEntity,Long> {
         /// 5=> link order to his user because we ignore it in mapper
         UserEntity user=userRepo.findByIdOrThrow(userId);
         orderEntity.setUser(user);
+
 
         BigDecimal totalPrice = BigDecimal.ZERO;
         for(CartItemEntity cartEntityItem : cartItemsEntities)
@@ -155,7 +169,7 @@ public class OrderService extends BaseService<OrderEntity,Long> {
             );
             }
             product.setStockCount(product.getStockCount() - quantityNeeded);
-            /// 9=> fill cart item data
+            /// 9=> fill cart item data to order item
             OrderItemEntity orderItem = new OrderItemEntity();
             orderItem.setProduct(cartEntityItem.getProduct());
             orderItem.setQuantity(cartEntityItem.getQuantity());
@@ -169,18 +183,55 @@ public class OrderService extends BaseService<OrderEntity,Long> {
         }
         /// 12=> set total price
         orderEntity.setTotalPrice(totalPrice);
-        /// 13=> set status
+        /// 13 => set initial status
         orderEntity.setStatus(OrderStatus.PENDING);
         /// 14=> save order in db
         OrderEntity savedOrder=orderRepo.save(orderEntity);
-        /// 15=> clear cart
+        /// 15 => check payment type to update status
+        /// ONLINE => WALLET, CARDS, FAWRY
+        if(orderRequest.getPaymentType() != PaymentType.CASH)
+        {
+            /// which payment method ?
+            String paymentMethod=orderRequest.getPaymentType().name();
+            ///  get our link
+            paymentDto = paymentService.generatePaymentLink(
+                   paymentMethod,
+                    userId,
+                    totalPrice,
+                    orderEntity.getId(),
+                    orderRequest.getWalletNumber()
+            );
+        }
+        /// CASH
+        else {
+            paymentService.createCashPaymentRecord(savedOrder, totalPrice);
+        }
+        /// 16=> clear cart
         cartRepo.delete(cartEntity);
-        /// 16=> map to response dto
-        return orderMapper.mapToDto(savedOrder);
+        /// 17=> map to response dto
+        OrderResponseDto responseDto = orderMapper.mapToDto(savedOrder);
+        responseDto.setPaymentActionData(paymentDto);
+        return responseDto;
     }
 
     //// Cancel an Order
+    /// logic of cancel order
+    private void processOrderCancellation(OrderEntity orderEntity) {
+        /// 1=> if payment done already (online)
+        paymentService.refundPaymentForOrder(orderEntity);
+
+        /// 2=> update status of order
+        orderEntity.setStatus(OrderStatus.CANCELLED);
+
+        /// 3=> return products to stock
+        for (OrderItemEntity orderItem : orderEntity.getOrderItems()) {
+            ProductEntity product = orderItem.getProduct();
+            int quantity = orderItem.getQuantity();
+            product.setStockCount(product.getStockCount() + quantity);
+        }
+    }
     @Transactional
+    /// for user
     public void cancelOrder(Long userId , Long orderId)
     {
         /// 1=> get user order
@@ -189,28 +240,94 @@ public class OrderService extends BaseService<OrderEntity,Long> {
                         ()->  new ResourceNotFoundException("Order","id",orderId)
                 );
         /// 2=> make sure the order not already canceled
-        if(orderEntity.getStatus() != OrderStatus.PENDING)
+        if(orderEntity.getStatus() != OrderStatus.PENDING && orderEntity.getStatus() != OrderStatus.PROCESSING)
         {
             throw new BusinessLogicException("error.order.state"+ orderEntity.getStatus());
         }
-        /// 3=> update status of order
-        orderEntity.setStatus(OrderStatus.CANCELLED);
-
-        /// 3=> return products to stock
-        for(OrderItemEntity orderItem : orderEntity.getOrderItems())
-        {
-            /// get product of order item
-            ProductEntity product=orderItem.getProduct();
-            /// get  order item quantity
-            int quantity= orderItem.getQuantity();
-            /// get product stock count after order created
-            int productOldStockCount= product.getStockCount();
-            /// update product stock count
-            product.setStockCount(productOldStockCount+quantity);
-//            /// save product
-//            productRepo.save(product);  @Transactional will do this
-
+             processOrderCancellation(orderEntity);
         }
+
+    //////////////////
+    @Transactional
+    public void returnDeliveredOrder(Long userId, Long orderId) {
+        /// 1=> get user order
+        OrderEntity orderEntity = orderRepo.findByIdAndUserId(orderId, userId)
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Order", "id", orderId)
+                );
+
+        /// 2=> make sure the order is delivered
+        if (orderEntity.getStatus() != OrderStatus.DELIVERED) {
+            throw new BusinessLogicException("error.order.cannot_return_state_" + orderEntity.getStatus());
+        }
+
+        /// 3=> Process Return Logic
+        /// here if online => talk to paymob
+        paymentService.refundPaymentForOrder(orderEntity);
+
+        orderEntity.setStatus(OrderStatus.REFUNDED);
+
+        for (OrderItemEntity orderItem : orderEntity.getOrderItems()) {
+            ProductEntity product = orderItem.getProduct();
+            int quantity = orderItem.getQuantity();
+            product.setStockCount(product.getStockCount() + quantity);
+        }
+    }
+    //////////////////
+    @Transactional
+    public PaymentResponseDto retryPayment(Long userId, Long orderId,String walletNumber)
+    {
+        /// 1=> get user order
+        OrderEntity order=orderRepo.findByIdAndUserId(orderId,userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
+        /// 2=> validate order status must be PENDING
+        if(order.getStatus() !=OrderStatus.PENDING)
+        {
+            throw new BusinessLogicException("Cannot retry payment for order in state: " + order.getStatus());
+        }
+        /// 3=> validate order Payment  must be ONLINE
+        if (order.getPaymentType() == PaymentType.CASH) {
+            throw new BusinessLogicException("Retry payment is only available for online payment methods");
+        }
+        /// 4=> generate new payment link
+    PaymentResponseDto paymentDto = paymentService.generatePaymentLink(
+                 order.getPaymentType().name(),
+                userId,
+                order.getTotalPrice(),
+                orderId,
+                walletNumber); /// CARD NOT WALLET
+        return paymentDto;
+
+    }
+
+
+    //////////////
+    @Transactional
+    public OrderResponseDto updateOrderStatusByAdmin(Long orderId,OrderStatus newStatus)
+    {
+        OrderEntity order=orderRepo.findByIdOrThrow(orderId);
+        /// admin cancel user order
+        if (newStatus == OrderStatus.CANCELLED) {
+            if (order.getStatus() != OrderStatus.CANCELLED && order.getStatus() != OrderStatus.DELIVERED) {
+                processOrderCancellation(order);
+            }
+        }
+        else {
+            /// edit payment table
+            order.setStatus(newStatus);
+            if (newStatus == OrderStatus.DELIVERED) {
+                List<PaymentEntity> payments = paymentRepo.findByOrderId(orderId);
+                for (PaymentEntity payment : payments) {
+                    /// get pending status
+                    if (payment.getPaymentStatus() == PaymentStatus.PENDING) {
+                        payment.setPaymentStatus(PaymentStatus.SUCCESS);
+                    }
+                }
+                paymentRepo.saveAll(payments);
+            }
+        }
+        OrderEntity updatedOrder = orderRepo.save(order);
+        return orderMapper.mapToDto(updatedOrder);
     }
 
     /// Soft Delete
@@ -230,6 +347,44 @@ public class OrderService extends BaseService<OrderEntity,Long> {
 
     }
 
+    ////
+    @Value("${app.order.cleanup.hours-limit}")
+    private int hoursLimit;
+    @Scheduled(fixedRateString = "${app.order.cleanup.rate}") /// 12 hour
+    @SchedulerLock(name = "cancelAbandonedOrdersLock",
+            lockAtMostFor = "15m", lockAtLeastFor = "5m") // <--- السطر الجديد
+    @Transactional
+    public void cancelPendingOrdersAutomatically()
+    {
+        log.info("CronJob Started: Checking for abandoned orders...");
+        /// 1=> select time => any pending order in last hour
+        LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(hoursLimit);
+        /// 2=> get Pending orders
+        List<OrderEntity> pendingOrders=orderRepo.findByStatusAndCreatedAtBefore(
+                OrderStatus.PENDING,oneHourAgo
+        );
+
+        if (pendingOrders.isEmpty()) {
+            log.info("No pending orders found at this time.");
+            return;
+        }
+
+        for (OrderEntity order : pendingOrders) {
+            try {
+                processOrderCancellation(order);
+                log.info("Automatically cancelled abandoned order ID: {} and returned items to stock.", order.getId());
+            } catch (Exception e) {
+                log.error("Failed to cancel order ID: {} during scheduled cleanup. Error: {}", order.getId(), e.getMessage());
+            }
+        }
+
+        log.info("CronJob Finished: Successfully cleaned up {} orders.", pendingOrders.size());
+    }
+
+    @Caching(evict = {
+            @CacheEvict(value = "ordersPage", allEntries = true),
+            @CacheEvict(value = "orders", key = "#orderId")
+    })
     /// hard-delete
     @Transactional
     public void hardDeleteOrder(Long orderId) {

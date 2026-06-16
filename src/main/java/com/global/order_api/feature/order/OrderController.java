@@ -8,6 +8,7 @@ import com.global.order_api.core.utils.AppTranslator;
 import com.global.order_api.feature.cart.CartItemRequestDto;
 import com.global.order_api.feature.cart.CartResponseDto;
 import com.global.order_api.feature.cart.CartService;
+import com.global.order_api.feature.payment.PaymentResponseDto;
 import com.global.order_api.feature.user.UserFilterRequest;
 import com.global.order_api.feature.user.UserResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,6 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -61,7 +63,7 @@ public class OrderController {
     }
     /// get order by id for User
     @TrackExecutionTime
-    @GetMapping("/my-orders/{id}")
+    @GetMapping("/me/{id}")
     @Operation(summary = "Get My Order Details (Customer)",
             description = "Retrieves the details of a specific order for the currently authenticated user.")
     public ResponseEntity<ApiResponse<OrderResponseDto>> getUserOrderById(
@@ -77,7 +79,7 @@ public class OrderController {
 
     /// get user orders
     @TrackExecutionTime
-    @GetMapping("/my-orders")
+    @GetMapping("/me")
     @Operation(summary = "Get My Orders (Customer)",
             description = "Retrieves a paginated list of orders for the currently authenticated user.")
     public ResponseEntity<ApiResponse<PageResponse<OrderResponseDto>>> getUserOrder(
@@ -94,7 +96,7 @@ public class OrderController {
     ////////////////////////////////////////////
     /// WRITING METHODS
     /// Create an order
-    @PostMapping("/create-order")
+    @PostMapping("")
     @Operation(summary = "Create an Order (Checkout)",
             description = "Creates a new order based on the user's cart items, clears the cart, and deducts from stock.")
     public ResponseEntity<ApiResponse<OrderResponseDto>> createOrder(
@@ -105,11 +107,11 @@ public class OrderController {
         OrderResponseDto orderResponseDto=orderService.createOrder(userId,orderRequestDto);
         String message = appTranslator.getTranslatedAction("success.created", ENTITY_KEY);
         ApiResponse<OrderResponseDto> apiResponse=ApiResponse.success(orderResponseDto,message);
-        return ResponseEntity.ok(apiResponse);
+        return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse); /// 201
     }
 
     /// cancel order
-    @PutMapping("/cancel-order/{id}")
+    @PutMapping("/{id}/cancel")
     @Operation(summary = "Cancel an Order",
             description = "Cancels a PENDING order and restores the product quantities to the stock.")
     public ResponseEntity<ApiResponse<Void>> cancelOrder(
@@ -122,9 +124,54 @@ public class OrderController {
         ApiResponse<Void> apiResponse=ApiResponse.success(null,message);
         return ResponseEntity.ok(apiResponse);
     }
+    //////////////////////////
+    @PutMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Update Order Status (Admin Only)",
+            description = "Allows admins to move order to SHIPPED, DELIVERED, etc.")
+    public ResponseEntity<ApiResponse<OrderResponseDto>> updateOrderStatus(
+            @PathVariable Long id,
+            @RequestParam OrderStatus status
+    ) {
+        OrderResponseDto orderResponse = orderService.updateOrderStatusByAdmin(id, status);
+        String message = appTranslator.getTranslatedAction("success.updated", ENTITY_KEY);
+        return ResponseEntity.ok(ApiResponse.success(orderResponse, message));
+    }
+
+    ///////////////
+    @PutMapping("/{orderId}/return")
+    @Operation(summary = "Return Order Status",
+            description = "Allows Users to return orders")
+    public ResponseEntity<ApiResponse<OrderResponseDto>> returnOrder(
+            @PathVariable Long orderId
+    ) {
+        Long userId = SecurityUtils.getCurrentUserId();
+         orderService.returnDeliveredOrder(userId, orderId);
+        String message = appTranslator.getTranslatedAction("success.updated", ENTITY_KEY);
+        return ResponseEntity.ok(ApiResponse.success(null, message));
+    }
+
+    //////////////
+    @GetMapping("/{id}/retry-payment")
+    @Operation(summary = "Retry Order Payment",
+            description = "Generates a new Paymob payment link for a pending order that previously failed.")
+    public ResponseEntity<ApiResponse<PaymentResponseDto>> retryPayment(
+            @PathVariable("id") Long orderId,
+            @RequestParam(value = "walletNumber", required = false) String walletNumber) {
+        {
+
+            Long userId = SecurityUtils.getCurrentUserId();
+
+            PaymentResponseDto paymentUrl = orderService.retryPayment(userId, orderId, walletNumber);
+
+            String message = appTranslator.getTranslatedAction("success.payment_link_generated", ENTITY_KEY);
+
+            return ResponseEntity.ok(ApiResponse.success(paymentUrl, message));
+        }
+    }
 
     /// soft-delete order
-    @PutMapping("/soft-delete-order/{id}")
+    @PutMapping("/{id}/archive")
     @Operation(summary = "Soft Delete an Order",
             description = "Archives an order so it no longer appears in the user's history, but keeps it in the database for financial records.")
     public ResponseEntity<ApiResponse<Void>> softDeleteOrder(
@@ -142,7 +189,7 @@ public class OrderController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Hard Delete an Order (Admin)",
             description = "Permanently deletes a CANCELLED order from the database. Cannot be undone.")
-    @DeleteMapping("/hard-delete-order/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> hardDeleteOrder(
             @PathVariable(name = "id") Long orderId
     )
