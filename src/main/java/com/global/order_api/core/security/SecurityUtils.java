@@ -7,6 +7,25 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 public class SecurityUtils {
+
+    /// 1. Safe Method (For Auditing & Background Jobs)
+    /// مش بتضرب أي إيرور، بترجع null في هدوء لو مفيش مستخدم
+    public static Long getCurrentUserIdSafe() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated() ||
+                authentication instanceof AnonymousAuthenticationToken) {
+            return null;
+        }
+
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof UserPrincipal userDetails) {
+            return userDetails.getId();
+        }
+
+        return null;
+    }
+    /// 2. Strict Method (For Business Logic / Controllers)
     public static Long getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
