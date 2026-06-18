@@ -41,7 +41,7 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponseDto>> login(
             @Validated(ValidationGroups.OnLogin.class) @RequestBody UserRequestDto user) {
         AuthResponseDto authResponseDto = authService.login(user);
-        String message = appTranslator.translateMessage("success.login");
+        String message = appTranslator.getTranslatedAction("success.login", ENTITY_KEY);
         ApiResponse<AuthResponseDto> apiResponse = ApiResponse.success(authResponseDto, message);
         return ResponseEntity.ok(apiResponse);
     }

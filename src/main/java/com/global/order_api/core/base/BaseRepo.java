@@ -14,7 +14,7 @@ public interface BaseRepo<T extends BaseEntity<ID>, ID extends Number> extends J
     // here we throw an exception if null
     default T findByIdOrThrow(ID id) {
         return findById(id).orElseThrow(() ->
-                new ResourceNotFoundException("error.resource.not.found", new Object[]{id}));
+                new ResourceNotFoundException("Resource", "id", id));
         // add it into array of object because id is a generic
     }
 

@@ -19,7 +19,7 @@ public class UserRequestDto {
     @Size(min = 2, max = 50, message = "{validation.name.size}")
     private String name;
 
-    @Email(groups = {ValidationGroups.OnRegister.class, ValidationGroups.OnLogin.class, ValidationGroups.OnUpdate.class})
+    @Email(message = "{validation.email.invalid}", groups = {ValidationGroups.OnRegister.class, ValidationGroups.OnLogin.class, ValidationGroups.OnUpdate.class})
     @NotBlank(message = "{validation.field.required}")
     private String email;
 

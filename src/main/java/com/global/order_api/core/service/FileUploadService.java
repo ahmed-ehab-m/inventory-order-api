@@ -70,7 +70,7 @@ public class FileUploadService {
         }
         // IMAGE SIZE
         if (file.getSize() > MAX_FILE_SIZE) {
-            throw new FileStorageException("error.file.size.exceeded");
+            throw new FileStorageException("error.file.size.exceeded", new Object[]{5});
         }
         // IMAGE TYPE
         // getcontenttype not getExtension for more security

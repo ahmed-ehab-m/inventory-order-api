@@ -9,7 +9,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class SecurityUtils {
 
     /// 1. Safe Method (For Auditing & Background Jobs)
-    /// مش بتضرب أي إيرور، بترجع null في هدوء لو مفيش مستخدم
     public static Long getCurrentUserIdSafe() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -37,6 +36,6 @@ public class SecurityUtils {
         if (principal instanceof UserPrincipal userDetails) {
             return userDetails.getId();
         }
-        throw new BusinessLogicException("Cannot extract user info from security context");
+        throw new BusinessLogicException("error.security.context");
     }
 }

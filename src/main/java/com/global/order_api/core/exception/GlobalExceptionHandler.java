@@ -37,7 +37,7 @@ public class GlobalExceptionHandler {
     /// Wrong Password
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiResponse<Void>> handleBadCredentialsException(BadCredentialsException ex) {
-        String message = appTranslator.translateMessage("BadCredentialsException", null);
+        String message = appTranslator.translateMessage("error.invalid.credentials");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error(message));
     }
 
@@ -125,8 +125,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<?> handleNoStaticResourceFound(NoResourceFoundException ex) {
         log.warn("Static resource not found: {}", ex.getResourcePath());
-        String message = appTranslator.translateMessage("error.resource.not.found", null); // لو عندك ترجمة
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(message != null ? message : "Resource not found"));
+        String message = appTranslator.translateMessage("error.static.resource.not.found", ex.getResourcePath());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(message));
     }
 
 

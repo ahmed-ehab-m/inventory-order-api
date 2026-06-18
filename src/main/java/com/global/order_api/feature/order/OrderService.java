@@ -236,7 +236,7 @@ public class OrderService extends BaseService<OrderEntity, Long> {
                 );
         /// 2=> make sure the order not already canceled
         if (orderEntity.getStatus() != OrderStatus.PENDING && orderEntity.getStatus() != OrderStatus.PROCESSING) {
-            throw new BusinessLogicException("error.order.state" + orderEntity.getStatus());
+            throw new BusinessLogicException("error.order.state", new Object[]{orderEntity.getStatus()});
         }
         processOrderCancellation(orderEntity);
     }
@@ -252,7 +252,7 @@ public class OrderService extends BaseService<OrderEntity, Long> {
 
         /// 2=> make sure the order is delivered
         if (orderEntity.getStatus() != OrderStatus.DELIVERED) {
-            throw new BusinessLogicException("error.order.cannot_return_state_" + orderEntity.getStatus());
+            throw new BusinessLogicException("error.order.return.state", new Object[]{orderEntity.getStatus()});
         }
 
         /// 3=> Process Return Logic
@@ -276,11 +276,11 @@ public class OrderService extends BaseService<OrderEntity, Long> {
                 .orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
         /// 2=> validate order status must be PENDING
         if (order.getStatus() != OrderStatus.PENDING) {
-            throw new BusinessLogicException("Cannot retry payment for order in state: " + order.getStatus());
+            throw new BusinessLogicException("error.order.payment.retry.state", new Object[]{order.getStatus()});
         }
         /// 3=> validate order Payment  must be ONLINE
         if (order.getPaymentType() == PaymentType.CASH) {
-            throw new BusinessLogicException("Retry payment is only available for online payment methods");
+            throw new BusinessLogicException("error.order.payment.retry.method");
         }
         /// 4=> generate new payment link
         PaymentResponseDto paymentDto = paymentService.generatePaymentLink(
@@ -329,7 +329,7 @@ public class OrderService extends BaseService<OrderEntity, Long> {
 
         /// 2=> Business Logic: Can't delete order in progress
         if (orderEntity.getStatus() == OrderStatus.PENDING || orderEntity.getStatus() == OrderStatus.SHIPPED) {
-            throw new BusinessLogicException("error.order.state" + orderEntity.getStatus());
+            throw new BusinessLogicException("error.order.state", new Object[]{orderEntity.getStatus()});
         }
 
         /// 3=> apply soft delete (Update Flag)
