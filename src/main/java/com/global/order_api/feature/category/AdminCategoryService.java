@@ -3,6 +3,7 @@ package com.global.order_api.feature.category;
 import com.global.order_api.core.base.BaseRepo;
 import com.global.order_api.core.base.BaseService;
 import com.global.order_api.core.base.PageResponse;
+import com.global.order_api.core.exception.BusinessLogicException;
 import com.global.order_api.core.exception.DuplicateRecordException;
 import com.global.order_api.feature.product.ProductRepo;
 import org.springframework.cache.annotation.CacheEvict;
@@ -108,7 +109,7 @@ public class AdminCategoryService extends BaseService<CategoryEntity, Long> {
         // equals because this an object not primitive
         // if i use == here i compare the memory address
         if (id.equals(DEFAULT_CATEGORY_ID)) {
-            throw new IllegalArgumentException("{validation.category.default}");
+            throw new BusinessLogicException("validation.category.default");
         }
 
         CategoryEntity existingEntity = categoryRepo.findByIdOrThrow(id);

@@ -15,7 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("api/v1/categories")
+@RequestMapping("api/v1/admin/categories")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
 @Tag(name = "Admin Category Management", description = "Admin APIs for managing product categories")
@@ -31,7 +31,7 @@ public class AdminCategoryController {
 
     @TrackExecutionTime
     @Operation(summary = "Get all categories for admin")
-    @GetMapping("/page")
+    @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<CategoryResponseDto>>> getCategoriesPage(
             @Valid @ModelAttribute CategoryFilterRequestDto filter) {
         PageResponse<CategoryResponseDto> pageResponse = adminCategoryService.getCategoriesPage(filter);
@@ -43,7 +43,7 @@ public class AdminCategoryController {
     /// POST METHODS (Admin Only)
 
     @Operation(summary = "Create a new category")
-    @PostMapping("")
+    @PostMapping
     public ResponseEntity<ApiResponse<CategoryResponseDto>> createCategory(
             @Valid @RequestBody CategoryRequestDto request
     ) {

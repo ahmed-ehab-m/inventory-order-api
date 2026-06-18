@@ -4,12 +4,12 @@ import com.global.order_api.core.base.PageResponse;
 import com.global.order_api.core.exception.DuplicateRecordException;
 import com.global.order_api.core.exception.ResourceNotFoundException;
 import com.global.order_api.feature.product.ProductRepo;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
@@ -45,11 +45,18 @@ class CategoryServiceTest {
     @Mock
     private CategoryMapper categoryMapper;
 
-    @InjectMocks
     /// create real object from this service
     /// (manually no need to use spring context) all mocks we defined it above in this class
     /// call our layer  which layer's functions will be tested
     private CategoryService categoryService;
+
+    private AdminCategoryService adminCategoryService;
+
+    @BeforeEach
+    void setUp() {
+        categoryService = new CategoryService(categoryRepo, categoryRepo, categoryMapper);
+        adminCategoryService = new AdminCategoryService(categoryRepo, categoryRepo, categoryMapper, productRepo);
+    }
 
     /// @Nested => to create inner classes in primary test class
     /// ////////////////////////////////////////////////////////////////
@@ -173,7 +180,7 @@ class CategoryServiceTest {
             when(categoryMapper.mapToDtoList(entityList)).thenReturn(fakeDtoList);
 
             /// 6=> call our function for testing
-            PageResponse<CategoryResponseDto> result = categoryService.getCategoriesPage(mockFilter);
+            PageResponse<CategoryResponseDto> result = adminCategoryService.getCategoriesPage(mockFilter);
 
             assertNotNull(result);
             assertFalse(result.getData().isEmpty());
@@ -188,6 +195,39 @@ class CategoryServiceTest {
             /// any() => return Dummy value of Data Type to prevent Ide error
             /// and open ArgumentMatcherStorage => to call mockito
             /// to stop equals() for this parameter since they the same data type
+            verify(categoryRepo, times(1)).findAll(any(Pageable.class));
+            verify(categoryRepo, never()).findByNameContainingIgnoreCase(anyString(), any(Pageable.class));
+        }
+
+        /// Blank Keyword
+        @Test
+        void findCategoriesPage_WithBlankKeyword_ShouldReturnAllCategories() {
+            CategoryFilterRequestDto mockFilter = new CategoryFilterRequestDto();
+            mockFilter.setPage(0);
+            mockFilter.setSize(10);
+            mockFilter.setSearchKeyword("   ");
+
+            CategoryEntity fakeEntity = new CategoryEntity();
+            fakeEntity.setId(1L);
+            fakeEntity.setName("Electronics");
+
+            List<CategoryEntity> entityList = List.of(fakeEntity);
+            Page<CategoryEntity> mockEntityPage = new PageImpl<>(entityList);
+
+            CategoryResponseDto fakeDto = new CategoryResponseDto();
+            fakeDto.setId(1L);
+            fakeDto.setName("Electronics");
+            List<CategoryResponseDto> fakeDtoList = List.of(fakeDto);
+
+            when(categoryRepo.findAll(any(Pageable.class))).thenReturn(mockEntityPage);
+            when(categoryMapper.mapToDtoList(entityList)).thenReturn(fakeDtoList);
+
+            PageResponse<CategoryResponseDto> result = adminCategoryService.getCategoriesPage(mockFilter);
+
+            assertNotNull(result);
+            assertFalse(result.getData().isEmpty());
+            assertEquals("Electronics", result.getData().getFirst().getName());
+
             verify(categoryRepo, times(1)).findAll(any(Pageable.class));
             verify(categoryRepo, never()).findByNameContainingIgnoreCase(anyString(), any(Pageable.class));
         }
@@ -239,7 +279,7 @@ class CategoryServiceTest {
             when(categoryMapper.mapToDtoList(entityList)).thenReturn(fakeDtoList);
 
             /// 6=> call our function for testing
-            PageResponse<CategoryResponseDto> result = categoryService.getCategoriesPage(mockFilter);
+            PageResponse<CategoryResponseDto> result = adminCategoryService.getCategoriesPage(mockFilter);
 
             assertNotNull(result);
             assertFalse(result.getData().isEmpty());
@@ -381,12 +421,13 @@ class CategoryServiceTest {
             when(categoryMapper.mapToDto(fakeEntity)).thenReturn(fakeResponseDto);
 
             /// 4=> call our function for testing
-            CategoryResponseDto result = categoryService.createCategory(fakeRequestDto);
+            CategoryResponseDto result = adminCategoryService.createCategory(fakeRequestDto);
             assertNotNull(result);
             assertEquals("TVs", result.getName());
             assertEquals(7L, result.getId());
 
             /// 5=> check our work flow
+            verify(categoryRepo, times(1)).existsByName("TVs");
             verify(categoryMapper, times(1)).mapToEntity(fakeRequestDto);
             verify(categoryRepo, times(1)).save(fakeEntity);
             verify(categoryMapper, times(1)).mapToDto(fakeEntity);
@@ -408,7 +449,7 @@ class CategoryServiceTest {
 
             /// 4=> call our function for testing
             assertThrows(DuplicateRecordException.class, () ->
-                    categoryService.createCategory(fakeRequestDto));
+                    adminCategoryService.createCategory(fakeRequestDto));
 
             /// 5=> check our work flow
             verify(categoryRepo, times(1)).existsByName(duplicateName);
@@ -454,7 +495,7 @@ class CategoryServiceTest {
 
 
             /// 4=> call our function for testing
-            CategoryResponseDto result = categoryService.updateCategory(fakeRequestDto, oldId);
+            CategoryResponseDto result = adminCategoryService.updateCategory(fakeRequestDto, oldId);
             assertNotNull(result);
             assertEquals(newName, result.getName());
             assertEquals(oldId, result.getId());
@@ -495,7 +536,7 @@ class CategoryServiceTest {
 
 
             /// 4=> call our function for testing
-            CategoryResponseDto result = categoryService.updateCategory(fakeRequestDto, oldId);
+            CategoryResponseDto result = adminCategoryService.updateCategory(fakeRequestDto, oldId);
             assertNotNull(result);
             assertEquals(newName, result.getName());
             assertEquals(oldId, result.getId());
@@ -531,7 +572,7 @@ class CategoryServiceTest {
 
             /// 4=> call our function for testing
             assertThrows(DuplicateRecordException.class,
-                    () -> categoryService.updateCategory(fakeRequestDto, oldId));
+                    () -> adminCategoryService.updateCategory(fakeRequestDto, oldId));
 
 
             /// 5=> check our work flow
@@ -567,7 +608,7 @@ class CategoryServiceTest {
 
             /// 3=> call our function for testing
             assertThrows(ResourceNotFoundException.class,
-                    () -> categoryService.updateCategory(fakeRequestDto, invalidCategoryId));
+                    () -> adminCategoryService.updateCategory(fakeRequestDto, invalidCategoryId));
 
 
             /// 4=> check our work flow
@@ -595,7 +636,7 @@ class CategoryServiceTest {
             when(categoryRepo.findByIdOrThrow(id)).thenReturn(fakeEntity);
             doNothing().when(productRepo).moveProductsToDefaultCategory(id);
 
-            categoryService.deleteCategory(id);
+            adminCategoryService.deleteCategory(id);
             /// no assert here because return type is void
             verify(categoryRepo, times(1)).findByIdOrThrow(id);
             verify(categoryRepo, times(1)).delete(fakeEntity);
@@ -610,7 +651,7 @@ class CategoryServiceTest {
             fakeEntity.setId(id);
 
             assertThrows(IllegalArgumentException.class, () ->
-                    categoryService.deleteCategory(id));
+                    adminCategoryService.deleteCategory(id));
             /// no assert here because return type is void
             verify(categoryRepo, never()).findByIdOrThrow(id);
             verify(categoryRepo, never()).delete(fakeEntity);
@@ -626,7 +667,7 @@ class CategoryServiceTest {
                     ResourceNotFoundException.class
             );
             assertThrows(ResourceNotFoundException.class, () ->
-                    categoryService.deleteCategory(id));
+                    adminCategoryService.deleteCategory(id));
 
             /// no assert here because return type is void
             verify(categoryRepo, times(1)).findByIdOrThrow(id);

@@ -22,7 +22,8 @@ import java.util.Random;
 @RequiredArgsConstructor
 @Log4j2
 @Order(2)
-//feature-toggle => used in seeder , sms because when i want to turn of i have not to change
+// feature-toggle => used in seeder , sms because when i want to turn of i have
+// not to change
 // the whole environment
 @ConditionalOnProperty(name = "app.seeder.enabled", havingValue = "true")
 public class DummyDataSeederConfig implements CommandLineRunner {
@@ -36,8 +37,7 @@ public class DummyDataSeederConfig implements CommandLineRunner {
             "https://res.cloudinary.com/dsubioxtg/image/upload/q_auto/f_auto/v1775770637/books_crfr8o.png",
             "https://res.cloudinary.com/dsubioxtg/image/upload/q_auto/f_auto/v1775770633/clothes_s4vpcb.png",
             "https://res.cloudinary.com/dsubioxtg/image/upload/q_auto/f_auto/v1775770619/homeandkitchen_rrznix.png",
-            "https://res.cloudinary.com/dsubioxtg/image/upload/q_auto/f_auto/v1775770498/electronics_qsytfq.png"
-    );
+            "https://res.cloudinary.com/dsubioxtg/image/upload/q_auto/f_auto/v1775770498/electronics_qsytfq.png");
     Long DEFAULT_CATEGORY_ID = 999L;
 
     @Override
@@ -74,6 +74,5 @@ public class DummyDataSeederConfig implements CommandLineRunner {
             productRepo.save(product);
         }
     }
-
 
 }

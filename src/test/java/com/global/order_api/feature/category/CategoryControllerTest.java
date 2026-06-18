@@ -5,6 +5,7 @@ import com.global.order_api.core.exception.DuplicateRecordException;
 import com.global.order_api.core.exception.ResourceNotFoundException;
 import com.global.order_api.core.security.JwtFilter;
 import com.global.order_api.core.utils.AppTranslator;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -36,7 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /// make slicing testing => turn on only web layer and ignore other layers
 /// tell spring we will test this controller to save memory of other controllers
-@WebMvcTest(value = CategoryController.class,
+@WebMvcTest(value = {CategoryController.class, AdminCategoryController.class},
         /// exclude security layer
         excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
                 classes = JwtFilter.class),
@@ -54,6 +57,9 @@ class CategoryControllerTest {
     @MockitoBean
     private CategoryService categoryService;
 
+    @MockitoBean
+    private AdminCategoryService adminCategoryService;
+
     /// objectMapper is the primary class internal jackson library
     /// he is responsible for translating
     /// so MockMvc doesn't know how to send Java object
@@ -64,6 +70,23 @@ class CategoryControllerTest {
     /// translator from java/json to json/java
     @MockitoBean
     private AppTranslator appTranslator;
+
+    /// Mock redis
+    /// becausr our test request will enter rate limiter interceptor
+    /// then interceptor call redis
+    /// and we in test environment so result is error
+    @MockitoBean
+    private StringRedisTemplate stringRedisTemplate;
+
+    @MockitoBean
+    private ValueOperations<String, String> valueOperations;
+
+    @BeforeEach
+    void setUp() {
+        when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
+        /// mock this first request
+        when(valueOperations.increment(anyString())).thenReturn(1L);
+    }
 
     /// function header =>  throws Exception => because mockmvc.perform()
     /// because we simulate http request journey and go into layers like
@@ -165,7 +188,7 @@ class CategoryControllerTest {
             );
 
             /// 3=> give our scenario to our mocks
-            when(categoryService.getCategoriesPage(ArgumentMatchers.any(CategoryFilterRequestDto.class)))
+            when(adminCategoryService.getCategoriesPage(ArgumentMatchers.any(CategoryFilterRequestDto.class)))
                     .thenReturn(fakePage);
 
             /// expected Message
@@ -175,7 +198,7 @@ class CategoryControllerTest {
 
             /// 4=> test our function
             /// pass url of endpoint
-            mockMvc.perform(get("/api/v1/categories/page")
+            mockMvc.perform(get("/api/v1/admin/categories")
                             /// Query params not body
                             .param("page", String.valueOf(filterRequestDto.getPage()))
                             .param("size", String.valueOf(filterRequestDto.getSize()))
@@ -320,14 +343,14 @@ class CategoryControllerTest {
             String fakeMessage = "Category created successfully";
 
             /// 4=> give our scenario to our mocks
-            when(categoryService.createCategory(fakeRequestDto)).thenReturn(fakeResponseDto);
+            when(adminCategoryService.createCategory(fakeRequestDto)).thenReturn(fakeResponseDto);
 
             when(appTranslator.getTranslatedAction(eq("success.created"), eq("entity.category")))
                     .thenReturn(fakeMessage);
 
             /// 3=> test our function
             /// pass url of endpoint
-            mockMvc.perform(post("/api/v1/categories")
+            mockMvc.perform(post("/api/v1/admin/categories")
                             /// convert dto to json
                             /// content add it into body of http request
                             /// in controller endpoint (@RequestBody) so jackson make Deserialization
@@ -361,7 +384,7 @@ class CategoryControllerTest {
             /// problem here => after serialization controller make new object with these data
             /// and mockito compare addresses no values
             /// so using any
-            when(categoryService.createCategory(ArgumentMatchers.any(CategoryRequestDto.class))).thenThrow(
+            when(adminCategoryService.createCategory(ArgumentMatchers.any(CategoryRequestDto.class))).thenThrow(
                     new DuplicateRecordException("Category", "name", categoryName)
             );
 
@@ -369,7 +392,7 @@ class CategoryControllerTest {
                     .thenReturn(fakeMessage);
             /// 3=> test our function
             /// pass url of endpoint
-            mockMvc.perform(post("/api/v1/categories")
+            mockMvc.perform(post("/api/v1/admin/categories")
                             /// convert dto to json
                             /// content add it into body of http request
                             /// in controller endpoint (@RequestBody) so jackson make Deserialization
@@ -394,7 +417,7 @@ class CategoryControllerTest {
             when(appTranslator.translateMessage(eq(errorKey)))
                     .thenReturn(fakeMessage);
 
-            mockMvc.perform(post("/api/v1/categories")
+            mockMvc.perform(post("/api/v1/admin/categories")
                             .content(objectMapper.writeValueAsString(invalidRequestDto))
                             .contentType(MediaType.APPLICATION_JSON))
                     .andDo(print())
@@ -429,7 +452,7 @@ class CategoryControllerTest {
             /// 3=> expected Message
             String fakeMessage = "Category updated successfully";
             /// 4=> give our scenario to our mocks
-            when(categoryService.updateCategory(ArgumentMatchers.any(CategoryRequestDto.class),
+            when(adminCategoryService.updateCategory(ArgumentMatchers.any(CategoryRequestDto.class),
                     eq(categoryId))).thenReturn(fakeResponseDto);
 
             when(appTranslator.getTranslatedAction(eq("success.updated"), eq("entity.category")))
@@ -437,7 +460,7 @@ class CategoryControllerTest {
 
             /// 3=> test our function
             /// pass url of endpoint
-            mockMvc.perform(put("/api/v1/categories/{id}", categoryId)
+            mockMvc.perform(put("/api/v1/admin/categories/{id}", categoryId)
                             /// convert dto to json
                             /// content add it into body of http request
                             /// in controller endpoint (@RequestBody) so jackson make Deserialization
@@ -464,7 +487,7 @@ class CategoryControllerTest {
             Object[] args = new Object[]{"id", categoryId};
 
             /// 2=> give our scenario to our mocks
-            when(categoryService.updateCategory(ArgumentMatchers.any(CategoryRequestDto.class),
+            when(adminCategoryService.updateCategory(ArgumentMatchers.any(CategoryRequestDto.class),
                     eq(categoryId))).thenThrow(
                     new ResourceNotFoundException(errorKey, args)
             );
@@ -473,7 +496,7 @@ class CategoryControllerTest {
                     .thenReturn(fakeMessage);
             /// 3=> test our function
             /// pass url of endpoint
-            mockMvc.perform(put("/api/v1/categories/{id}", categoryId)
+            mockMvc.perform(put("/api/v1/admin/categories/{id}", categoryId)
                             .content(objectMapper.writeValueAsString(fakeRequestDto))
                             .contentType(MediaType.APPLICATION_JSON))
                     .andDo(print()) /// to see details in console when test passed
@@ -497,7 +520,7 @@ class CategoryControllerTest {
             String fakeMessage = "Category with name " + newCategoryName + " already exists.";
 
             /// 2=> give our scenario to our mocks
-            when(categoryService.updateCategory(ArgumentMatchers.any(CategoryRequestDto.class),
+            when(adminCategoryService.updateCategory(ArgumentMatchers.any(CategoryRequestDto.class),
                     eq(categoryId))).thenThrow(
                     new DuplicateRecordException("Category", "name", newCategoryName)
             );
@@ -506,7 +529,7 @@ class CategoryControllerTest {
                     .thenReturn(fakeMessage);
             /// 3=> test our function
             /// pass url of endpoint
-            mockMvc.perform(put("/api/v1/categories/{id}", categoryId)
+            mockMvc.perform(put("/api/v1/admin/categories/{id}", categoryId)
                             .content(objectMapper.writeValueAsString(fakeRequestDto))
                             .contentType(MediaType.APPLICATION_JSON))
                     .andDo(print()) /// to see details in console when test passed
@@ -529,14 +552,14 @@ class CategoryControllerTest {
             Long categoryId = 1L;
             String fakeMessage = "Category deleted successfully";
 
-            doNothing().when(categoryService).deleteCategory(categoryId);
+            doNothing().when(adminCategoryService).deleteCategory(categoryId);
 
             when(appTranslator.getTranslatedAction(eq("success.deleted"), eq("entity.category")))
                     .thenReturn(fakeMessage);
 
             /// 3=> test our function
             /// pass url of endpoint
-            mockMvc.perform(delete("/api/v1/categories/{id}", categoryId)
+            mockMvc.perform(delete("/api/v1/admin/categories/{id}", categoryId)
                             /// convert dto to json
                             /// content add it into body of http request
                             /// in controller endpoint (@RequestBody) so jackson make Deserialization)
@@ -561,7 +584,7 @@ class CategoryControllerTest {
 
             /// 2=> give our scenario to our mocks
             doThrow(new ResourceNotFoundException(errorKey, args))
-                    .when(categoryService)
+                    .when(adminCategoryService)
                     .deleteCategory(eq(categoryId));
 
             /// method in GlobalExceptionHandler and base repo
@@ -570,7 +593,7 @@ class CategoryControllerTest {
 
             /// 3=> test our function
             /// pass url of endpoint
-            mockMvc.perform(delete("/api/v1/categories/{id}", categoryId)
+            mockMvc.perform(delete("/api/v1/admin/categories/{id}", categoryId)
                             /// convert dto to json
                             /// content add it into body of http request
                             /// in controller endpoint (@RequestBody) so jackson make Deserialization)

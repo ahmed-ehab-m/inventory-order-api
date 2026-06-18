@@ -1,16 +1,13 @@
 package com.global.order_api.feature.category;
 
 import com.global.order_api.core.annotation.TrackExecutionTime;
-import com.global.order_api.core.base.PageResponse;
 import com.global.order_api.core.response.ApiResponse;
 import com.global.order_api.core.utils.AppTranslator;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,28 +22,15 @@ public class CategoryController {
     private final CategoryService categoryService;
     private final AppTranslator appTranslator;
 
-    /// ///////////////////////////////////
-    /// READ METHODS (Public Access)
+    /// GET METHODS (Public Access)
+
     @TrackExecutionTime
     @Operation(summary = "Get all categories (Public)")
-    @GetMapping("")
+    @GetMapping
     public ResponseEntity<ApiResponse<List<CategoryResponseDto>>> getCategories() {
         List<CategoryResponseDto> categories = categoryService.findAllCategories();
         String message = appTranslator.getTranslatedAction("success.retrieved", ENTITY_KEY);
         ApiResponse<List<CategoryResponseDto>> apiResponse = ApiResponse.success(categories, message);
-        return ResponseEntity.ok(apiResponse);
-    }
-
-    /// ///////////
-    @TrackExecutionTime
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Get all categories for admin")
-    @GetMapping("/page")
-    public ResponseEntity<ApiResponse<PageResponse<CategoryResponseDto>>> getCategoriesPage(
-            @Valid @ModelAttribute CategoryFilterRequestDto filter) {
-        PageResponse<CategoryResponseDto> pageResponse = categoryService.getCategoriesPage(filter);
-        String message = appTranslator.getTranslatedAction("success.retrieved", ENTITY_KEY);
-        ApiResponse<PageResponse<CategoryResponseDto>> apiResponse = ApiResponse.success(pageResponse, message);
         return ResponseEntity.ok(apiResponse);
     }
 
@@ -66,49 +50,6 @@ public class CategoryController {
         CategoryResponseDto response = categoryService.findCategoryByName(name);
         String message = appTranslator.getTranslatedAction("success.retrieved", ENTITY_KEY);
         ApiResponse<CategoryResponseDto> apiResponse = ApiResponse.success(response, message);
-        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
-    }
-
-    /// ///////////////////////////
-    /// // WRITE METHODS (ADMIN ONLY)
-
-    @Operation(summary = "Create a new category")
-    @PostMapping("")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<CategoryResponseDto>> createCategory(
-            @Valid @RequestBody CategoryRequestDto request
-    ) {
-        CategoryResponseDto response = categoryService.createCategory(request);
-        String message = appTranslator.getTranslatedAction("success.created", ENTITY_KEY);
-        ApiResponse<CategoryResponseDto> apiResponse = ApiResponse.success(response, message);
-        return new ResponseEntity<>(apiResponse, HttpStatus.CREATED);
-    }
-
-    @Operation(summary = "Update an existing category")
-    @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<CategoryResponseDto>> updateCategory(
-            @PathVariable Long id,
-            @Valid @RequestBody CategoryRequestDto request
-    ) {
-        CategoryResponseDto response = categoryService.updateCategory(request, id);
-        String message = appTranslator.getTranslatedAction("success.updated", ENTITY_KEY);
-        ApiResponse<CategoryResponseDto> apiResponse = ApiResponse.success(response, message);
-        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
-    }
-
-    /// //////////////////////////////////
-    /// DELETE METHOD (ADMIN ONLY)
-
-    @Operation(summary = "Delete a category")
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> deleteCategory(
-            @PathVariable Long id
-    ) {
-        categoryService.deleteCategory(id);
-        String message = appTranslator.getTranslatedAction("success.deleted", ENTITY_KEY);
-        ApiResponse<Void> apiResponse = ApiResponse.success(null, message);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 }
