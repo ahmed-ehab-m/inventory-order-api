@@ -12,36 +12,17 @@ import java.util.Optional;
 // JPA specification executor => to build SQL statement step by step for Advanced Search Filters
 public interface ProductRepo extends BaseRepo<ProductEntity, Long>, JpaSpecificationExecutor<ProductEntity> {
 
-    /// READ METHODS
+    // ==================================================================================
+    //                                1. READ METHODS (General)
+    // ==================================================================================
 
-//	@Override // because we add EntityGraph
-//	@EntityGraph(attributePaths = {"category"})
-//	// for better performance using SELECT *
-//	// sort by name ,price ,created at
-//	Page<ProductEntity> findAll(Pageable pageable);
-
-    /// / indexing ////
-    /// use product pk = clustered index => very fast
-    /// ///////////////
-    /// apply lock
-    /// call when user press on submit order to decrease stock count
-    /// pessimistic => to lock record and make db make an queue in reading process
-    /// write => to create Exclusive Lock
-    /// Lock => add FOR UPDATE to my SQL statement depend on DB type
-    /// database engine add row-level-lock in ram on this record
-    /// so any thread wanna to get this record , db engine block it and add it into waiting queue
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT p FROM ProductEntity p WHERE p.id = :id")
-    Optional<ProductEntity> findByIdForUpdate(@Param("id") Long id);
+//  @Override // because we add EntityGraph
+//  @EntityGraph(attributePaths = {"category"})
+//  // for better performance using SELECT *
+//  // sort by name ,price ,created at
+//  Page<ProductEntity> findAll(Pageable pageable);
 
     /// default findbyid() => for fast reading
-
-    /// / indexing ////
-    /// use product pk = clustered index => very fast
-    /// ///////////////
-    /// for only stock count for better caching strategy
-    @Query("SELECT p.stockCount FROM ProductEntity p WHERE p.id = :id")
-    Optional<Integer> findStockCountById(@Param("id") Long id);
 
     /// / indexing ////
     /// use product pk = clustered index => very fast
@@ -61,6 +42,37 @@ public interface ProductRepo extends BaseRepo<ProductEntity, Long>, JpaSpecifica
     // to solve n+1 problem
     // without writing sql because using JOIN FETCH may cause performance problems
     //@Query(value = "SELECT p from ProductEntity p JOIN FETCH p.category")
+
+
+    // ==================================================================================
+    //                                2. CACHING & LOCKING METHODS
+    // ==================================================================================
+
+    /// / indexing ////
+    /// use product pk = clustered index => very fast
+    /// ///////////////
+    /// for only stock count for better caching strategy
+    @Query("SELECT p.stockCount FROM ProductEntity p WHERE p.id = :id")
+    Optional<Integer> findStockCountById(@Param("id") Long id);
+
+    /// / indexing ////
+    /// use product pk = clustered index => very fast
+    /// ///////////////
+    /// apply lock
+    /// call when user press on submit order to decrease stock count
+    /// pessimistic => to lock record and make db make an queue in reading process
+    /// write => to create Exclusive Lock
+    /// Lock => add FOR UPDATE to my SQL statement depend on DB type
+    /// database engine add row-level-lock in ram on this record
+    /// so any thread wanna to get this record , db engine block it and add it into waiting queue
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT p FROM ProductEntity p WHERE p.id = :id")
+    Optional<ProductEntity> findByIdForUpdate(@Param("id") Long id);
+
+
+    // ==================================================================================
+    //                                3. SEARCH & FILTER METHODS
+    // ==================================================================================
 
     /// / for search bar
     /// / indexing ////
@@ -86,7 +98,6 @@ public interface ProductRepo extends BaseRepo<ProductEntity, Long>, JpaSpecifica
             nativeQuery = true
     )
     Page<ProductEntity> searchDeletedByNameFullText(@Param("keyword") String keyword, Pageable pageable);
-    ////////////////////////////////////////////////////
 
     /// / indexing ////
     /// use category_id fk = non-clustered index => very fast
@@ -94,24 +105,26 @@ public interface ProductRepo extends BaseRepo<ProductEntity, Long>, JpaSpecifica
     /// ///////////////
     @EntityGraph(attributePaths = {"category"})
     Page<ProductEntity> findByCategoryId(Long categoryId, Pageable pageable);
-    //////////////////////////////////////////
+
+//  @EntityGraph(attributePaths = {"category"})
+//  Optional<ProductEntity> findByName(String name);
 
 
-//	@EntityGraph(attributePaths = {"category"})
-//	Optional<ProductEntity> findByName(String name);
+    // ==================================================================================
+    //                                4. WRITE & UPDATE METHODS
+    // ==================================================================================
 
-    ////////////////////////////////////////////////////////////
-
-    /// WRITE METHODS
     @Modifying // make spring update in db not reading
     // tell hibernate that => data changed so clean your cache
     // tell spring we well retreive number not entity or list of entities
     @Query("UPDATE ProductEntity p SET p.category.id =999 WHERE p.category.id =:oldCategoryId")
     void moveProductsToDefaultCategory(@Param("oldCategoryId") Long oldCategoryId);
 
-    /// ////////////////////////////////////////////////////////
-    /// /HARD DELETE METHODS
-    ///
+
+    // ==================================================================================
+    //                                5. HARD DELETE & RESTORE METHODS
+    // ==================================================================================
+
     @Query(value = "SELECT image FROM products WHERE id = :id", nativeQuery = true)
     Optional<String> getImageUrlByIdEvenIfDeleted(@Param("id") Long id);
 
@@ -119,15 +132,15 @@ public interface ProductRepo extends BaseRepo<ProductEntity, Long>, JpaSpecifica
     @Query(value = "DELETE FROM products WHERE id = :id", nativeQuery = true)
     void hardDeleteProduct(@Param("id") Long id);
 
-    /// ////////////////////////////////////////
-    /// DELETED PRODUCTS
-//	//// indexing ////
-//	/// use category_id fk = non-clustered index => very fast
-//	/// KEY LOOKUP
-//	//////////////////
-//	@Query(value = "SELECT * FROM products WHERE is_deleted=true",nativeQuery = true)
-//	Page<ProductEntity> findAllDeletedProducts(Specification<ProductEntity> spec,Pageable pageable);
+//  //// indexing ////
+//  /// use category_id fk = non-clustered index => very fast
+//  /// KEY LOOKUP
+//  //////////////////
+//  @Query(value = "SELECT * FROM products WHERE is_deleted=true",nativeQuery = true)
+//  Page<ProductEntity> findAllDeletedProducts(Specification<ProductEntity> spec,Pageable pageable);
+
     @Modifying
     @Query(value = "UPDATE products SET is_deleted=false WHERE id= :id", nativeQuery = true)
     void restoreProduct(@Param("id") Long id);
+
 }
