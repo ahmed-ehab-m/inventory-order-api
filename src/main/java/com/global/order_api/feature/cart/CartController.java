@@ -23,12 +23,14 @@ public class CartController {
     private final CartService cartService;
     private final AppTranslator appTranslator;
 
-    /// ////////////////////////////////////
-    /// GET METHODS
+    // ==================================================================================
+    //                                1. GET METHODS
+    // ==================================================================================
+
     @Operation(summary = "Get User Cart",
             description = "Retrieves the cart andupdateQuantity all its items for a specific user")
     @TrackExecutionTime
-    @GetMapping("")
+    @GetMapping()
     public ResponseEntity<ApiResponse<CartResponseDto>> getUserCart() {
         Long userId = SecurityUtils.getCurrentUserId();
         CartResponseDto cartResponseDto = cartService.getUserCart(userId);
@@ -37,14 +39,16 @@ public class CartController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    /// /////////////////////////////////////////
-    /// WRITING METHODS
+
+    // ==================================================================================
+    //                                2. WRITING METHODS
+    // ==================================================================================
+
     /// Add Cart Item
     @Operation(summary = "Add Item to Cart",
             description = "Adds a new product to the user's cart or increases its quantity if it already exists")
     @PostMapping("/items")
     public ResponseEntity<ApiResponse<CartResponseDto>> addCartItem(
-
             @Valid @RequestBody CartItemRequestDto cartItemRequestDto
     ) {
         Long userId = SecurityUtils.getCurrentUserId();
@@ -59,8 +63,8 @@ public class CartController {
             description = "Directly updates the quantity of a specific item in the cart")
     @PutMapping("/items/{cartItemId}")
     public ResponseEntity<ApiResponse<CartResponseDto>> updateQuantity(
-            @RequestParam Long cartItemId,
-            @RequestParam Integer quantity
+            @PathVariable Long cartItemId, // تم التعديل هنا لـ PathVariable
+            @RequestParam Integer quantity // Quantity تفضل RequestParam عادي لأنها مش في الرابط
     ) {
         Long userId = SecurityUtils.getCurrentUserId();
         CartResponseDto cartResponseDto = cartService.updateItemQuantity(userId, cartItemId, quantity);
@@ -69,13 +73,12 @@ public class CartController {
         return ResponseEntity.ok(apiResponse);
     }
 
-
     /// Remove Cart Item
     @Operation(summary = "Remove Item from Cart",
             description = "Removes a specific item completely from the user's cart")
     @DeleteMapping("/items/{cartItemId}")
     public ResponseEntity<ApiResponse<Void>> removeCartItem(
-            @RequestParam Long cartItemId
+            @PathVariable Long cartItemId
     ) {
         Long userId = SecurityUtils.getCurrentUserId();
         cartService.removeCartItem(userId, cartItemId);
@@ -87,7 +90,7 @@ public class CartController {
     /// Remove Cart
     @Operation(summary = "Clear Cart",
             description = "Removes all items from the user's cart")
-    @DeleteMapping("")
+    @DeleteMapping
     public ResponseEntity<ApiResponse<Void>> removeCart(
     ) {
         Long userId = SecurityUtils.getCurrentUserId();
@@ -96,6 +99,5 @@ public class CartController {
         ApiResponse<Void> apiResponse = ApiResponse.success(null, message);
         return ResponseEntity.ok(apiResponse);
     }
-
 
 }

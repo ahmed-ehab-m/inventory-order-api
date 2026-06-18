@@ -39,7 +39,9 @@ public class CartService extends BaseService<CartEntity, Long> {
         this.productService = productService;
     }
 
-    /// /////////////////CACHING//////////////////////
+    // ==================================================================================
+    //                                CACHING STRATEGY NOTES
+    // ==================================================================================
     /// CART PAGE TTL => 1 DAY = Active session only, no change , writing in db first
     /// === Data Normalization in Cache ===
     /// problem => we want to know if admin change product's data to cache right data not old data in cart
@@ -50,8 +52,12 @@ public class CartService extends BaseService<CartEntity, Long> {
     /// so if admin change any product data , in product service we clear cahce of this product
     /// then cart cache we get cache miss then we go to db to get new data again
     /// CACHE STRATEGY => READING = CACHE-ASIDE || WRITING = WRITE-AROUND (DB)
-    /// /////////////////////////////////////////////
-    /// READING METHODS
+
+
+    // ==================================================================================
+    //                                1. READING METHODS
+    // ==================================================================================
+
     /// Get RAW CART => WILL BE CACHED
     @Cacheable(value = "carts", key = "#userId")
     public RawCartDto getRawCart(Long userId) {
@@ -96,7 +102,11 @@ public class CartService extends BaseService<CartEntity, Long> {
 
     }
 
-    /// WRITING METHODS
+
+    // ==================================================================================
+    //                                2. WRITING METHODS
+    // ==================================================================================
+
     /// add cart item
     @CacheEvict(value = "carts", key = "#userId")
     @Transactional

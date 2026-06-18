@@ -8,6 +8,10 @@ import java.util.Optional;
 @Repository
 public interface CartRepo extends BaseRepo<CartEntity, Long> {
 
+    // ==================================================================================
+    //                                1. READ METHODS (General)
+    // ==================================================================================
+
     /// / indexing //////////
     /// id pk =>cluster index => very fast
     /// Optional => if user doesn't have cart
