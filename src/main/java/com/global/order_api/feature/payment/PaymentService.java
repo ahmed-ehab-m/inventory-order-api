@@ -1,5 +1,7 @@
 package com.global.order_api.feature.payment;
 
+import com.global.order_api.core.exception.BusinessLogicException;
+import com.global.order_api.core.exception.ResourceNotFoundException;
 import com.global.order_api.feature.order.OrderEntity;
 import com.global.order_api.feature.order.OrderRepo;
 import com.global.order_api.feature.order.OrderStatus;
@@ -127,7 +129,7 @@ public class PaymentService {
             }
         } catch (Exception e) {
             log.error("Error during Paymob Integration: ", e);
-            throw new RuntimeException("فشل في إنشاء رابط الدفع: " + e.getMessage());
+            throw new BusinessLogicException("error.payment.link.failed", new Object[]{e.getMessage()});
         }
     }
 
@@ -336,7 +338,7 @@ public class PaymentService {
 
         //// UPDATE OUR DATA IN DB using payment order id
         PaymentEntity paymentEntity = paymentRepo.findByPaymobOrderId(paymobOrderId)
-                .orElseThrow(() -> new RuntimeException("Payment not found with ID: " + paymobOrderId));
+                .orElseThrow(() -> new ResourceNotFoundException("Payment", "Paymob Order ID", paymobOrderId));
 
         /// ITOMPOTENCY
         if (paymentEntity.getPaymentStatus() == PaymentStatus.SUCCESS) {
@@ -426,11 +428,11 @@ public class PaymentService {
                         payment.setPaymentStatus(PaymentStatus.REFUNDED);
                         log.info("order returned successfully: {}", orderEntity.getId());
                     } else {
-                        throw new RuntimeException("paymob refuse to return order" + payment.getTransactionId());
+                        throw new BusinessLogicException("error.payment.refund.refused", new Object[]{payment.getTransactionId()});
                     }
                 } catch (Exception e) {
                     log.error("error ", e);
-                    throw new RuntimeException("error" + e.getMessage());
+                    throw new BusinessLogicException("error.payment.refund.error", new Object[]{e.getMessage()});
                 }
             }
             /// 2. REFUND IF PAID CASH (No Transaction ID)
