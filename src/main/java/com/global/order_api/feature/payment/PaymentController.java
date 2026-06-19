@@ -17,8 +17,6 @@ import java.util.Map;
 public class PaymentController {
 
     private final PaymentService paymentService;
-    private final OrderRepo orderRepo;
-    private final PaymentRepo paymentRepo;
 
     /// paymob send POST request in background to my server
     /// to ensure our transaction process done successfully

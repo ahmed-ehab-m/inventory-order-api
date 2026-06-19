@@ -21,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @Log4j2
@@ -30,7 +31,9 @@ public class PaymentService {
     private final RestTemplate restTemplate;
     private final PaymentRepo paymentRepo;
     private final OrderRepo orderRepo;
+
     private final String BASE_URL = "https://accept.paymob.com/api";
+
     @Value("${paymob.api.key}")
     private String apiKey;
 
@@ -56,10 +59,14 @@ public class PaymentService {
         this.orderRepo = orderRepo;
     }
 
+
+    // ==================================================================================
+    //                     1. PRIMARY FUNCTION: GENERATE PAYMENT LINK
+    // ==================================================================================
+
     /// rest template => like postman
     /// class for making my server to send request (server be client)
 
-    /// / PRIMARY FUNCTION ///////////////
     /// / GENERATING PAYMENT LINK FOR FRONT-END ////////
     public PaymentResponseDto generatePaymentLink(
             String paymentMethod,
@@ -67,6 +74,7 @@ public class PaymentService {
             BigDecimal amount,
             Long orderId,
             String walletNumber) {
+
         /// 1=> convert amount to cents because paymob only understand cents
         /// we in java operate with money using big decimal
         /// so if we send bigDecimal to json = jackson may write this like 1.5E4
@@ -76,6 +84,7 @@ public class PaymentService {
                 /// plainString => to force result be same not like 1.E
                 .stripTrailingZeros().toPlainString();
         UserEntity user = userService.findById(userId);
+
         try {
             /// 2=> Authentication
             String authToken = authenticate();
@@ -100,11 +109,12 @@ public class PaymentService {
             paymentRepo.save(payment);
             log.info("Payment record created in DB with Pending status");
 
-
             String activeIntegrationId = getIntegrationId(paymentMethod);
+
             /// 4=> payment key generation
             String paymentKeyToken = generatePaymentKey(user, authToken, paymobOrderId, amountInCents, activeIntegrationId);
             log.info("Step 3: Payment Key Token generated successfully");
+
             /// routing dependon payment type
             if ("WALLET".equalsIgnoreCase((paymentMethod))) {
                 /// link to user wallet
@@ -133,6 +143,11 @@ public class PaymentService {
         }
     }
 
+
+    // ==================================================================================
+    //                     2. PAYMOB INTERNAL API CALLS
+    // ==================================================================================
+
     /// 1 => return temp token
     /// Authentication
     private String authenticate() {
@@ -160,6 +175,7 @@ public class PaymentService {
         request.put("delivery_needed", "false");
         request.put("amount_cents", amountInCents);
         request.put("currency", "EGP");
+
         ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
         /// convert paymob-order-id into String
         /// because we need to send this id again to paymob and string format is easy in sending in json
@@ -179,6 +195,7 @@ public class PaymentService {
                 lastName = nameParts[1];
             }
         }
+
         Map<String, String> billingData = new HashMap<>();
         billingData.put("email", user.getEmail());
         billingData.put("first_name", firstName);
@@ -239,7 +256,6 @@ public class PaymentService {
         request.put("payment_token", paymentToken);
         ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
 
-
         Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
         return String.valueOf(data.get("bill_reference"));
     }
@@ -250,7 +266,11 @@ public class PaymentService {
         return cardIntegrationId;
     }
 
-    /// /////////////////////////////////////////////////////////
+
+    // ==================================================================================
+    //                     3. WEBHOOK & SECURITY (HMAC)
+    // ==================================================================================
+
     /// CHECK WEBHOOK
     public boolean verifyPaymobHmac(String receiveHmac, Map<String, Object> paymobResponse) {
         try {
@@ -352,7 +372,8 @@ public class PaymentService {
         paymentEntity.setProviderMessage(providerMessage);
         paymentEntity.setProviderResponseCode(providerResponseCode);
 
-//         paymentEntity.setUpdatedAt(LocalDateTime.now());
+        // paymentEntity.setUpdatedAt(LocalDateTime.now());
+
         /// VALIDATE PRCIE FROM WEBHOOK
         String amountCentsStr = getValue(obj, "amount_cents");
         /// remove 00 from price to get original price to compare it with value in DB
@@ -364,9 +385,9 @@ public class PaymentService {
             paymentEntity.setProviderMessage("Fraud Alert: Amount mismatch");
             return;
         }
+
         /// success status update order,payment tables
         if (isSuccess) {
-
             paymentEntity.setPaymentStatus(PaymentStatus.SUCCESS);
             OrderEntity order = paymentEntity.getOrder();
             order.setStatus(OrderStatus.PROCESSING);
@@ -376,6 +397,11 @@ public class PaymentService {
 
         log.info("Webhook processed successfully for Paymob Order ID: {} with status: {}", paymobOrderId, isSuccess ? "SUCCESS" : "FAILED");
     }
+
+
+    // ==================================================================================
+    //                     4. HELPER METHODS FOR MAP PARSING
+    // ==================================================================================
 
     /// Helper Methods to avoid NULLPOINTEREXCEPTION
     private String getValue(Map<String, Object> obj, String key) {
@@ -399,7 +425,10 @@ public class PaymentService {
     }
 
 
-    /// //////////////////////////////
+    // ==================================================================================
+    //                     5. REFUND & CASH OPERATIONS
+    // ==================================================================================
+
     /// / REFUND
     public void refundPaymentForOrder(OrderEntity orderEntity) {
         /// 1=> get payment record for this payment order api
@@ -460,4 +489,3 @@ public class PaymentService {
         log.info("payment record created for this order id :  {}", order.getId());
     }
 }
-
