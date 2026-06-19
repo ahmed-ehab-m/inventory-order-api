@@ -64,7 +64,7 @@ class CategoryControllerTest {
     private AppTranslator appTranslator;
 
     /// Mock redis
-    /// becausr our test request will enter rate limiter interceptor
+    /// because our test request will enter rate limiter interceptor
     /// then interceptor call redis
     /// and we in test environment so result is error
     @MockitoBean

@@ -12,53 +12,38 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("api/v1/orders")
-@Tag(name = "Order Management", description = "APIs for managing e-commerce orders for both Admins and Customers")
+@RequestMapping("api/v1/orders") // Base route for user
+@Tag(name = "Order Management", description = "APIs for managing e-commerce orders for Customers")
 public class OrderController {
 
     private static final String ENTITY_KEY = "entity.order";
     private final OrderService orderService;
     private final AppTranslator appTranslator;
 
-    /// GET METHODS
-    /// get all orders for ADMIN
+    // ==================================================================================
+    //                                1. GET METHODS
+    // ==================================================================================
+
     @TrackExecutionTime
-    @GetMapping("")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Get All Orders (Admin)",
-            description = "Retrieves a paginated list of all orders in the system with filtering. Accessible only by Admins.")
-    public ResponseEntity<ApiResponse<PageResponse<OrderResponseDto>>> getAllOrders(
+    @GetMapping
+    @Operation(summary = "Get My Orders (Customer)",
+            description = "Retrieves a paginated list of orders for the currently authenticated user.")
+    public ResponseEntity<ApiResponse<PageResponse<OrderResponseDto>>> getUserOrder(
             @Valid @ModelAttribute OrderFilterRequest filter
     ) {
-        PageResponse<OrderResponseDto> pageResponse = orderService.getAllOrders(filter);
+        Long userId = SecurityUtils.getCurrentUserId();
+        PageResponse<OrderResponseDto> pageResponse = orderService.getUserOrders(userId, filter);
         String message = appTranslator.getTranslatedAction("success.retrieved", ENTITY_KEY);
         ApiResponse<PageResponse<OrderResponseDto>> apiResponse = ApiResponse.success(pageResponse, message);
         return ResponseEntity.ok(apiResponse);
     }
 
-    /// get order by id for Admin
     @TrackExecutionTime
-    @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Get Order By ID (Admin)",
-            description = "Retrieves the details of a specific order by its ID. Accessible only by Admins.")
-    public ResponseEntity<ApiResponse<OrderResponseDto>> getOrderById(
-            @PathVariable Long id
-    ) {
-        OrderResponseDto orderResponse = orderService.getOrderById(id);
-        String message = appTranslator.getTranslatedAction("success.retrieved", ENTITY_KEY);
-        ApiResponse<OrderResponseDto> apiResponse = ApiResponse.success(orderResponse, message);
-        return ResponseEntity.ok(apiResponse);
-    }
-
-    /// get order by id for User
-    @TrackExecutionTime
-    @GetMapping("/me/{id}")
+    @GetMapping("/{id}") // Removed /me
     @Operation(summary = "Get My Order Details (Customer)",
             description = "Retrieves the details of a specific order for the currently authenticated user.")
     public ResponseEntity<ApiResponse<OrderResponseDto>> getUserOrderById(
@@ -72,25 +57,13 @@ public class OrderController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    /// get user orders
-    @TrackExecutionTime
-    @GetMapping("/me")
-    @Operation(summary = "Get My Orders (Customer)",
-            description = "Retrieves a paginated list of orders for the currently authenticated user.")
-    public ResponseEntity<ApiResponse<PageResponse<OrderResponseDto>>> getUserOrder(
-            @Valid @ModelAttribute OrderFilterRequest filter
-    ) {
-        Long userId = SecurityUtils.getCurrentUserId();
-        PageResponse<OrderResponseDto> pageResponse = orderService.getUserOrders(userId, filter);
-        String message = appTranslator.getTranslatedAction("success.retrieved", ENTITY_KEY);
-        ApiResponse<PageResponse<OrderResponseDto>> apiResponse = ApiResponse.success(pageResponse, message);
-        return ResponseEntity.ok(apiResponse);
-    }
 
-    /// /////////////////////////////////////////
-    /// WRITING METHODS
+    // ==================================================================================
+    //                                2. WRITING METHODS
+    // ==================================================================================
+
     /// Create an order
-    @PostMapping("")
+    @PostMapping
     @Operation(summary = "Create an Order (Checkout)",
             description = "Creates a new order based on the user's cart items, clears the cart, and deducts from stock.")
     public ResponseEntity<ApiResponse<OrderResponseDto>> createOrder(
@@ -117,26 +90,12 @@ public class OrderController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    /// ///////////////////////
-    @PutMapping("/{id}/status")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Update Order Status (Admin Only)",
-            description = "Allows admins to move order to SHIPPED, DELIVERED, etc.")
-    public ResponseEntity<ApiResponse<OrderResponseDto>> updateOrderStatus(
-            @PathVariable Long id,
-            @RequestParam OrderStatus status
-    ) {
-        OrderResponseDto orderResponse = orderService.updateOrderStatusByAdmin(id, status);
-        String message = appTranslator.getTranslatedAction("success.updated", ENTITY_KEY);
-        return ResponseEntity.ok(ApiResponse.success(orderResponse, message));
-    }
-
-    /// ////////////
-    @PutMapping("/{orderId}/return")
+    /// return order
+    @PutMapping("/{id}/return") // Changed to {id} for consistency
     @Operation(summary = "Return Order Status",
-            description = "Allows Users to return orders")
+            description = "Allows Users to return delivered orders")
     public ResponseEntity<ApiResponse<OrderResponseDto>> returnOrder(
-            @PathVariable Long orderId
+            @PathVariable(name = "id") Long orderId // Changed to id
     ) {
         Long userId = SecurityUtils.getCurrentUserId();
         orderService.returnDeliveredOrder(userId, orderId);
@@ -144,27 +103,22 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponse.success(null, message));
     }
 
-    /// ///////////
+    /// retry payment
     @GetMapping("/{id}/retry-payment")
     @Operation(summary = "Retry Order Payment",
             description = "Generates a new Paymob payment link for a pending order that previously failed.")
     public ResponseEntity<ApiResponse<PaymentResponseDto>> retryPayment(
             @PathVariable("id") Long orderId,
             @RequestParam(value = "walletNumber", required = false) String walletNumber) {
-        {
 
-            Long userId = SecurityUtils.getCurrentUserId();
-
-            PaymentResponseDto paymentUrl = orderService.retryPayment(userId, orderId, walletNumber);
-
-            String message = appTranslator.getTranslatedAction("success.payment_link_generated", ENTITY_KEY);
-
-            return ResponseEntity.ok(ApiResponse.success(paymentUrl, message));
-        }
+        Long userId = SecurityUtils.getCurrentUserId();
+        PaymentResponseDto paymentUrl = orderService.retryPayment(userId, orderId, walletNumber);
+        String message = appTranslator.getTranslatedAction("success.payment_link_generated", ENTITY_KEY);
+        return ResponseEntity.ok(ApiResponse.success(paymentUrl, message));
     }
 
-    /// soft-delete order
-    @PutMapping("/{id}/archive")
+    /// soft-delete order (Archive)
+    @DeleteMapping("/{id}")
     @Operation(summary = "Soft Delete an Order",
             description = "Archives an order so it no longer appears in the user's history, but keeps it in the database for financial records.")
     public ResponseEntity<ApiResponse<Void>> softDeleteOrder(
@@ -176,19 +130,4 @@ public class OrderController {
         ApiResponse<Void> apiResponse = ApiResponse.success(null, message);
         return ResponseEntity.ok(apiResponse);
     }
-
-    /// hard-delete order
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Hard Delete an Order (Admin)",
-            description = "Permanently deletes a CANCELLED order from the database. Cannot be undone.")
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> hardDeleteOrder(
-            @PathVariable(name = "id") Long orderId
-    ) {
-        orderService.hardDeleteOrder(orderId);
-        String message = appTranslator.getTranslatedAction("success.deleted", ENTITY_KEY);
-        ApiResponse<Void> apiResponse = ApiResponse.success(null, message);
-        return ResponseEntity.ok(apiResponse);
-    }
-
 }
