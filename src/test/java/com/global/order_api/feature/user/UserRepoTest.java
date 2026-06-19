@@ -130,6 +130,29 @@ class UserRepoTest extends BaseRepoTest {
         void restoreUser_WhenIdDoesNotExist_ShouldNotThrowException() {
             assertDoesNotThrow(() -> userRepo.restoreUser(999L));
         }
+
+        /// // Find By Id Including Deleted - When User Is Soft Deleted
+        @Test
+        void findByIdIncludingDeleted_WhenUserIsDeleted_ShouldReturnUser() {
+            // 1. Arrange: Create a deleted user
+            UserEntity user = createAndSaveUser("hidden@company.com", true);
+            entityManager.clear();
+
+            // 2. Act
+            Optional<UserEntity> result = userRepo.findByIdIncludingDeleted(user.getId());
+
+            // 3. Assert: Should bypass Hibernate filter and find it
+            assertThat(result).isPresent();
+            assertThat(result.get().getEmail()).isEqualTo("hidden@company.com");
+            assertThat(result.get().isDeleted()).isTrue();
+        }
+
+        /// // Find By Id Including Deleted - When Id Does Not Exist
+        @Test
+        void findByIdIncludingDeleted_WhenUserDoesNotExist_ShouldReturnEmpty() {
+            Optional<UserEntity> result = userRepo.findByIdIncludingDeleted(999L);
+            assertThat(result).isEmpty();
+        }
     }
 
     /// ////////////////////////////////////////////////////////////////////////////////////

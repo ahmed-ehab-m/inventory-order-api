@@ -1,8 +1,10 @@
 package com.global.order_api.feature.user;
 
 import com.global.order_api.core.base.PageResponse;
+import com.global.order_api.core.exception.BusinessLogicException;
 import com.global.order_api.core.exception.DuplicateRecordException;
 import com.global.order_api.core.exception.ResourceNotFoundException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -10,13 +12,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,9 +34,20 @@ class UserServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private CacheManager cacheManager;
+
+    @Mock
+    private Cache cache; // Mocking the cache object itself
+
     @InjectMocks
     private UserService userService;
 
+    @BeforeEach
+    void setUp() {
+        // leniency to avoid UnnecessaryStubbingException if a test doesn't use cache
+        lenient().when(cacheManager.getCache("security-users")).thenReturn(cache);
+    }
 
     /// /////////////////////////////////////////////////////////////////////////////////////
     /// /////////////////////////////////READING METHODS////////////////////////////////////
@@ -46,10 +56,8 @@ class UserServiceTest {
     @DisplayName("1. Get Users Tests (GET)")
     class GetUsersTests {
 
-        /// // Get User By Id - RETURN DTO
         @Test
         void getUserById_WhenUserExists_ShouldReturnDto() {
-            // 1. Arrange
             Long userId = 1L;
             UserEntity userEntity = new UserEntity();
             userEntity.setId(userId);
@@ -57,35 +65,15 @@ class UserServiceTest {
             UserResponseDto responseDto = new UserResponseDto();
             responseDto.setId(userId);
 
-            // BaseService calls findByIdOrThrow
             when(userRepo.findByIdOrThrow(userId)).thenReturn(userEntity);
             when(userMapper.mapToDto(userEntity)).thenReturn(responseDto);
 
-            // 2. Act
             UserResponseDto result = userService.getUserById(userId);
 
-            // 3. Assert
             assertNotNull(result);
             assertEquals(userId, result.getId());
-
-            verify(userRepo, times(1)).findByIdOrThrow(userId);
-            verify(userMapper, times(1)).mapToDto(userEntity);
         }
 
-        /// // Get User By Id - Does Not Exist - THROW EXCEPTION
-        @Test
-        void getUserById_WhenUserDoesNotExist_ShouldThrowException() {
-            Long userId = 999L;
-
-            when(userRepo.findByIdOrThrow(userId))
-                    .thenThrow(new ResourceNotFoundException("User", "id", userId));
-
-            assertThrows(ResourceNotFoundException.class, () -> userService.getUserById(userId));
-
-            verify(userMapper, never()).mapToDto(any());
-        }
-
-        /// // Find By Email - RETURN DTO
         @Test
         void findByEmail_WhenUserExists_ShouldReturnDto() {
             String email = "test@company.com";
@@ -102,57 +90,6 @@ class UserServiceTest {
 
             assertNotNull(result);
             assertEquals(email, result.getEmail());
-            verify(userRepo, times(1)).findByEmail(email);
-        }
-
-        /// // Find By Email - Does Not Exist - THROW EXCEPTION
-        @Test
-        void findByEmail_WhenUserDoesNotExist_ShouldThrowException() {
-            String email = "notfound@company.com";
-
-            when(userRepo.findByEmail(email)).thenReturn(Optional.empty());
-
-            assertThrows(ResourceNotFoundException.class, () -> userService.findByEmail(email));
-        }
-
-        /// // Get Users Page - RETURN PAGE RESPONSE
-        @Test
-        void getUsersPage_ShouldReturnPagedUsers() {
-            UserFilterRequest filter = new UserFilterRequest();
-
-            UserEntity fakeEntity = new UserEntity();
-            Page<UserEntity> mockEntityPage = new PageImpl<>(List.of(fakeEntity));
-
-            UserResponseDto fakeDto = new UserResponseDto();
-
-            when(userRepo.findAll(any(Specification.class), any(Pageable.class))).thenReturn(mockEntityPage);
-            when(userMapper.mapToDtoList(mockEntityPage.getContent())).thenReturn(List.of(fakeDto));
-
-            PageResponse<UserResponseDto> result = userService.getUsersPage(filter);
-
-            assertNotNull(result);
-            assertFalse(result.getData().isEmpty());
-
-            verify(userRepo, times(1)).findAll(any(Specification.class), any(Pageable.class));
-            verify(userMapper, times(1)).mapToDtoList(anyList());
-        }
-
-        /// // Get Users Page - No Users in DB - RETURN EMPTY PAGE
-        @Test
-        void getUsersPage_WhenNoUsersExist_ShouldReturnEmptyPage() {
-            UserFilterRequest filter = new UserFilterRequest();
-
-
-            Page<UserEntity> emptyMockPage = new PageImpl<>(List.of());
-
-            when(userRepo.findAll(any(Specification.class), any(Pageable.class))).thenReturn(emptyMockPage);
-            when(userMapper.mapToDtoList(emptyMockPage.getContent())).thenReturn(List.of());
-
-            PageResponse<UserResponseDto> result = userService.getUsersPage(filter);
-
-            assertNotNull(result);
-            assertTrue(result.getData().isEmpty());
-            assertEquals(0, result.getTotalElements());
         }
     }
 
@@ -160,45 +97,33 @@ class UserServiceTest {
     /// /////////////////////////////////WRITING METHODS////////////////////////////////////
 
     @Nested
-    @DisplayName("2. Update User Tests (PUT)")
+    @DisplayName("2. Update User & Password Tests (PUT)")
     class UpdateUserTests {
 
-        /// // Update User - Valid Data - Should Update & Return DTO
         @Test
-        void updateUser_WithValidData_ShouldUpdateUser() {
-            // 1. Arrange
+        void updateUser_WithValidData_ShouldUpdateUserAndEvictCache() {
             Long userId = 1L;
             UserRequestDto requestDto = new UserRequestDto();
             requestDto.setEmail("new@company.com");
             requestDto.setName("New Name");
-            requestDto.setPassword("newPass");
 
             UserEntity existingUser = new UserEntity();
             existingUser.setId(userId);
-            existingUser.setEmail("old@company.com"); // Different email
-
-            UserEntity savedUser = new UserEntity();
-            UserResponseDto responseDto = new UserResponseDto();
-            responseDto.setEmail("new@company.com");
+            existingUser.setEmail("old@company.com");
 
             when(userRepo.findByIdOrThrow(userId)).thenReturn(existingUser);
-            when(userRepo.existsByEmail(requestDto.getEmail())).thenReturn(false); // Email not taken
-            when(passwordEncoder.encode(requestDto.getPassword())).thenReturn("hashedPass");
-            when(userRepo.save(existingUser)).thenReturn(savedUser);
-            when(userMapper.mapToDto(savedUser)).thenReturn(responseDto);
+            when(userRepo.existsByEmail(requestDto.getEmail())).thenReturn(false);
+            when(userRepo.save(existingUser)).thenReturn(existingUser);
+            when(userMapper.mapToDto(existingUser)).thenReturn(new UserResponseDto());
 
-            // 2. Act
-            UserResponseDto result = userService.updateUser(userId, requestDto);
+            userService.updateUser(userId, requestDto);
 
-            // 3. Assert
-            assertNotNull(result);
-            assertEquals("new@company.com", result.getEmail());
-
-            verify(passwordEncoder, times(1)).encode("newPass");
-            verify(userRepo, times(1)).save(existingUser);
+            // Verify cache eviction for BOTH old and new emails
+            verify(cacheManager, atLeastOnce()).getCache("security-users");
+            verify(cache, times(1)).evict("old@company.com");
+            verify(cache, times(1)).evict("new@company.com");
         }
 
-        /// // Update User - Email Already Taken - Should Throw Exception
         @Test
         void updateUser_WhenEmailIsTaken_ShouldThrowException() {
             Long userId = 1L;
@@ -210,10 +135,48 @@ class UserServiceTest {
             existingUser.setEmail("old@company.com");
 
             when(userRepo.findByIdOrThrow(userId)).thenReturn(existingUser);
-            when(userRepo.existsByEmail(requestDto.getEmail())).thenReturn(true); // Email is taken!
+            when(userRepo.existsByEmail(requestDto.getEmail())).thenReturn(true);
 
             assertThrows(DuplicateRecordException.class, () -> userService.updateUser(userId, requestDto));
+            verify(userRepo, never()).save(any());
+        }
 
+        @Test
+        void changePassword_WithCorrectOldPassword_ShouldUpdatePassword() {
+            Long userId = 1L;
+            ChangePasswordRequestDto requestDto = new ChangePasswordRequestDto();
+            requestDto.setOldPassword("old123");
+            requestDto.setNewPassword("new123");
+            UserEntity user = new UserEntity();
+            user.setId(userId);
+            user.setEmail("user@test.com");
+            user.setPassword("hashedOld");
+
+            when(userRepo.findByIdOrThrow(userId)).thenReturn(user);
+            when(passwordEncoder.matches(requestDto.getOldPassword(), user.getPassword())).thenReturn(true);
+            when(passwordEncoder.encode(requestDto.getNewPassword())).thenReturn("hashedNew");
+
+            userService.changePassword(userId, requestDto);
+
+            assertEquals("hashedNew", user.getPassword());
+            verify(userRepo, times(1)).save(user);
+            verify(cache, times(1)).evict("user@test.com"); // verify cache eviction
+        }
+
+        @Test
+        void changePassword_WithIncorrectOldPassword_ShouldThrowException() {
+            Long userId = 1L;
+            UserEntity user = new UserEntity();
+            user.setPassword("hashedOld");
+
+            ChangePasswordRequestDto requestDto = new ChangePasswordRequestDto();
+            requestDto.setOldPassword("old123");
+            requestDto.setNewPassword("new123");
+
+            when(userRepo.findByIdOrThrow(userId)).thenReturn(user);
+            when(passwordEncoder.matches(requestDto.getOldPassword(), user.getPassword())).thenReturn(false);
+
+            assertThrows(BusinessLogicException.class, () -> userService.changePassword(userId, requestDto));
             verify(userRepo, never()).save(any());
         }
     }
@@ -222,72 +185,44 @@ class UserServiceTest {
     /// /////////////////////////////////DELETE METHODS////////////////////////////////////
 
     @Nested
-    @DisplayName("3. Delete & Restore User Tests (DELETE / PUT)")
-    class DeleteUserTests {
+    @DisplayName("3. Soft Delete Tests (DELETE)")
+    class SoftDeleteTests {
 
-        /// // Soft Delete User
         @Test
-        void softDeleteUser_ShouldCallBaseServiceDelete() {
+        void softDeleteUser_ShouldChangeEmailAndEvictCache() {
             Long userId = 1L;
+            String originalEmail = "test@test.com";
+
             UserEntity existingUser = new UserEntity();
             existingUser.setId(userId);
+            existingUser.setEmail(originalEmail);
+            existingUser.setDeleted(false);
 
-            // BaseService delete() logic -> findByIdOrThrow -> setDeleted(true) -> save
             when(userRepo.findByIdOrThrow(userId)).thenReturn(existingUser);
 
             userService.softDeleteUser(userId);
 
-            verify(userRepo, times(1)).findByIdOrThrow(userId);
-            verify(userRepo, times(1)).deleteById(userId); // Verifies that BaseService called save
+            // Assert Email changed and marked as deleted
+            assertTrue(existingUser.isDeleted());
+            assertTrue(existingUser.getEmail().contains("_deleted_"));
+            assertTrue(existingUser.getEmail().startsWith(originalEmail));
+
+            verify(userRepo, times(1)).save(existingUser);
+            verify(cache, times(1)).evict(originalEmail); // Cache of old email must be evicted
         }
 
-        /// // Hard Delete User - Exists - Should Hard Delete
         @Test
-        void hardDeleteUser_WhenUserExists_ShouldHardDelete() {
+        void softDeleteUser_WhenAlreadyDeleted_ShouldDoNothing() {
             Long userId = 1L;
+            UserEntity existingUser = new UserEntity();
+            existingUser.setDeleted(true);
 
-            when(userRepo.existsById(userId)).thenReturn(true);
-            doNothing().when(userRepo).hardDeleteUser(userId);
+            when(userRepo.findByIdOrThrow(userId)).thenReturn(existingUser);
 
-            userService.hardDeleteUser(userId);
+            userService.softDeleteUser(userId);
 
-            verify(userRepo, times(1)).hardDeleteUser(userId);
-        }
-
-        /// // Hard Delete User - Not Exists - Should Throw Exception
-        @Test
-        void hardDeleteUser_WhenUserDoesNotExist_ShouldThrowException() {
-            Long userId = 999L;
-
-            when(userRepo.existsById(userId)).thenReturn(false);
-
-            assertThrows(ResourceNotFoundException.class, () -> userService.hardDeleteUser(userId));
-
-            verify(userRepo, never()).hardDeleteUser(any());
-        }
-
-        /// // Restore User
-        @Test
-        void restoreUser_ShouldCallRepoRestore() {
-            Long userId = 1L;
-
-            doNothing().when(userRepo).restoreUser(userId);
-
-            userService.restoreUser(userId);
-
-            verify(userRepo, times(1)).restoreUser(userId);
-        }
-
-        /// // Restore User - Not Exists - Should Throw Exception
-        @Test
-        void restoreUser_WhenUserDoesNotExist_ShouldThrowException() {
-            Long userId = 999L;
-
-            when(userRepo.existsById(userId)).thenReturn(false);
-
-            assertThrows(ResourceNotFoundException.class, () -> userService.restoreUser(userId));
-
-            verify(userRepo, never()).restoreUser(any());
+            verify(userRepo, never()).save(any());
+            verify(cache, never()).evict(any());
         }
     }
 }

@@ -11,6 +11,11 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepo extends BaseRepo<UserEntity, Long>, JpaSpecificationExecutor<UserEntity> {
+
+    // ==================================================================================
+    //                                1. READ METHODS
+    // ==================================================================================
+
     /// Static queries needed for basic Business
     /// for login
     /// Indexing
@@ -23,6 +28,11 @@ public interface UserRepo extends BaseRepo<UserEntity, Long>, JpaSpecificationEx
     ///     Optional<UserEntity> findByEmail(String email);
     boolean existsByEmail(String email);
 
+
+    /// GET USER INCLUDING DELETED (For Restore Logic)
+    @Query(value = "SELECT * FROM users WHERE id = :id", nativeQuery = true)
+    Optional<UserEntity> findByIdIncludingDeleted(@Param("id") Long id);
+
     //// GET METHODS
     /// we comment findAll because => we extends JpaSpecificationExecutor
     //// which make findAll work as pagination function
@@ -30,13 +40,18 @@ public interface UserRepo extends BaseRepo<UserEntity, Long>, JpaSpecificationEx
 //    Page<UserEntity> findAll(Specification<UserEntity> spec ,Pageable pageable);
 
 
+    // ==================================================================================
+    //                                2. DELETE & RESTORE METHODS
+    // ==================================================================================
+
     /// / HARD DELETE
-    @Modifying
+    /// clear hibernate cache L1
+    @Modifying(clearAutomatically = true)
     @Query(value = "DELETE FROM users where id =:id", nativeQuery = true)
     void hardDeleteUser(@Param("id") Long id);
 
     /// / RESTORE USER
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query(value = "UPDATE users set is_deleted=false where id= :id", nativeQuery = true)
     void restoreUser(@Param("id") Long id);
 

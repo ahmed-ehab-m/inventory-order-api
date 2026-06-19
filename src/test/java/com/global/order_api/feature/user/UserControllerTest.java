@@ -1,13 +1,14 @@
 package com.global.order_api.feature.user;
 
-import com.global.order_api.core.base.PageResponse;
-import com.global.order_api.core.exception.ResourceNotFoundException;
 import com.global.order_api.core.security.JwtFilter;
+import com.global.order_api.core.security.SecurityUtils;
 import com.global.order_api.core.utils.AppTranslator;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
+import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration;
 import org.springframework.boot.security.autoconfigure.web.servlet.SecurityFilterAutoConfiguration;
@@ -15,13 +16,12 @@ import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2Clien
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
-import org.springframework.data.domain.PageImpl;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
-
-import java.util.List;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -31,296 +31,122 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(value = UserController.class,
-        excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
-                classes = JwtFilter.class),
-        excludeAutoConfiguration = {SecurityAutoConfiguration.class,
-                SecurityFilterAutoConfiguration.class,
-                OAuth2ClientAutoConfiguration.class
-        })
+        excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = JwtFilter.class),
+        excludeAutoConfiguration = {SecurityAutoConfiguration.class, SecurityFilterAutoConfiguration.class, OAuth2ClientAutoConfiguration.class})
 class UserControllerTest {
 
     private static final String ENTITY_KEY = "entity.user";
-    @Autowired
-    private MockMvc mockMvc;
+    private static final Long CURRENT_USER_ID = 1L;
+
+    @Autowired private MockMvc mockMvc;
+    @MockitoBean private UserService userService;
+    @MockitoBean private AppTranslator appTranslator;
+    @Autowired private ObjectMapper objectMapper;
+
     @MockitoBean
-    private UserService userService;
+    private StringRedisTemplate stringRedisTemplate;
+
     @MockitoBean
-    private AppTranslator appTranslator;
-    @Autowired
-    private ObjectMapper objectMapper;
+    private ValueOperations<String, String> valueOperations;
 
-    /// /////////////////////////////////////////////////////////////////////////////////////
-    /// ///////////////////////////////// READING METHODS ///////////////////////////////////
-
-    @Nested
-    @DisplayName("1. Get Users Tests (GET)")
-    class GetUsersTests {
-
-        /// // Get All Users Page (Admin)
-        @Test
-        void getUsersPage_ShouldReturnPagedUsers() throws Exception {
-            UserResponseDto responseDto = new UserResponseDto();
-            responseDto.setId(1L);
-
-            List<UserResponseDto> dtoList = List.of(responseDto);
-            org.springframework.data.domain.Page<UserResponseDto> dummyPage = new PageImpl<>(dtoList);
-            PageResponse<UserResponseDto> fakePageResponse = PageResponse.from(dummyPage, dtoList);
-
-            String fakeMessage = "Users retrieved successfully";
-
-            when(userService.getUsersPage(ArgumentMatchers.any(UserFilterRequest.class)))
-                    .thenReturn(fakePageResponse);
-            when(appTranslator.getTranslatedAction(eq("success.retrieved"), eq(ENTITY_KEY)))
-                    .thenReturn(fakeMessage);
-
-            mockMvc.perform(get("/api/v1/users")
-                            .param("page", "0")
-                            .param("size", "10")
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andDo(print())
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.message").value(fakeMessage))
-                    .andExpect(jsonPath("$.data.data[0].id").value(1L))
-                    .andExpect(jsonPath("$.data.totalElements").value(1));
-        }
-
-        /// // Get User By ID - Success
-        @Test
-        void getUserById_ShouldReturnUser() throws Exception {
-            Long userId = 1L;
-            UserResponseDto responseDto = new UserResponseDto();
-            responseDto.setId(userId);
-
-            String fakeMessage = "User retrieved successfully";
-
-            when(userService.getUserById(userId)).thenReturn(responseDto);
-            when(appTranslator.getTranslatedAction(eq("success.retrieved"), eq(ENTITY_KEY)))
-                    .thenReturn(fakeMessage);
-
-            mockMvc.perform(get("/api/v1/users/{id}", userId)
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andDo(print())
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.message").value(fakeMessage))
-                    .andExpect(jsonPath("$.data.id").value(userId));
-        }
-
-        /// // Get User By ID - Not Found
-        @Test
-        void getUserById_WhenUserNotFound_ShouldReturnNotFound() throws Exception {
-            Long invalidId = 999L;
-            String errorKey = "error.resource.not.found";
-            String fakeErrorMessage = "User not found with id: " + invalidId;
-
-            when(userService.getUserById(invalidId))
-                    .thenThrow(new ResourceNotFoundException("User", "id", invalidId));
-            when(appTranslator.translateMessage(eq(errorKey), ArgumentMatchers.any(Object[].class)))
-                    .thenReturn(fakeErrorMessage);
-
-            mockMvc.perform(get("/api/v1/users/{id}", invalidId)
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andDo(print())
-                    .andExpect(status().isNotFound()) // 404
-                    .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.message").value(fakeErrorMessage));
-        }
+    @BeforeEach
+    void setUp() {
+        when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.increment(anyString())).thenReturn(1L);
     }
 
-    /// ////////////////////////////////////////////////////////////////////////////////////
-    /// ///////////////////////////////// UPDATE METHODS ///////////////////////////////////
-
     @Nested
-    @DisplayName("2. Update User Tests (PUT)")
-    class UpdateUserTests {
+    @DisplayName("User Profile Operations (Me)")
+    class UserProfileTests {
 
-        /// // Update User - Success
         @Test
-        void updateUser_WithValidData_ShouldReturnUpdatedUser() throws Exception {
-            Long userId = 1L;
+        void getMyProfile_ShouldReturnUser() throws Exception {
+            UserResponseDto responseDto = new UserResponseDto();
+            responseDto.setId(CURRENT_USER_ID);
+            String fakeMessage = "User retrieved successfully";
+
+            try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+                mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(CURRENT_USER_ID);
+
+                when(userService.getUserById(CURRENT_USER_ID)).thenReturn(responseDto);
+                when(appTranslator.getTranslatedAction(eq("success.retrieved"), eq(ENTITY_KEY))).thenReturn(fakeMessage);
+
+                mockMvc.perform(get("/api/v1/users/me")
+                                .contentType(MediaType.APPLICATION_JSON))
+                        .andDo(print())
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.message").value(fakeMessage))
+                        .andExpect(jsonPath("$.data.id").value(CURRENT_USER_ID));
+            }
+        }
+
+        @Test
+        void updateMyProfile_WithValidData_ShouldReturnUpdatedUser() throws Exception {
             UserRequestDto requestDto = new UserRequestDto();
             requestDto.setName("Updated Name");
+            requestDto.setEmail("test@test.com"); // Assuming this is required in DTO
 
             UserResponseDto responseDto = new UserResponseDto();
-            responseDto.setId(userId);
+            responseDto.setId(CURRENT_USER_ID);
             responseDto.setName("Updated Name");
 
             String fakeMessage = "User updated successfully";
 
-            when(userService.updateUser(eq(userId), ArgumentMatchers.any(UserRequestDto.class)))
-                    .thenReturn(responseDto);
-            when(appTranslator.getTranslatedAction(eq("success.updated"), eq(ENTITY_KEY)))
-                    .thenReturn(fakeMessage);
+            try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+                mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(CURRENT_USER_ID);
 
-            mockMvc.perform(put("/api/v1/users/{id}", userId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(requestDto)))
-                    .andDo(print())
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.message").value(fakeMessage))
-                    .andExpect(jsonPath("$.data.id").value(userId));
+                when(userService.updateUser(eq(CURRENT_USER_ID), ArgumentMatchers.any(UserRequestDto.class))).thenReturn(responseDto);
+                when(appTranslator.getTranslatedAction(eq("success.updated"), eq(ENTITY_KEY))).thenReturn(fakeMessage);
+
+                mockMvc.perform(put("/api/v1/users/me")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(requestDto)))
+                        .andDo(print())
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.message").value(fakeMessage))
+                        .andExpect(jsonPath("$.data.name").value("Updated Name"));
+            }
         }
 
-        /// // Update User - Not Found
         @Test
-        void updateUser_WhenUserNotFound_ShouldReturnNotFound() throws Exception {
-            Long invalidId = 999L;
-            UserRequestDto requestDto = new UserRequestDto();
-            requestDto.setEmail("ahmed@gmail.com");
-            requestDto.setPassword("dsafsdffsdf");
-            requestDto.setName("ahmed");
-            String errorKey = "error.resource.not.found";
-            String fakeErrorMessage = "User not found with id: " + invalidId;
+        void changePassword_WithValidData_ShouldReturnOk() throws Exception {
+            ChangePasswordRequestDto requestDto = new ChangePasswordRequestDto();
+            requestDto.setOldPassword("oldPassssss");
+            requestDto.setNewPassword("newPassssss");
 
-            when(userService.updateUser(eq(invalidId), ArgumentMatchers.any(UserRequestDto.class)))
-                    .thenThrow(new ResourceNotFoundException("User", "id", invalidId));
-            when(appTranslator.translateMessage(eq(errorKey), ArgumentMatchers.any(Object[].class)))
-                    .thenReturn(fakeErrorMessage);
+            String fakeMessage = "Password updated successfully";
 
-            mockMvc.perform(put("/api/v1/users/{id}", invalidId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(requestDto)))
-                    .andDo(print())
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.message").value(fakeErrorMessage));
+            try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+                mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(CURRENT_USER_ID);
+
+                doNothing().when(userService).changePassword(CURRENT_USER_ID, requestDto);
+                when(appTranslator.getTranslatedAction(eq("success.updated"), eq(ENTITY_KEY))).thenReturn(fakeMessage);
+
+                mockMvc.perform(put("/api/v1/users/me/password")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(requestDto)))
+                        .andDo(print())
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.message").value(fakeMessage));
+            }
         }
 
-        /// / invalid DTO
         @Test
-        void updateUser_WithInvalidData_ShouldReturnBadRequest() throws Exception {
-            Long userId = 1L;
-
-            UserRequestDto invalidRequest = new UserRequestDto();
-
-            mockMvc.perform(put("/api/v1/users/{id}", userId)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(invalidRequest)))
-                    .andDo(print())
-                    .andExpect(status().isBadRequest()) // يتوقع 400 Bad Request
-                    .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.errors").exists()); // يتوقع إن الـ ExceptionHandler يرجع قائمة الأخطاء
-        }
-
-
-        /// // Soft Delete User - Success
-        @Test
-        void softDeleteUser_ShouldReturnOk() throws Exception {
-            Long userId = 1L;
+        void deactivateMyAccount_ShouldReturnOk() throws Exception {
             String fakeMessage = "User deleted successfully";
 
-            doNothing().when(userService).softDeleteUser(userId);
-            when(appTranslator.getTranslatedAction(eq("success.deleted"), eq(ENTITY_KEY)))
-                    .thenReturn(fakeMessage);
+            try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+                mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(CURRENT_USER_ID);
 
-            mockMvc.perform(put("/api/v1/users/soft-delete/{id}", userId)
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andDo(print())
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.message").value(fakeMessage));
-        }
+                doNothing().when(userService).softDeleteUser(CURRENT_USER_ID);
+                when(appTranslator.getTranslatedAction(eq("success.deleted"), eq(ENTITY_KEY))).thenReturn(fakeMessage);
 
-        /// // Soft Delete User - Not Found
-        @Test
-        void softDeleteUser_WhenUserNotFound_ShouldReturnNotFound() throws Exception {
-            Long invalidId = 999L;
-            String errorKey = "error.resource.not.found";
-            String fakeErrorMessage = "User not found with id: " + invalidId;
-
-            doThrow(new ResourceNotFoundException("User", "id", invalidId))
-                    .when(userService).softDeleteUser(invalidId);
-
-            when(appTranslator.translateMessage(eq(errorKey), ArgumentMatchers.any(Object[].class)))
-                    .thenReturn(fakeErrorMessage);
-
-            mockMvc.perform(put("/api/v1/users/soft-delete/{id}", invalidId)
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andDo(print())
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.message").value(fakeErrorMessage));
-        }
-
-        /// // Restore User - Success
-        @Test
-        void restoreUser_ShouldReturnOk() throws Exception {
-            Long userId = 1L;
-            String fakeMessage = "User restored successfully";
-
-            doNothing().when(userService).restoreUser(userId);
-            when(appTranslator.getTranslatedAction(eq("success.restored"), eq(ENTITY_KEY)))
-                    .thenReturn(fakeMessage);
-
-            mockMvc.perform(put("/api/v1/users/restore-user/{id}", userId)
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andDo(print())
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.message").value(fakeMessage));
-        }
-
-        /// // Restore User - Not Found
-        @Test
-        void restoreUser_WhenUserNotFound_ShouldReturnNotFound() throws Exception {
-            Long invalidId = 999L;
-            String errorKey = "error.resource.not.found";
-            String fakeErrorMessage = "User not found with id: " + invalidId;
-
-            doThrow(new ResourceNotFoundException("User", "id", invalidId))
-                    .when(userService).restoreUser(invalidId);
-
-            when(appTranslator.translateMessage(eq(errorKey), ArgumentMatchers.any(Object[].class)))
-                    .thenReturn(fakeErrorMessage);
-
-            mockMvc.perform(put("/api/v1/users/restore-user/{id}", invalidId)
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andDo(print())
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.message").value(fakeErrorMessage));
-        }
-    }
-
-    /// /////////////////////////////////////////////////////////////////////////////////////
-    /// ///////////////////////////////// DELETE METHODS ////////////////////////////////////
-
-    @Nested
-    @DisplayName("3. Delete User Tests (DELETE)")
-    class DeleteUserTests {
-
-        /// // Hard Delete User - Success
-        @Test
-        void hardDeleteUser_ShouldReturnOk() throws Exception {
-            Long userId = 1L;
-            String fakeMessage = "User deleted successfully";
-
-            doNothing().when(userService).hardDeleteUser(userId);
-            when(appTranslator.getTranslatedAction(eq("success.deleted"), eq(ENTITY_KEY)))
-                    .thenReturn(fakeMessage);
-
-            mockMvc.perform(delete("/api/v1/users/hard-delete/{id}", userId)
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andDo(print())
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.message").value(fakeMessage));
-        }
-
-        /// // Hard Delete User - Not Found
-        @Test
-        void hardDeleteUser_WhenUserNotFound_ShouldReturnNotFound() throws Exception {
-            Long invalidId = 999L;
-            String errorKey = "error.resource.not.found";
-            String fakeErrorMessage = "User not found with id: " + invalidId;
-
-            doThrow(new ResourceNotFoundException("User", "id", invalidId))
-                    .when(userService).hardDeleteUser(invalidId);
-            when(appTranslator.translateMessage(eq(errorKey), ArgumentMatchers.any(Object[].class)))
-                    .thenReturn(fakeErrorMessage);
-
-            mockMvc.perform(delete("/api/v1/users/hard-delete/{id}", invalidId)
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andDo(print())
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.message").value(fakeErrorMessage));
+                mockMvc.perform(delete("/api/v1/users/me")
+                                .contentType(MediaType.APPLICATION_JSON))
+                        .andDo(print())
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.message").value(fakeMessage));
+            }
         }
     }
 }
