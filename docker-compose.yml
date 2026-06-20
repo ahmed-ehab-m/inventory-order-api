@@ -8,9 +8,7 @@ services:
     # get mysql image from docker hub
     image: mysql:latest
     # setup data base environment
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: inventory_order_db
+    env_file: .env
     # 3307 because mysql server take  default
     # 3306 is port of mysql container
     ports:
@@ -45,20 +43,13 @@ services:
     # so health check => to sure every thing is ok and make container status is healthy not just starting
     depends_on:
       mysqldb:
-        condition: service_healthy
+        condition: service_healthy'
     networks:
-      - s-network
+      - s-network    
+    env_file: .env # override environment variables
     environment:
-      - JWT_SECRET=${JWT_SECRET}
-      - CLOUDINARY_NAME=${CLOUDINARY_NAME}
-      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
-      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
-      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
-      - ADMIN_EMAIL=${ADMIN_EMAIL}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - DB_URL: jdbc:mysql://mysqldb:3306/inventory_order_db?createDatabaseIfNotExist=true
+      - REDIS_HOST: redis
 
     # third container => REDIS
     # service name in our file
