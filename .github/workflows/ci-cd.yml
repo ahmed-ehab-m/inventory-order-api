@@ -32,6 +32,14 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: maven
+      # to wait for mysql to be ready before running the tests
+      - name: Wait for MySQL to be ready
+        run: |
+          sudo apt-get update && sudo apt-get install -y mysql-client
+          until mysqladmin ping -h 127.0.0.1 -P 3308 -uroot -proot --silent; do
+            echo "Waiting for MySQL database connection..."
+            sleep 3
+          done
 
       - name: Build and Run Tests
         env:
