@@ -1,7 +1,7 @@
 package com.global.order_api.core.security;
 
 import com.global.order_api.core.exception.BusinessLogicException;
-import com.global.order_api.feature.user.UserPrincipal;
+import com.global.order_api.feature.user.entity.UserPrincipal;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

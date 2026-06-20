@@ -2,11 +2,11 @@ package com.global.order_api.feature.payment;
 
 import com.global.order_api.core.exception.BusinessLogicException;
 import com.global.order_api.core.exception.ResourceNotFoundException;
-import com.global.order_api.feature.order.OrderEntity;
-import com.global.order_api.feature.order.OrderRepo;
-import com.global.order_api.feature.order.OrderStatus;
-import com.global.order_api.feature.user.UserEntity;
-import com.global.order_api.feature.user.UserService;
+import com.global.order_api.feature.order.entity.OrderEntity;
+import com.global.order_api.feature.order.repo.OrderRepo;
+import com.global.order_api.feature.order.enums.OrderStatus;
+import com.global.order_api.feature.user.entity.UserEntity;
+import com.global.order_api.feature.user.service.UserService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +21,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 @Log4j2

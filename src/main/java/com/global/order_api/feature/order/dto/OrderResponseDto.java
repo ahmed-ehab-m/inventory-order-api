@@ -1,0 +1,26 @@
+package com.global.order_api.feature.order.dto;
+
+import com.global.order_api.core.base.BaseResponseDto;
+import com.global.order_api.feature.order.enums.OrderStatus;
+import com.global.order_api.feature.order.enums.PaymentType;
+import com.global.order_api.feature.payment.PaymentResponseDto;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+@Getter
+@Setter
+
+public class OrderResponseDto extends BaseResponseDto<Long> {
+    private OrderStatus status;
+    private BigDecimal totalPrice;
+    private String shippingAddress;
+    private String orderNotes;
+    private Long userId;
+    private String customerEmail;
+    private PaymentType paymentType;
+    private List<OrderItemResponseDto> orderItems;
+    private PaymentResponseDto paymentActionData;
+}

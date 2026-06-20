@@ -1,7 +1,9 @@
 package com.global.order_api.feature.product;
 
 import com.global.order_api.BaseRepoTest;
-import com.global.order_api.feature.category.CategoryEntity;
+import com.global.order_api.feature.category.entity.CategoryEntity;
+import com.global.order_api.feature.product.entity.ProductEntity;
+import com.global.order_api.feature.product.repo.ProductRepo;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

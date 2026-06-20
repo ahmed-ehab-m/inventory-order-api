@@ -2,7 +2,7 @@ package com.global.order_api.feature.auth;
 
 import com.global.order_api.core.response.ApiResponse;
 import com.global.order_api.core.utils.AppTranslator;
-import com.global.order_api.feature.user.UserRequestDto;
+import com.global.order_api.feature.user.dto.UserRequestDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;

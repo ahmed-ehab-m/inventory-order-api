@@ -1,6 +1,9 @@
 package com.global.order_api.feature.user;
 
 import com.global.order_api.BaseRepoTest;
+import com.global.order_api.feature.user.entity.UserEntity;
+import com.global.order_api.feature.user.enums.UserRole;
+import com.global.order_api.feature.user.repo.UserRepo;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

@@ -2,8 +2,8 @@ package com.global.order_api.feature.auth;
 
 import com.global.order_api.core.security.JwtFilter;
 import com.global.order_api.core.utils.AppTranslator;
-import com.global.order_api.feature.user.UserRequestDto;
-import com.global.order_api.feature.user.UserResponseDto;
+import com.global.order_api.feature.user.dto.UserRequestDto;
+import com.global.order_api.feature.user.dto.UserResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

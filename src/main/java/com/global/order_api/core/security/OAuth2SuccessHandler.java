@@ -1,9 +1,9 @@
 package com.global.order_api.core.security;
 
-import com.global.order_api.feature.user.UserEntity;
-import com.global.order_api.feature.user.UserPrincipal;
-import com.global.order_api.feature.user.UserRepo;
-import com.global.order_api.feature.user.UserRole;
+import com.global.order_api.feature.user.entity.UserEntity;
+import com.global.order_api.feature.user.entity.UserPrincipal;
+import com.global.order_api.feature.user.repo.UserRepo;
+import com.global.order_api.feature.user.enums.UserRole;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;

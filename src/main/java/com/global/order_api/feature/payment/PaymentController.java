@@ -1,7 +1,6 @@
 package com.global.order_api.feature.payment;
 
 import com.global.order_api.core.response.ApiResponse;
-import com.global.order_api.feature.order.OrderRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;

@@ -1,6 +1,6 @@
 package com.global.order_api.core.security;
 
-import com.global.order_api.feature.user.UserPrincipal;
+import com.global.order_api.feature.user.entity.UserPrincipal;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;

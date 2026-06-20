@@ -1,10 +1,14 @@
 package com.global.order_api.feature.order;
 
 import com.global.order_api.BaseRepoTest;
-import com.global.order_api.feature.category.CategoryEntity;
-import com.global.order_api.feature.product.ProductEntity;
-import com.global.order_api.feature.user.UserEntity;
-import com.global.order_api.feature.user.UserRole;
+import com.global.order_api.feature.category.entity.CategoryEntity;
+import com.global.order_api.feature.order.entity.OrderEntity;
+import com.global.order_api.feature.order.entity.OrderItemEntity;
+import com.global.order_api.feature.order.enums.OrderStatus;
+import com.global.order_api.feature.order.repo.OrderRepo;
+import com.global.order_api.feature.product.entity.ProductEntity;
+import com.global.order_api.feature.user.entity.UserEntity;
+import com.global.order_api.feature.user.enums.UserRole;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

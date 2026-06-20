@@ -1,17 +1,16 @@
 package com.global.order_api.feature.payment;
 
 import com.global.order_api.core.exception.BusinessLogicException;
-import com.global.order_api.feature.order.OrderEntity;
-import com.global.order_api.feature.order.OrderRepo;
-import com.global.order_api.feature.order.OrderStatus;
-import com.global.order_api.feature.user.UserEntity;
-import com.global.order_api.feature.user.UserService;
+import com.global.order_api.feature.order.entity.OrderEntity;
+import com.global.order_api.feature.order.repo.OrderRepo;
+import com.global.order_api.feature.order.enums.OrderStatus;
+import com.global.order_api.feature.user.entity.UserEntity;
+import com.global.order_api.feature.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;

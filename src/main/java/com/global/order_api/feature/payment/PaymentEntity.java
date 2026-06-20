@@ -1,6 +1,6 @@
 package com.global.order_api.feature.payment;
 
-import com.global.order_api.feature.order.OrderEntity;
+import com.global.order_api.feature.order.entity.OrderEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;

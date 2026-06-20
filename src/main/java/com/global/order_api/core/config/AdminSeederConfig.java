@@ -1,8 +1,8 @@
 package com.global.order_api.core.config;
 
-import com.global.order_api.feature.user.UserEntity;
-import com.global.order_api.feature.user.UserRepo;
-import com.global.order_api.feature.user.UserRole;
+import com.global.order_api.feature.user.entity.UserEntity;
+import com.global.order_api.feature.user.repo.UserRepo;
+import com.global.order_api.feature.user.enums.UserRole;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;

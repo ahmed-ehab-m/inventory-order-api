@@ -1,10 +1,10 @@
 package com.global.order_api.core.config;
 
 import com.github.javafaker.Faker;
-import com.global.order_api.feature.category.CategoryEntity;
-import com.global.order_api.feature.category.CategoryRepo;
-import com.global.order_api.feature.product.ProductEntity;
-import com.global.order_api.feature.product.ProductRepo;
+import com.global.order_api.feature.category.entity.CategoryEntity;
+import com.global.order_api.feature.category.repo.CategoryRepo;
+import com.global.order_api.feature.product.entity.ProductEntity;
+import com.global.order_api.feature.product.repo.ProductRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.boot.CommandLineRunner;
