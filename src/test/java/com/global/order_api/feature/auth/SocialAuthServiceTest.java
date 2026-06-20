@@ -1,10 +1,13 @@
 package com.global.order_api.feature.auth;
 
+import com.global.order_api.core.exception.BusinessLogicException;
 import com.global.order_api.core.security.JwtService;
+import com.global.order_api.feature.user.dto.UserResponseDto;
 import com.global.order_api.feature.user.entity.UserEntity;
 import com.global.order_api.feature.user.entity.UserPrincipal;
 import com.global.order_api.feature.user.repo.UserRepo;
 import com.global.order_api.feature.user.enums.UserRole;
+import com.global.order_api.feature.user.mapper.UserMapper;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import org.junit.jupiter.api.DisplayName;
@@ -18,7 +21,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
@@ -45,6 +47,9 @@ class SocialAuthServiceTest {
     @Mock
     private GoogleIdTokenVerifier googleVerifier;
 
+    @Mock
+    private UserMapper userMapper; // أضفنا المAPPER
+
     @InjectMocks
     private SocialAuthService socialAuthService;
 
@@ -57,51 +62,49 @@ class SocialAuthServiceTest {
 
         /// // Google Login - New User
         @Test
-        void loginWithGoogle_WhenUserIsNew_ShouldSaveUserAndReturnToken() throws Exception {
+        void loginWithGoogle_WhenUserIsNew_ShouldSaveUserAndReturnTokens() throws Exception {
             // 1. Arrange
-            /// fake google and jwt token
             String googleToken = "valid_google_token";
-            String fakeJwtToken = "jwt_token_from_our_system";
+            String fakeAccessToken = "fake.access.token";
+            String fakeRefreshToken = "fake.refresh.token";
             String email = "newuser@google.com";
 
-            //// build fake object (payload) response from google servers
             GoogleIdToken.Payload mockPayload = new GoogleIdToken.Payload();
             mockPayload.setEmail(email);
             mockPayload.set("name", "New Google User");
-            /// google return payload in GoogleIdToken object
-            /// and this object requires => header , payload , signature bytes for encryption
             GoogleIdToken mockIdToken = new GoogleIdToken(
                     new GoogleIdToken.Header(), mockPayload, new byte[0], new byte[0]
             );
 
             when(googleVerifier.verify(googleToken)).thenReturn(mockIdToken);
-            /// user not found in our DB (first time)
             when(userRepo.findByEmail(email)).thenReturn(Optional.empty());
 
-            //// create entity to save it in db
             UserEntity savedUser = new UserEntity();
             savedUser.setEmail(email);
             savedUser.setRole(UserRole.USER);
             when(userRepo.save(any(UserEntity.class))).thenReturn(savedUser);
 
-            //// take our fake jwt token
-            when(jwtService.generateToken(any(UserPrincipal.class))).thenReturn(fakeJwtToken);
+            // Mocks جديدة للتوكينز والمابر
+            when(jwtService.generateAccessToken(any(UserPrincipal.class))).thenReturn(fakeAccessToken);
+            when(jwtService.generateRefreshToken(any(UserPrincipal.class))).thenReturn(fakeRefreshToken);
+            when(userMapper.mapToDto(any(UserEntity.class))).thenReturn(new UserResponseDto());
 
             // 2. Act
-            //// jwt token
-            String result = socialAuthService.loginWithGoogle(googleToken);
+            AuthResponseDto result = socialAuthService.loginWithGoogle(googleToken);
 
             // 3. Assert
             assertNotNull(result);
-            assertEquals(fakeJwtToken, result);
+            assertEquals(fakeAccessToken, result.getAccessToken());
+            assertEquals(fakeRefreshToken, result.getRefreshToken());
             verify(userRepo, times(1)).save(any(UserEntity.class));
         }
 
         /// // Google Login - Existing User - not save user again
         @Test
-        void loginWithGoogle_WhenUserAlreadyExists_ShouldReturnTokenWithoutSaving() throws Exception {
+        void loginWithGoogle_WhenUserAlreadyExists_ShouldReturnTokensWithoutSaving() throws Exception {
             String googleToken = "valid_google_token";
-            String fakeJwtToken = "jwt_token_from_our_system";
+            String fakeAccessToken = "fake.access.token";
+            String fakeRefreshToken = "fake.refresh.token";
             String email = "existing@google.com";
 
             GoogleIdToken.Payload mockPayload = new GoogleIdToken.Payload();
@@ -117,13 +120,15 @@ class SocialAuthServiceTest {
             existingUser.setEmail(email);
             when(userRepo.findByEmail(email)).thenReturn(Optional.of(existingUser));
 
-            when(jwtService.generateToken(any(UserPrincipal.class))).thenReturn(fakeJwtToken);
+            when(jwtService.generateAccessToken(any(UserPrincipal.class))).thenReturn(fakeAccessToken);
+            when(jwtService.generateRefreshToken(any(UserPrincipal.class))).thenReturn(fakeRefreshToken);
+            when(userMapper.mapToDto(any(UserEntity.class))).thenReturn(new UserResponseDto());
 
-            String result = socialAuthService.loginWithGoogle(googleToken);
+            AuthResponseDto result = socialAuthService.loginWithGoogle(googleToken);
 
             assertNotNull(result);
-            assertEquals(fakeJwtToken, result);
-            /// not save user again
+            assertEquals(fakeAccessToken, result.getAccessToken());
+            assertEquals(fakeRefreshToken, result.getRefreshToken());
             verify(userRepo, never()).save(any(UserEntity.class));
         }
 
@@ -132,11 +137,10 @@ class SocialAuthServiceTest {
         void loginWithGoogle_WhenTokenIsInvalid_ShouldThrowException() throws Exception {
             String invalidToken = "invalid_google_token";
 
-
             when(googleVerifier.verify(invalidToken)).thenThrow(new IllegalArgumentException("Invalid ID token"));
 
-            assertThrows(BadCredentialsException.class, () -> socialAuthService.loginWithGoogle(invalidToken));
-            verify(userRepo, never()).findByEmail(anyString()); // مكملش للكود اللي بعده
+            assertThrows(BusinessLogicException.class, () -> socialAuthService.loginWithGoogle(invalidToken));
+            verify(userRepo, never()).findByEmail(anyString());
         }
     }
 
@@ -149,17 +153,15 @@ class SocialAuthServiceTest {
 
         /// // GitHub Login - New User
         @Test
-        void loginWithGitHub_WhenUserIsNew_ShouldSaveUserAndReturnToken() {
+        void loginWithGitHub_WhenUserIsNew_ShouldSaveUserAndReturnTokens() {
             String githubToken = "valid_github_token";
-            String fakeJwtToken = "jwt_token_from_our_system";
+            String fakeAccessToken = "fake.access.token";
+            String fakeRefreshToken = "fake.refresh.token";
             String email = "newuser@github.com";
 
-            /// fake json response map from git hub
             Map<String, Object> githubResponseMap = new HashMap<>();
             githubResponseMap.put("login", "newGithubUser");
             githubResponseMap.put("email", email);
-            //// add data into http response
-            //// because rest template return data in response entity
             ResponseEntity<Map> responseEntity = new ResponseEntity<>(githubResponseMap, HttpStatus.OK);
 
             when(restTemplate.exchange(
@@ -169,7 +171,6 @@ class SocialAuthServiceTest {
                     eq(Map.class)
             )).thenReturn(responseEntity);
 
-            /// first time
             when(userRepo.findByEmail(email)).thenReturn(Optional.empty());
 
             UserEntity savedUser = new UserEntity();
@@ -177,20 +178,24 @@ class SocialAuthServiceTest {
             savedUser.setRole(UserRole.USER);
             when(userRepo.save(any(UserEntity.class))).thenReturn(savedUser);
 
-            when(jwtService.generateToken(any(UserPrincipal.class))).thenReturn(fakeJwtToken);
+            when(jwtService.generateAccessToken(any(UserPrincipal.class))).thenReturn(fakeAccessToken);
+            when(jwtService.generateRefreshToken(any(UserPrincipal.class))).thenReturn(fakeRefreshToken);
+            when(userMapper.mapToDto(any(UserEntity.class))).thenReturn(new UserResponseDto());
 
-            String result = socialAuthService.loginWithGitHub(githubToken);
+            AuthResponseDto result = socialAuthService.loginWithGitHub(githubToken);
 
             assertNotNull(result);
-            assertEquals(fakeJwtToken, result);
+            assertEquals(fakeAccessToken, result.getAccessToken());
+            assertEquals(fakeRefreshToken, result.getRefreshToken());
             verify(userRepo, times(1)).save(any(UserEntity.class));
         }
 
         /// // GitHub Login - Existing User
         @Test
-        void loginWithGitHub_WhenUserAlreadyExists_ShouldReturnTokenWithoutSaving() {
+        void loginWithGitHub_WhenUserAlreadyExists_ShouldReturnTokensWithoutSaving() {
             String githubToken = "valid_github_token";
-            String fakeJwtToken = "jwt_token_from_our_system";
+            String fakeAccessToken = "fake.access.token";
+            String fakeRefreshToken = "fake.refresh.token";
             String email = "existing@github.com";
 
             Map<String, Object> githubResponseMap = new HashMap<>();
@@ -209,11 +214,15 @@ class SocialAuthServiceTest {
             existingUser.setEmail(email);
             when(userRepo.findByEmail(email)).thenReturn(Optional.of(existingUser));
 
-            when(jwtService.generateToken(any(UserPrincipal.class))).thenReturn(fakeJwtToken);
+            when(jwtService.generateAccessToken(any(UserPrincipal.class))).thenReturn(fakeAccessToken);
+            when(jwtService.generateRefreshToken(any(UserPrincipal.class))).thenReturn(fakeRefreshToken);
+            when(userMapper.mapToDto(any(UserEntity.class))).thenReturn(new UserResponseDto());
 
-            String result = socialAuthService.loginWithGitHub(githubToken);
+            AuthResponseDto result = socialAuthService.loginWithGitHub(githubToken);
 
-            assertEquals(fakeJwtToken, result);
+            assertNotNull(result);
+            assertEquals(fakeAccessToken, result.getAccessToken());
+            assertEquals(fakeRefreshToken, result.getRefreshToken());
             verify(userRepo, never()).save(any(UserEntity.class));
         }
 
@@ -229,7 +238,7 @@ class SocialAuthServiceTest {
                     eq(Map.class)
             )).thenThrow(new RuntimeException("401 Unauthorized"));
 
-            assertThrows(BadCredentialsException.class, () -> socialAuthService.loginWithGitHub(invalidToken));
+            assertThrows(BusinessLogicException.class, () -> socialAuthService.loginWithGitHub(invalidToken));
             verify(userRepo, never()).findByEmail(anyString());
         }
     }

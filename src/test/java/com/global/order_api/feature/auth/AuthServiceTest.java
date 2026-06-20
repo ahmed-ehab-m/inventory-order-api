@@ -1,5 +1,6 @@
 package com.global.order_api.feature.auth;
 
+import com.global.order_api.core.exception.BusinessLogicException;
 import com.global.order_api.core.exception.DuplicateRecordException;
 import com.global.order_api.core.security.JwtService;
 import com.global.order_api.feature.user.dto.UserRequestDto;
@@ -25,6 +26,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -80,14 +82,16 @@ class AuthServiceTest {
             responseDto.setId(1L);
             responseDto.setEmail("newuser@test.com");
 
-            //// from jwt service
-            String fakeToken = "eyJhbGciOiJIUzI1NiIsInR...fakeToken";
+            //// from jwt service (Access & Refresh Tokens)
+            String fakeAccessToken = "fake.access.token";
+            String fakeRefreshToken = "fake.refresh.token";
 
             when(userRepo.existsByEmail(requestDto.getEmail())).thenReturn(false);
             when(userMapper.mapToEntity(requestDto)).thenReturn(mappedEntity);
             when(passwordEncoder.encode(requestDto.getPassword())).thenReturn("encodedPassword123");
             when(userRepo.save(mappedEntity)).thenReturn(savedEntity);
-            when(jwtService.generateToken(any(UserPrincipal.class))).thenReturn(fakeToken);
+            when(jwtService.generateAccessToken(any(UserPrincipal.class))).thenReturn(fakeAccessToken);
+            when(jwtService.generateRefreshToken(any(UserPrincipal.class))).thenReturn(fakeRefreshToken);
             when(userMapper.mapToDto(savedEntity)).thenReturn(responseDto);
 
             // 2. Act
@@ -95,7 +99,8 @@ class AuthServiceTest {
 
             // 3. Assert
             assertNotNull(result);
-            assertEquals(fakeToken, result.getToken());
+            assertEquals(fakeAccessToken, result.getAccessToken());
+            assertEquals(fakeRefreshToken, result.getRefreshToken());
             assertEquals(1L, result.getUser().getId());
             assertEquals(UserRole.USER, mappedEntity.getRole());
 
@@ -116,7 +121,8 @@ class AuthServiceTest {
             assertThrows(DuplicateRecordException.class, () -> authService.register(requestDto));
 
             verify(userRepo, never()).save(any());
-            verify(jwtService, never()).generateToken(any());
+            verify(jwtService, never()).generateAccessToken(any());
+            verify(jwtService, never()).generateRefreshToken(any());
         }
     }
 
@@ -143,14 +149,16 @@ class AuthServiceTest {
             responseDto.setId(1L);
             responseDto.setEmail("user@test.com");
 
-            String fakeToken = "eyJhbGciOiJIUzI1NiIsInR...fakeToken";
+            String fakeAccessToken = "fake.access.token";
+            String fakeRefreshToken = "fake.refresh.token";
 
             //// return null from auth manager to check only data is right
             when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                     .thenReturn(null);
 
             when(userRepo.findByEmail(requestDto.getEmail())).thenReturn(Optional.of(dbUser));
-            when(jwtService.generateToken(any(UserPrincipal.class))).thenReturn(fakeToken);
+            when(jwtService.generateAccessToken(any(UserPrincipal.class))).thenReturn(fakeAccessToken);
+            when(jwtService.generateRefreshToken(any(UserPrincipal.class))).thenReturn(fakeRefreshToken);
             when(userMapper.mapToDto(dbUser)).thenReturn(responseDto);
 
             // 2. Act
@@ -158,11 +166,12 @@ class AuthServiceTest {
 
             // 3. Assert
             assertNotNull(result);
-            assertEquals(fakeToken, result.getToken());
+            assertEquals(fakeAccessToken, result.getAccessToken());
+            assertEquals(fakeRefreshToken, result.getRefreshToken());
             assertEquals(1L, result.getUser().getId());
 
             verify(authenticationManager, times(1)).authenticate(any(UsernamePasswordAuthenticationToken.class));
-            verify(jwtService, times(1)).generateToken(any(UserPrincipal.class));
+            verify(jwtService, times(1)).generateAccessToken(any(UserPrincipal.class));
         }
 
         /// // Login - Failed (Bad Credentials)
@@ -180,7 +189,84 @@ class AuthServiceTest {
             assertThrows(BadCredentialsException.class, () -> authService.login(requestDto));
 
             verify(userRepo, never()).findByEmail(anyString());
-            verify(jwtService, never()).generateToken(any());
+            verify(jwtService, never()).generateAccessToken(any());
+        }
+    }
+
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// ///////////////////////////////// REFRESH TOKEN METHODS /////////////////////////////
+
+    @Nested
+    @DisplayName("3. Refresh Token Tests")
+    class RefreshTokenTests {
+
+        /// // Refresh Token - Success
+        @Test
+        void refresh_WithValidRefreshToken_ShouldReturnNewAccessToken() {
+            // 1. Arrange
+            String oldRefreshToken = "valid.old.refresh.token";
+            String newAccessToken = "new.access.token";
+
+            UserEntity dbUser = new UserEntity();
+            dbUser.setId(1L);
+            dbUser.setEmail("user@test.com");
+
+            UserResponseDto responseDto = new UserResponseDto();
+            responseDto.setId(1L);
+            responseDto.setEmail("user@test.com");
+
+            // Mocking the JwtService and Repo behavior
+            when(jwtService.extractUserEmail(oldRefreshToken)).thenReturn("user@test.com");
+            when(userRepo.findByEmail("user@test.com")).thenReturn(Optional.of(dbUser));
+            when(jwtService.validateToken(eq(oldRefreshToken), any(UserPrincipal.class))).thenReturn(true);
+            when(jwtService.generateAccessToken(any(UserPrincipal.class))).thenReturn(newAccessToken);
+            when(userMapper.mapToDto(dbUser)).thenReturn(responseDto);
+
+            // 2. Act
+            AuthResponseDto result = authService.refreshToken(oldRefreshToken);
+
+            // 3. Assert
+            assertNotNull(result);
+            assertEquals(newAccessToken, result.getAccessToken()); // التوكين الجديد اتباع
+            assertEquals(oldRefreshToken, result.getRefreshToken()); // الريفرش القديم فضل زي ما هو
+            assertEquals(1L, result.getUser().getId());
+
+            // نتأكد إنه ماعدلش الريفرش توكين
+            verify(jwtService, never()).generateRefreshToken(any());
+        }
+
+        /// // Refresh Token - Failed (Invalid Token / Cannot extract email)
+        @Test
+        void refresh_WithInvalidRefreshToken_ShouldThrowException() {
+            // 1. Arrange
+            String invalidToken = "invalid.token";
+
+            when(jwtService.extractUserEmail(invalidToken)).thenReturn(null);
+
+            // 2 & 3. Act & Assert
+            assertThrows(BusinessLogicException.class, () -> authService.refreshToken(invalidToken));
+
+            verify(userRepo, never()).findByEmail(anyString());
+            verify(jwtService, never()).generateAccessToken(any());
+        }
+
+        /// // Refresh Token - Failed (Token Expired or Invalid on validation)
+        @Test
+        void refresh_WhenTokenIsExpired_ShouldThrowException() {
+            // 1. Arrange
+            String expiredToken = "expired.token";
+
+            UserEntity dbUser = new UserEntity();
+            dbUser.setEmail("user@test.com");
+
+            when(jwtService.extractUserEmail(expiredToken)).thenReturn("user@test.com");
+            when(userRepo.findByEmail("user@test.com")).thenReturn(Optional.of(dbUser));
+            when(jwtService.validateToken(eq(expiredToken), any(UserPrincipal.class))).thenReturn(false); // التوكين منتهي
+
+            // 2 & 3. Act & Assert
+            assertThrows(BusinessLogicException.class, () -> authService.refreshToken(expiredToken));
+
+            verify(jwtService, never()).generateAccessToken(any());
         }
     }
 }

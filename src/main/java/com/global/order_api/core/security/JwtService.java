@@ -24,6 +24,9 @@ public class JwtService {
     @Value("${jwt.expiration}")
     private long jwtExpiration;
 
+    @Value("${jwt.refresh.expiration}")
+    private long refreshExpiration;
+
     /// Make Signature
 //    public JwtService() throws NoSuchAlgorithmException {
 //        KeyGenerator keyGenerator=KeyGenerator.getInstance("HmacSHA256");
@@ -31,9 +34,21 @@ public class JwtService {
 //        /// key is a bytes we convert it into text base64 to store it into string
 //        secretKey= Base64.getEncoder().encodeToString(sk.getEncoded());
 //    }
-    public String generateToken(UserDetails userDetails) {
-        Map<String, Object> claims = new HashMap<>(); /// add additional data like ROLE
-        var authorities = userDetails.getAuthorities().iterator(); /// get role
+    /// GENERATE ACCESS TOKEN
+    public String generateAccessToken(UserDetails userDetails) {
+        return buildToken(userDetails, jwtExpiration);
+    }
+    /////////////////////
+    /// GENERATE REFRESH TOKEN
+    public String generateRefreshToken(UserDetails userDetails)
+    {
+        return buildToken(userDetails, refreshExpiration);
+    }
+    ///////////////////////
+    /// HELPER METHOD FOR BUILDING TOKEN
+    private String buildToken(UserDetails userDetails, long expiration) {
+        Map<String, Object> claims = new HashMap<>();
+        var authorities = userDetails.getAuthorities().iterator();
         if (authorities.hasNext()) {
             claims.put("role", authorities.next().getAuthority());
         }
@@ -45,11 +60,12 @@ public class JwtService {
                 .add(claims)
                 .subject(userDetails.getUsername())
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + jwtExpiration)) // 10 Hours
+                .expiration(new Date(System.currentTimeMillis() + expiration))
                 .and()
                 .signWith(getKey())
                 .compact();
     }
+
 
     /// because signWith() don't accept a String
     /// want Secret Key Object
@@ -100,6 +116,11 @@ public class JwtService {
 
         final String userName = extractUserEmail(token);
         return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    }
+
+    /// check expiration of refresh token
+    public boolean isRefreshTokenValid(String token) {
+        return !isTokenExpired(token);
     }
 
 

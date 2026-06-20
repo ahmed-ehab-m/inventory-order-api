@@ -9,6 +9,7 @@ import com.global.order_api.feature.cart.dto.CartItemRequestDto;
 import com.global.order_api.feature.cart.dto.CartItemResponseDto;
 import com.global.order_api.feature.cart.dto.CartResponseDto;
 import com.global.order_api.feature.cart.service.CartService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,8 @@ import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2Clien
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -46,9 +49,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class CartControllerTest {
 
     private static final String ENTITY_KEY = "entity.cart";
-    private static final String CART_ITEM_ENTITY_KEY = "entity.cart_item"; // ده للعناصر
-    /// to mock user id for security
+    private static final String CART_ITEM_ENTITY_KEY = "entity.cart_item";
     private static final Long CURRENT_USER_ID = 1L;
+
     @Autowired
     private MockMvc mockMvc;
     @MockitoBean
@@ -58,6 +61,18 @@ class CartControllerTest {
     @MockitoBean
     private AppTranslator appTranslator;
 
+    @MockitoBean
+    private StringRedisTemplate stringRedisTemplate;
+
+    @MockitoBean
+    private ValueOperations<String, String> valueOperations;
+
+    @BeforeEach
+    void setUp() {
+        when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.increment(anyString())).thenReturn(1L);
+    }
+
     /// /////////////////////////////////////////////////////////////////////////////////////
     /// ///////////////////////////////// READING METHODS ///////////////////////////////////
 
@@ -65,21 +80,14 @@ class CartControllerTest {
     @DisplayName("1. Get Cart Tests (GET)")
     class GetCartTests {
 
-        /// // Get User Cart - Success
         @Test
         void getUserCart_ShouldReturnCart() throws Exception {
-            /// fake dto returned from service
             CartResponseDto fakeDto = new CartResponseDto();
             fakeDto.setTotalCartPrice(500.0);
             fakeDto.setCartItems(new ArrayList<>());
 
             String fakeMessage = "Cart retrieved successfully";
 
-            // Mock Static Method for SecurityUtils
-            /// to avoid Unauthorized or NullPointerException
-            /// MockedStatic => to mock static methods like in specified class will be tested
-            /// try => because static methods on JVM Scope and affect other tests
-            /// so using try with resource to remove this mock after this test
             try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
                 mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(CURRENT_USER_ID);
 
@@ -104,7 +112,6 @@ class CartControllerTest {
     @DisplayName("2. Add Cart Item Tests (POST)")
     class AddCartItemTests {
 
-        /// // Add Item - Success
         @Test
         void addCartItem_WithValidData_ShouldReturnUpdatedCart() throws Exception {
             CartItemRequestDto requestDto = new CartItemRequestDto();
@@ -128,7 +135,7 @@ class CartControllerTest {
                 when(appTranslator.getTranslatedAction(eq("success.added"), eq(CART_ITEM_ENTITY_KEY)))
                         .thenReturn(fakeMessage);
 
-                mockMvc.perform(post("/api/v1/cart/add-cart-item")
+                mockMvc.perform(post("/api/v1/cart/items")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(requestDto)))
                         .andDo(print())
@@ -139,17 +146,16 @@ class CartControllerTest {
             }
         }
 
-        /// // Add Item - Validation Failed (Null Product ID / Invalid Quantity)
         @Test
         void addCartItem_WithInvalidData_ShouldReturnBadRequest() throws Exception {
             CartItemRequestDto invalidRequest = new CartItemRequestDto();
-            invalidRequest.setProductId(null); // Invalid
-            invalidRequest.setQuantity(-5); // Invalid (Must be positive)
+            invalidRequest.setProductId(null);
+            invalidRequest.setQuantity(-5);
 
             try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
                 mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(CURRENT_USER_ID);
 
-                mockMvc.perform(post("/api/v1/cart/add-cart-item")
+                mockMvc.perform(post("/api/v1/cart/items")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(invalidRequest)))
                         .andDo(print())
@@ -167,7 +173,6 @@ class CartControllerTest {
     @DisplayName("3. Update Cart Item Tests (PUT)")
     class UpdateCartItemTests {
 
-        /// // Update Quantity - Success
         @Test
         void updateQuantity_WithValidData_ShouldReturnOk() throws Exception {
             Long cartItemId = 50L;
@@ -185,14 +190,12 @@ class CartControllerTest {
             try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
                 mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(CURRENT_USER_ID);
 
-                // Service returns Dto, but controller currently maps to Void in ApiResponse
                 when(cartService.updateItemQuantity(CURRENT_USER_ID, cartItemId, newQuantity))
                         .thenReturn(responseDto);
                 when(appTranslator.getTranslatedAction(eq("success.updated"), eq(CART_ITEM_ENTITY_KEY)))
                         .thenReturn(fakeMessage);
 
-                mockMvc.perform(put("/api/v1/cart/update-cart-item")
-                                .param("cartItemId", String.valueOf(cartItemId))
+                mockMvc.perform(put("/api/v1/cart/items/{cartItemId}", cartItemId)
                                 .param("quantity", String.valueOf(newQuantity))
                                 .contentType(MediaType.APPLICATION_JSON))
                         .andDo(print())
@@ -203,7 +206,6 @@ class CartControllerTest {
             }
         }
 
-        /// // Update Quantity - Cart Item Not Found
         @Test
         void updateQuantity_WhenItemNotFound_ShouldReturnNotFound() throws Exception {
             Long invalidCartItemId = 99L;
@@ -219,8 +221,7 @@ class CartControllerTest {
                 when(appTranslator.translateMessage(eq(errorKey), ArgumentMatchers.any(Object[].class)))
                         .thenReturn(fakeMessage);
 
-                mockMvc.perform(put("/api/v1/cart/update-cart-item")
-                                .param("cartItemId", String.valueOf(invalidCartItemId))
+                mockMvc.perform(put("/api/v1/cart/items/{cartItemId}", invalidCartItemId)
                                 .param("quantity", String.valueOf(newQuantity))
                                 .contentType(MediaType.APPLICATION_JSON))
                         .andDo(print())
@@ -238,7 +239,6 @@ class CartControllerTest {
     @DisplayName("4. Delete Cart Tests (DELETE)")
     class DeleteCartTests {
 
-        /// // Remove Single Cart Item
         @Test
         void removeCartItem_ShouldReturnOk() throws Exception {
             Long cartItemId = 50L;
@@ -251,8 +251,7 @@ class CartControllerTest {
                 when(appTranslator.getTranslatedAction(eq("success.deleted"), eq(CART_ITEM_ENTITY_KEY)))
                         .thenReturn(fakeMessage);
 
-                mockMvc.perform(delete("/api/v1/cart/remove-cart-item")
-                                .param("cartItemId", String.valueOf(cartItemId))
+                mockMvc.perform(delete("/api/v1/cart/items/{cartItemId}", cartItemId)
                                 .contentType(MediaType.APPLICATION_JSON))
                         .andDo(print())
                         .andExpect(status().isOk())
@@ -260,7 +259,6 @@ class CartControllerTest {
             }
         }
 
-        /// // Clear Entire Cart
         @Test
         void removeCart_ShouldReturnOk() throws Exception {
             String fakeMessage = "Cart cleared successfully";
@@ -272,7 +270,7 @@ class CartControllerTest {
                 when(appTranslator.getTranslatedAction(eq("success.deleted"), eq(ENTITY_KEY)))
                         .thenReturn(fakeMessage);
 
-                mockMvc.perform(delete("/api/v1/cart/remove-cart")
+                mockMvc.perform(delete("/api/v1/cart")
                                 .contentType(MediaType.APPLICATION_JSON))
                         .andDo(print())
                         .andExpect(status().isOk())

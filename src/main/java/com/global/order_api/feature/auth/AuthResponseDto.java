@@ -10,6 +10,7 @@ import lombok.*;
 @NoArgsConstructor
 /// to add the token to user details
 public class AuthResponseDto {
-    private String token;
+    private String accessToken;
+    private String refreshToken;
     private UserResponseDto user;
 }

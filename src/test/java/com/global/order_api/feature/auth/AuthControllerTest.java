@@ -4,6 +4,7 @@ import com.global.order_api.core.security.JwtFilter;
 import com.global.order_api.core.utils.AppTranslator;
 import com.global.order_api.feature.user.dto.UserRequestDto;
 import com.global.order_api.feature.user.dto.UserResponseDto;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -15,11 +16,17 @@ import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2Clien
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -48,6 +55,20 @@ class AuthControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+
+    @MockitoBean
+    private StringRedisTemplate stringRedisTemplate;
+
+    @MockitoBean
+    private ValueOperations<String, String> valueOperations;
+
+    @BeforeEach
+    void setUp() {
+        when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
+        /// mock this first request
+        when(valueOperations.increment(anyString())).thenReturn(1L);
+    }
+
     /// /////////////////////////////////////////////////////////////////////////////////////
     /// ///////////////////////////////// STANDARD AUTH /////////////////////////////////////
 
@@ -57,7 +78,7 @@ class AuthControllerTest {
 
         /// // Register - Success
         @Test
-        void register_WithValidData_ShouldReturnTokenAndUser() throws Exception {
+        void register_WithValidData_ShouldReturnTokensAndUser() throws Exception {
             UserRequestDto requestDto = new UserRequestDto();
             requestDto.setEmail("test@gmail.com");
             requestDto.setPassword("password123");
@@ -67,8 +88,8 @@ class AuthControllerTest {
             userResponseDto.setId(1L);
             userResponseDto.setEmail("test@gmail.com");
 
-            /// will be returned from service
-            AuthResponseDto authResponseDto = new AuthResponseDto("fake-jwt-token", userResponseDto);
+            /// will be returned from service (Access + Refresh)
+            AuthResponseDto authResponseDto = new AuthResponseDto("fake.access.token", "fake.refresh.token", userResponseDto);
             String fakeMessage = "User registered successfully";
 
             when(authService.register(ArgumentMatchers.any(UserRequestDto.class))).thenReturn(authResponseDto);
@@ -80,7 +101,8 @@ class AuthControllerTest {
                     .andDo(print())
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.message").value(fakeMessage))
-                    .andExpect(jsonPath("$.data.token").value("fake-jwt-token"))
+                    .andExpect(jsonPath("$.data.accessToken").value("fake.access.token"))
+                    .andExpect(jsonPath("$.data.refreshToken").value("fake.refresh.token"))
                     .andExpect(jsonPath("$.data.user.id").value(1L));
         }
 
@@ -100,7 +122,7 @@ class AuthControllerTest {
 
         /// // Login - Success
         @Test
-        void login_WithValidData_ShouldReturnTokenAndUser() throws Exception {
+        void login_WithValidData_ShouldReturnTokensAndUser() throws Exception {
             UserRequestDto requestDto = new UserRequestDto();
             requestDto.setEmail("test@gmail.com");
             requestDto.setPassword("password123");
@@ -109,11 +131,11 @@ class AuthControllerTest {
             UserResponseDto userResponseDto = new UserResponseDto();
             userResponseDto.setId(1L);
 
-            AuthResponseDto authResponseDto = new AuthResponseDto("fake-jwt-token", userResponseDto);
+            AuthResponseDto authResponseDto = new AuthResponseDto("fake.access.token", "fake.refresh.token", userResponseDto);
             String fakeMessage = "Login successful";
 
             when(authService.login(ArgumentMatchers.any(UserRequestDto.class))).thenReturn(authResponseDto);
-            when(appTranslator.translateMessage("success.login")).thenReturn(fakeMessage);
+            when(appTranslator.getTranslatedAction(eq("success.login"), eq(ENTITY_KEY))).thenReturn(fakeMessage);
 
             mockMvc.perform(post("/api/v1/auth/login")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -121,7 +143,7 @@ class AuthControllerTest {
                     .andDo(print())
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.message").value(fakeMessage))
-                    .andExpect(jsonPath("$.data.token").value("fake-jwt-token"));
+                    .andExpect(jsonPath("$.data.accessToken").value("fake.access.token"));
         }
 
         /// // Login - Invalid DTO (Bad Request)
@@ -148,14 +170,17 @@ class AuthControllerTest {
 
         /// // Google Login - Success
         @Test
-        void loginWithGoogleMobile_ShouldReturnToken() throws Exception {
+        void loginWithGoogleMobile_ShouldReturnTokens() throws Exception {
             SocialLoginRequestDto requestDto = new SocialLoginRequestDto();
             requestDto.setToken("google-mobile-token");
 
-            String fakeJwtToken = "jwt-from-google-auth";
+            UserResponseDto userResponseDto = new UserResponseDto();
+            userResponseDto.setId(1L);
+            AuthResponseDto authResponseDto = new AuthResponseDto("google.access", "google.refresh", userResponseDto);
+
             String fakeMessage = "Login successful";
 
-            when(socialAuthService.loginWithGoogle(requestDto.getToken())).thenReturn(fakeJwtToken);
+            when(socialAuthService.loginWithGoogle(requestDto.getToken())).thenReturn(authResponseDto);
             when(appTranslator.getTranslatedAction(eq("success.login"), eq(ENTITY_KEY))).thenReturn(fakeMessage);
 
             mockMvc.perform(post("/api/v1/auth/social/google")
@@ -164,19 +189,22 @@ class AuthControllerTest {
                     .andDo(print())
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.message").value(fakeMessage))
-                    .andExpect(jsonPath("$.data").value(fakeJwtToken));
+                    .andExpect(jsonPath("$.data.accessToken").value("google.access"));
         }
 
         /// // GitHub Login - Success
         @Test
-        void loginWithGitHubMobile_ShouldReturnToken() throws Exception {
+        void loginWithGitHubMobile_ShouldReturnTokens() throws Exception {
             SocialLoginRequestDto requestDto = new SocialLoginRequestDto();
             requestDto.setToken("github-mobile-token");
 
-            String fakeJwtToken = "jwt-from-github-auth";
+            UserResponseDto userResponseDto = new UserResponseDto();
+            userResponseDto.setId(1L);
+            AuthResponseDto authResponseDto = new AuthResponseDto("github.access", "github.refresh", userResponseDto);
+
             String fakeMessage = "Login successful";
 
-            when(socialAuthService.loginWithGitHub(requestDto.getToken())).thenReturn(fakeJwtToken);
+            when(socialAuthService.loginWithGitHub(requestDto.getToken())).thenReturn(authResponseDto);
             when(appTranslator.getTranslatedAction(eq("success.login"), eq(ENTITY_KEY))).thenReturn(fakeMessage);
 
             mockMvc.perform(post("/api/v1/auth/social/github")
@@ -185,7 +213,7 @@ class AuthControllerTest {
                     .andDo(print())
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.message").value(fakeMessage))
-                    .andExpect(jsonPath("$.data").value(fakeJwtToken));
+                    .andExpect(jsonPath("$.data.accessToken").value("github.access"));
         }
 
         /// // Social Login - Invalid DTO
@@ -203,15 +231,15 @@ class AuthControllerTest {
     }
 
     /// /////////////////////////////////////////////////////////////////////////////////////
-    /// ///////////////////////////////// LOGOUT & OTHERS ///////////////////////////////////
+    /// ///////////////////////////////// LOGOUT & REFRESH //////////////////////////////////
 
     @Nested
-    @DisplayName("3. Logout & OAuth2 Success Tests")
+    @DisplayName("3. Logout, Refresh & OAuth2 Success Tests")
     class LogoutAndOthersTests {
 
-        /// // Logout - Should Clear Cookie
+        /// // Logout - Should Clear Cookies
         @Test
-        void logout_ShouldClearCookieAndReturnSuccess() throws Exception {
+        void logout_ShouldClearCookiesAndReturnSuccess() throws Exception {
             String fakeMessage = "Successfully logged out";
 
             when(appTranslator.getTranslatedAction(eq("success.logout"), eq(ENTITY_KEY))).thenReturn(fakeMessage);
@@ -221,8 +249,36 @@ class AuthControllerTest {
                     .andDo(print())
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.message").value(fakeMessage))
-                    .andExpect(cookie().maxAge("jwt_token", 0))
-                    .andExpect(cookie().httpOnly("jwt_token", true));
+                    // بنشيك على الكوكيز الاتنين إنهم متسحبين (Max age = 0)
+                    .andExpect(cookie().maxAge("access_token", 0))
+                    .andExpect(cookie().maxAge("refresh_token", 0));
+        }
+
+        /// // Refresh Token - Success
+        @Test
+        void refreshToken_WithValidToken_ShouldReturnNewAccessToken() throws Exception {
+            // 1. Arrange
+            // عشان منعملش كلاس جديد للـ DTO بتاع الريكويست، بنعمله كـ Map ونحوله لـ JSON
+            Map<String, String> requestBody = new HashMap<>();
+            requestBody.put("refreshToken", "valid.old.refresh.token");
+
+            UserResponseDto userResponseDto = new UserResponseDto();
+            userResponseDto.setId(1L);
+
+            AuthResponseDto authResponseDto = new AuthResponseDto("new.access.token", "valid.old.refresh.token", userResponseDto);
+            String fakeMessage = "Token refreshed successfully";
+
+            when(authService.refreshToken("valid.old.refresh.token")).thenReturn(authResponseDto);
+            when(appTranslator.getTranslatedAction(eq("success.token_refreshed"), eq(ENTITY_KEY))).thenReturn(fakeMessage);
+
+            // 2 & 3. Act & Assert
+            mockMvc.perform(post("/api/v1/auth/refresh")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(requestBody)))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value(fakeMessage))
+                    .andExpect(jsonPath("$.data.accessToken").value("new.access.token"));
         }
 
         /// // OAuth2 Success Redirect

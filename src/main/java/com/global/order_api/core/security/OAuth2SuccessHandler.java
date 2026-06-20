@@ -20,11 +20,21 @@ import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
+
+/// after successful login (google , github) WEB
+/// save user in DB
+/// create access token , refresh token and pass it into cookies
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     private final UserRepo userRepo;
     private final JwtService jwtService;
     @Value("${app.frontend-url}")
     private String frontendUrl;
+
+    @Value("${app.cookies.secure:false}")
+    private boolean isCookieSecure;
+
+    private static final String ACCESS_TOKEN_COOKIE = "access_token";
+    private static final String REFRESH_TOKEN_COOKIE = "refresh_token";
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -47,18 +57,33 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                     newUser.setPassword(""); /// no password
                     return userRepo.save(newUser);
                 });
-        /// GENERATE JWT TOKEN
+        /// 3. GENERATE JWT TOKENS (Access & Refresh)
         UserPrincipal principal = new UserPrincipal(user);
-        String token = jwtService.generateToken(principal);
-        /// CREATE HTTP ONLY COOKIE TO SEND JWT TOKEN TO FRONT-END
-        Cookie cookie = new Cookie("jwt_token", token);
-        cookie.setHttpOnly(true); /// prevent JS from reading it
-        cookie.setSecure(false);
-        cookie.setPath("/"); /// cookie will be sent with any request
-        cookie.setMaxAge(10 * 60 * 60); /// 10 hours
-        response.addCookie(cookie); /// add the cookie to our response
+        String accessToken = jwtService.generateAccessToken(principal);
+        String refreshToken = jwtService.generateRefreshToken(principal);;
+        /// 4. CREATE HTTP ONLY COOKIES
+        setAuthCookies(response, accessToken, refreshToken);
         /// redirect user to simple end point
         getRedirectStrategy().sendRedirect(request, response, "/api/v1/auth/success");
     }
 
+
+    private void setAuthCookies(HttpServletResponse response, String accessToken, String refreshToken) {
+        Cookie accessCookie = new Cookie(ACCESS_TOKEN_COOKIE, accessToken);
+        accessCookie.setHttpOnly(true);
+        accessCookie.setSecure(isCookieSecure);
+        accessCookie.setPath("/");
+        accessCookie.setMaxAge(15 * 60); // 15 minutes
+
+        // 2. Refresh Token Cookie (7 أيام)
+        Cookie refreshCookie = new Cookie(REFRESH_TOKEN_COOKIE, refreshToken);
+        refreshCookie.setHttpOnly(true);
+        refreshCookie.setSecure(isCookieSecure);
+        refreshCookie.setPath("/");
+        refreshCookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
+
+        response.addCookie(accessCookie);
+        response.addCookie(refreshCookie);
+    }
 }
+
