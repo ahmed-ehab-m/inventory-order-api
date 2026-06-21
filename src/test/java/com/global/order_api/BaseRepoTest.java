@@ -13,13 +13,13 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @DataJpaTest
 /// to tell junit5 that class contains docker containers to monitor it
 /// to run containers before starting test and remove containers after finishing test
-@Testcontainers
+//@Testcontainers
 /// to use test containers not H2
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 /// abstract because this class only template
 public abstract class BaseRepoTest {
     /// this to tell junit this container should be monitored
-    @Container
+//    @Container
     /// to avoid writing complex code to tell spring that url ,username and password changed to docker
     /// not in application.prop
     /// so this annotation inject url ,user,password from container to spring boot
@@ -33,4 +33,8 @@ public abstract class BaseRepoTest {
             .withDatabaseName("order_api_test")
             .withUsername("test")
             .withPassword("test");
+
+    static {
+        mySqlContainer.start();
+    }
 }
