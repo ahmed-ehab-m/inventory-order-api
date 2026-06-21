@@ -27,6 +27,8 @@ image management.
 * **Backend:** Java, Spring Boot, Spring Data JPA (Hibernate), Spring Web.
 * **Security:** Spring Security, JWT (JSON Web Tokens), OAuth2.
 * **Database:** MySQL.
+* **Caching:** Redis.
+* **DevOps & Containerization:** Docker, Docker Compose.
 * **Database Migrations:** Flyway.
 * **External Services:** Cloudinary API (for multipart image uploads).
 * **Tools & Utilities:** MapStruct (Object mapping), Lombok, Maven.
