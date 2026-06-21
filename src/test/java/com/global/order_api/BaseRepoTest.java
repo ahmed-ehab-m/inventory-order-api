@@ -29,6 +29,8 @@ public abstract class BaseRepoTest {
     /// mysql8.0 => image from docker hub
     /// db , user , password => settings of this db run in container
     /// serviceconnection => read it and inject it into spring boot
+    /// test container library talk to docker inside github server
+    /// to pull mysql:8.0 image and open container and these the details
     private static final MySQLContainer<?> mySqlContainer = new MySQLContainer<>("mysql:8.0")
             .withDatabaseName("order_api_test")
             .withUsername("test")

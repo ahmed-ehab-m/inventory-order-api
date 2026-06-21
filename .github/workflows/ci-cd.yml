@@ -57,6 +57,8 @@ jobs:
       # inject environment variables from github secrets
       - name: Build and Run Tests
         env:
+          # to avoid Could not resolve placeholder 'db_url'
+          # dummy values and then when we go to test ,BasreRepoTest has Real Values
           DB_URL: jdbc:mysql://127.0.0.1:3308/inventory_order_db?createDatabaseIfNotExist=true
           DB_PASSWORD: root
           JWT_SECRET: ${{ secrets.JWT_SECRET }}

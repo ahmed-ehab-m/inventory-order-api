@@ -43,13 +43,13 @@ services:
     # so health check => to sure every thing is ok and make container status is healthy not just starting
     depends_on:
       mysqldb:
-        condition: service_healthy'
+        condition: service_healthy
     networks:
       - s-network    
     env_file: .env # override environment variables
     environment:
-      - DB_URL: jdbc:mysql://mysqldb:3306/inventory_order_db?createDatabaseIfNotExist=true
-      - REDIS_HOST: redis
+      - DB_URL= jdbc:mysql://mysqldb:3306/inventory_order_db?createDatabaseIfNotExist=true
+      - REDIS_HOST= redis
 
     # third container => REDIS
     # service name in our file
