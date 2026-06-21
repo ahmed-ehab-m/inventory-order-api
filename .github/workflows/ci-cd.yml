@@ -1,31 +1,45 @@
+# name ofr workFlow
 name: CI/CD Pipeline
 
+# when GitHub run this file ?
+# when we push on main or develop branches
 on:
   push:
     branches: [ "main", "develop" ]
 
+# name of job contains several steps
 jobs:
   build-test-and-push:
+    # here we run our app in free server from github
+    # determine the OS => lastest version of Ubuntu
     runs-on: ubuntu-latest
 
-    services:
-      mysql:
-        image: mysql:latest
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: inventory_order_db
-        ports:
-          - 3308:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h localhost"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
+## helper services
+#    # for integration test
+#    # download mysql image from docker hub
+#    services:
+#      mysql:
+#        image: mysql:latest
+#        # determine name and password of our DB
+#        env:
+#          MYSQL_ROOT_PASSWORD: root
+#          MYSQL_DATABASE: inventory_order_db
+#        ports:
+#          - 3308:3306
+#
+#        # health check to ensure our DB is still running
+#        options: >-
+#          --health-cmd="mysqladmin ping -h localhost"
+#          --health-interval=10s
+#          --health-timeout=5s
+#          --health-retries=3
 
+    # our steps that github server will execute it in order
     steps:
+      # clone my code to free github server to work with it
       - name: Checkout Code
         uses: actions/checkout@v3
-
+      # install java 21
       - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
@@ -40,7 +54,7 @@ jobs:
             echo "Waiting for MySQL database connection..."
             sleep 3
           done
-
+      # inject environment variables from github secrets
       - name: Build and Run Tests
         env:
           DB_URL: jdbc:mysql://127.0.0.1:3308/inventory_order_db?createDatabaseIfNotExist=true
@@ -48,14 +62,16 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           PAYMOB_API_KEY: ${{ secrets.PAYMOB_API_KEY }}
           PAYMOB_HMAC_SECRET: ${{ secrets.PAYMOB_HMAC_SECRET }}
+        # clean old build and run our test cases and package app into jar file
         run: mvn clean package
-
+      # login to docker hub using my data in github secrets
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-
+      # github read DockerFile to create an image for my project
+      # and push it on my account in docker hub
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v4
         with:
