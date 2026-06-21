@@ -43,7 +43,7 @@ jobs:
 
       - name: Build and Run Tests
         env:
-          DB_URL: jdbc:mysql://127.0.0.1:3306/inventory_order_db?createDatabaseIfNotExist=true 
+          DB_URL: jdbc:mysql://127.0.0.1:3308/inventory_order_db?createDatabaseIfNotExist=true
           DB_PASSWORD: root
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           PAYMOB_API_KEY: ${{ secrets.PAYMOB_API_KEY }}
