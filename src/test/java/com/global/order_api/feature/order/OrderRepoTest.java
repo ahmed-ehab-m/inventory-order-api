@@ -5,6 +5,7 @@ import com.global.order_api.feature.category.entity.CategoryEntity;
 import com.global.order_api.feature.order.entity.OrderEntity;
 import com.global.order_api.feature.order.entity.OrderItemEntity;
 import com.global.order_api.feature.order.enums.OrderStatus;
+import com.global.order_api.feature.order.enums.PaymentType;
 import com.global.order_api.feature.order.repo.OrderRepo;
 import com.global.order_api.feature.product.entity.ProductEntity;
 import com.global.order_api.feature.user.entity.UserEntity;
@@ -51,6 +52,7 @@ class OrderRepoTest extends BaseRepoTest {
         order.setStatus(OrderStatus.PENDING);
         order.setDeleted(isDeleted);
         order.setTotalPrice(BigDecimal.valueOf(100.0));
+        order.setPaymentType(PaymentType.CASH);
         return entityManager.persistAndFlush(order);
     }
 
