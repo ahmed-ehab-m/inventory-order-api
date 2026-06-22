@@ -42,4 +42,13 @@ public class PaymentController {
 
         }
     }
+
+    // ==================================================================================
+    //                              2. Completed Payment
+    // ==================================================================================
+    @GetMapping("/response")
+    public String paymentResponse() {
+        return "Payment process has been completed. You can close this window now.";
+    }
+
 }
