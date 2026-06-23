@@ -20,7 +20,7 @@ A robust, secure, and scalable **Modular Monolith** RESTful API built for managi
 
 *   **Advanced Security:** JWT-based authentication & OAuth2 (Google/GitHub) with Role-Based Access Control (RBAC), fortified with **Rate Limiting** to prevent API abuse.
     
-*   **Order & Inventory Management:** Full life-cycle of orders, real-time stock validation using **Optimistic Locking**, and cart management.
+*   **Order & Inventory Management:** Full life-cycle of orders, real-time stock validation using **Optimistic Locking** and **Pessimistic Locking**, and cart management.
     
 *   **Payment Integration:** Secure payment gateway integration using **Paymob**.
     
