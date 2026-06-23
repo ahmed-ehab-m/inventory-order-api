@@ -145,17 +145,18 @@ _Alternatively, you can run the entire stack using Docker Compose:_docker-compos
 
 Create an application-prod.properties (or .env file) in your environment and configure the following essential variables:
 ```
-#Database
+# Database
 DB_URL=jdbc:mysql://localhost:3308/inventory_order_dbDB_USER=rootDB_PASSWORD=your_password
-#JWT
+# JWT
 JWT_SECRET=your_super_secret_jwt_key
-#Cloudinary
+# Cloudinary
 CLOUDINARY_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
-#Paymob
+# Paymob
 PAYMOB_API_KEY=your_paymob_api_key
 PAYMOB_HMAC_SECRET=your_hmac_secret
+
 ```
 
 ## 🔄 CI/CD Pipeline
