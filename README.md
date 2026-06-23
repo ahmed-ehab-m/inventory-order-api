@@ -1,70 +1,185 @@
-# 🛒 E-Commerce Inventory & Order API
+🛒 E-Commerce Inventory & Order API
+===================================
 
-![Java](https://img.shields.io/badge/Java-17-orange)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-brightgreen)
-![MySQL](https://img.shields.io/badge/MySQL-Database-blue)
-![JWT](https://img.shields.io/badge/Security-JWT%20%7C%20OAuth2-red)
+> **Live API Documentation (Swagger):** [Test the API Here](https://inventory-order-api-production.up.railway.app/docs)
+> 
+> **Test Credentials:**
+> 
+> *   Email: admin@orderapi.com
+>     
+> *   Password: admin123456
+>     
 
-## 📖 About The Project
+📖 About
+--------
 
-A robust, secure, and scalable backend RESTful API built for managing an e-commerce ecosystem. It handles user
-authentication, shopping carts, product inventory, and order processing. The system is designed with a clean
-architecture and ensures data integrity, security, and seamless integration with external services like Cloudinary for
-image management.
+A robust, secure, and scalable **Modular Monolith** RESTful API built for managing an e-commerce ecosystem. Designed utilizing the **MVC** pattern and structured with a **Package-by-Feature** architecture, this project aims to solve the complex challenges of concurrent inventory tracking and secure order processing. This clean, modular approach ensures high code maintainability, data integrity, robust security, and seamless integration with external services.
 
-**Key Features:**
+✨ Features
+----------
 
-* **Security:** JWT-based authentication & OAuth2 (Google/GitHub) with Role-Based Access Control (RBAC).
-* **Order Management:** Full life-cycle of orders including soft/hard deletes with business rules.
-* **Inventory & Cart:** Real-time stock validation and cart management.
-* **Database Versioning:** Managed via Flyway migrations.
-* **API Documentation:** Interactive UI provided by Swagger/OpenAPI.
+*   **Advanced Security:** JWT-based authentication & OAuth2 (Google/GitHub) with Role-Based Access Control (RBAC), fortified with **Rate Limiting** to prevent API abuse.
+    
+*   **Order & Inventory Management:** Full life-cycle of orders, real-time stock validation using **Optimistic Locking**, and cart management.
+    
+*   **Payment Integration:** Secure payment gateway integration using **Paymob**.
+    
+*   **Media Management:** Automated product image uploads and cloud storage via **Cloudinary**.
+    
+*   **High Performance:** API response acceleration using **Redis** caching, alongside optimized **MySQL indexing**, Pagination, and Projection.
+    
+*   **Scheduled Jobs:** Automated cleanup tasks safely synchronized across multiple instances using **ShedLock**.
+    
+*   **Reliability:** Covered by **260+ Test Cases** using JUnit 5 and Mockito.
+    
 
----
+💻 Tech Stack
+-------------
 
-## 💻 Tech Stack
+*   **Backend:** Java 17, Spring Boot 3, Spring Data JPA (Hibernate)
+    
+*   **Database & Migrations:** MySQL, Flyway
+    
+*   **Caching:** Redis
+    
+*   **Security:** Spring Security, JWT, OAuth2
+    
+*   **3rd Party APIs:** Paymob, Cloudinary
+    
+*   **DevOps & Deployment:** Docker, CI/CD (GitHub Actions), Railway
+    
+*   **Testing:** JUnit 5, Mockito
+    
+*   **Documentation:** Springdoc OpenAPI (Swagger UI)
+    
 
-* **Backend:** Java, Spring Boot, Spring Data JPA (Hibernate), Spring Web.
-* **Security:** Spring Security, JWT (JSON Web Tokens), OAuth2.
-* **Database:** MySQL.
-* **Caching:** Redis.
-* **DevOps & Containerization:** Docker, Docker Compose.
-* **Database Migrations:** Flyway.
-* **External Services:** Cloudinary API (for multipart image uploads).
-* **Tools & Utilities:** MapStruct (Object mapping), Lombok, Maven.
-* **Documentation:** Springdoc OpenAPI (Swagger UI).
+🗂️ Project Structure
+---------------------
 
----
+The project follows a standard layered architecture to maintain separation of concerns:
 
-## 📊 System Diagrams
+```  
+src/
+├── main/
+│   ├── java/com/global/order_api/
+│   │   ├── InventoryOrderApiApplication.java  # Root entry point
+│   │   ├── core/                              # Core configurations & utilities
+│   │   │   ├── annotation/                    # Custom annotations (e.g. @TrackExecutionTime)
+│   │   │   ├── aspect/                        # Aspects for AOP monitoring
+│   │   │   ├── base/                          # Base generic entities/services/repos
+│   │   │   ├── config/                        # Configuration beans (Redis, ShedLock, Cloudinary, OpenApi)
+│   │   │   ├── exception/                     # Global exception handler & custom exceptions
+│   │   │   ├── rate_limiting/                 # RateLimitInterceptor configuration
+│   │   │   ├── response/                      # Standard API response model
+│   │   │   ├── security/                      # Security filters, JWT providers, OAuth2 configs
+│   │   │   ├── service/                       # FileUploadService (Cloudinary integration)
+│   │   │   └── utils/                         # AppTranslator for translation bundles
+│   │   └── feature/                           # Feature-oriented modular packages
+│   │       ├── auth/                          # Controller, Service, DTOs for authentication
+│   │       ├── cart/                          # Shopping cart business layers
+│   │       ├── category/                      # Category management modules
+│   │       ├── order/                         # Order operations & cron cleanups
+│   │       ├── payment/                       # Paymob integrations & webhooks
+│   │       ├── product/                       # Products and inventory management
+│   │       └── user/                          # Users profiles & permissions
+│   └── resources/
+│       ├── application.properties             # Main settings (database, cache, keys)
+│       ├── log4j2-spring.xml                  # Rich custom Log4j2 configuration
+│       ├── db/migration/                      # Flyway SQL migration scripts (V1__ to V19__)
+│       ├── i18n/                              # Arabic and English translation bundles
+│       ├── static/                            # Static templates (if any)
+│       └── templates/                         # HTML templates (if any)
+└── test/
+    └── java/com/global/order_api/
+        ├── InventoryOrderApiApplicationTests.java # Sanity load test
+        ├── BaseRepoTest.java                      # Base Repository test helpers
+        └── feature/                               # Feature tests (Mockito, MockMvc, H2, Testcontainers)
+            ├── auth/                              # AuthControllerTest, AuthServiceTest
+            ├── cart/                              # CartControllerTest, CartServiceTest
+            ├── category/                          # Category tests
+            ├── order/                             # OrderControllerTest, OrderServiceTest (cancellation & scheduling)
+            ├── payment/                           # Payment integration mocks and webhook verification tests
+            ├── product/                           # ProductRepoTest, AdminProductControllerTest, ProductServiceTest
+            └── user/                              # User tests 
+```
 
-Here are the visual representations of the system's architecture, database design, and user interactions.
+📊 System Diagrams
+------------------
 
-### 1. High-Level System Architecture
+Detailed architectural and database visual representations.
 
-This diagram illustrates the overall data flow, including the interaction between the client, the Business Logic Server,
-the Security Layer, the MySQL database, and the external Cloudinary service.
+### 1\. High-Level System Architecture
 
-<img width="601" height="512" alt="Untitled Diagram drawio" src="https://github.com/user-attachments/assets/b9a54e17-0c0a-4b6e-94e0-5cfc4b3c2936" />
+This diagram illustrates the overall data flow, including the interaction between the client, the Business Logic Server, the Security Layer, Rate Limiting, the MySQL database, Redis, and the external Cloudinary service, Paymob 
 
-### 2. Low-Level System Architecture
+### 3\. Entity Relationship Diagram (ERD)
 
-This detailed layer diagram illustrates the internal architecture of the Spring Boot application. It maps the complete
-request-response lifecycle, showcasing the role of the Security Filter Chain (JWT & OAuth2), business logic execution,
-data transfer mechanisms (DTOs & JPA Entities), and the precise protocols (e.g., JDBC, Multipart/form-data) used for
-database operations and external API integrations.
+The ERD shows the database schema, illustrating the relationships between Tables
+<img width="1900" height="966" alt="inventory-order-api-ERD" src="https://github.com/user-attachments/assets/654bdfa3-b8f8-4f30-a262-750de248f540" />
 
-<img width="1531" height="725" alt="Untitled Diagram drawio (3)" src="https://github.com/user-attachments/assets/4b3dae46-020a-4e9b-80c7-c87a0617ca45" />
+### 4\. Use Case Diagram
 
-### 3. Entity Relationship Diagram (ERD)
+This diagram outlines the system's core functionalities from the perspective of different actors (e.g., Customer, Admin)._(Insert Image Here)_
 
-The ERD shows the database schema, illustrating the relationships between Users, Products, Carts, Cart Items, Orders,
-and Order Items.
+🚀 Getting Started
+------------------
 
-<img width="1500" height="1016" alt="inventory-order-api-ERD" src="https://github.com/user-attachments/assets/eb3e7ce4-d638-4406-9066-550b1525634e" />
+### Prerequisites
 
-### 4. Use Case Diagram
+*   Java 17+
+    
+*   Maven
+    
+*   MySQL
+    
+*   Redis
+    
+*   Docker (Optional for containerized run)
+    
 
-This diagram outlines the system's core functionalities from the perspective of different actors (e.g., Customer,
-Admin).
-<img width="664" height="581" alt="inventory-order-api-UseCase" src="https://github.com/user-attachments/assets/3eda0995-a37c-462c-8e46-d7a94d7e5052" />
+### Installation & Run
+
+1.  git clone https://github.com/your-username/inventory\_order\_db.gitcd inventory\_order\_db
+    
+2.  mvn clean install
+    
+3.  mvn spring-boot:run
+_Alternatively, you can run the entire stack using Docker Compose:_docker-compose up -d
+    
+
+⚙️ Configuration
+----------------
+
+Create an application-prod.properties (or .env file) in your environment and configure the following essential variables:
+
+Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   # DatabaseDB_URL=jdbc:mysql://localhost:3308/inventory_order_dbDB_USER=rootDB_PASSWORD=your_password# JWTJWT_SECRET=your_super_secret_jwt_key# CloudinaryCLOUDINARY_NAME=your_cloud_nameCLOUDINARY_API_KEY=your_api_keyCLOUDINARY_API_SECRET=your_api_secret# PaymobPAYMOB_API_KEY=your_paymob_api_keyPAYMOB_HMAC_SECRET=your_hmac_secret   `
+
+🤝 How to Contribute
+--------------------
+
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are greatly appreciated.
+
+1.  Fork the Project
+    
+2.  Create your Feature Branch (git checkout -b feature/AmazingFeature)
+    
+3.  Commit your Changes (git commit -m 'Add some AmazingFeature')
+    
+4.  Push to the Branch (git push origin feature/AmazingFeature)
+    
+5.  Open a Pull Request
+    
+
+📄 License
+----------
+
+Distributed under the MIT License. See LICENSE for more information.
+
+👤 Author
+---------
+
+**\[Your Name Here\]** - Backend Software Engineer
+
+*   **LinkedIn:** https://www.linkedin.com/in/ahmed-ehab-72052b21a/
+    
+*   **GitHub:** https://github.com/ahmed-ehab-m/inventory-order-api
