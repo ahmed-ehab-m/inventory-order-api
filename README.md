@@ -107,19 +107,11 @@ src/
 ------------------
 
 Detailed architectural and database visual representations.
-
-### 1\. High-Level System Architecture
-
-This diagram illustrates the overall data flow, including the interaction between the client, the Business Logic Server, the Security Layer, Rate Limiting, the MySQL database, Redis, and the external Cloudinary service, Paymob 
-
-### 3\. Entity Relationship Diagram (ERD)
+### 1\. Entity Relationship Diagram (ERD)
 
 The ERD shows the database schema, illustrating the relationships between Tables
 <img width="1900" height="966" alt="inventory-order-api-ERD" src="https://github.com/user-attachments/assets/654bdfa3-b8f8-4f30-a262-750de248f540" />
 
-### 4\. Use Case Diagram
-
-This diagram outlines the system's core functionalities from the perspective of different actors (e.g., Customer, Admin)._(Insert Image Here)_
 
 🚀 Getting Started
 ------------------
@@ -148,11 +140,30 @@ _Alternatively, you can run the entire stack using Docker Compose:_docker-compos
     
 
 ⚙️ Configuration
-----------------
+---------------
+
 
 Create an application-prod.properties (or .env file) in your environment and configure the following essential variables:
+```
+#Database
+DB_URL=jdbc:mysql://localhost:3308/inventory_order_dbDB_USER=rootDB_PASSWORD=your_password
+#JWT
+JWT_SECRET=your_super_secret_jwt_key
+#Cloudinary
+CLOUDINARY_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+#Paymob
+PAYMOB_API_KEY=your_paymob_api_key
+PAYMOB_HMAC_SECRET=your_hmac_secret
+```
 
-Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   # DatabaseDB_URL=jdbc:mysql://localhost:3308/inventory_order_dbDB_USER=rootDB_PASSWORD=your_password# JWTJWT_SECRET=your_super_secret_jwt_key# CloudinaryCLOUDINARY_NAME=your_cloud_nameCLOUDINARY_API_KEY=your_api_keyCLOUDINARY_API_SECRET=your_api_secret# PaymobPAYMOB_API_KEY=your_paymob_api_keyPAYMOB_HMAC_SECRET=your_hmac_secret   `
+## 🔄 CI/CD Pipeline
+
+The project utilizes **GitHub Actions** for continuous integration and deployment, ensuring reliable and automated delivery:
+
+1. **Continuous Integration (CI):** On every push or pull request to the `main` branch, the workflow automatically builds the application and runs all **260+ unit and integration tests** to ensure code quality and prevent regressions.
+2. **Continuous Deployment (CD):** Once the build and tests pass successfully, the application is containerized using **Docker** and seamlessly deployed to the **Railway** cloud platform.-
 
 🤝 How to Contribute
 --------------------
