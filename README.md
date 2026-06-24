@@ -21,6 +21,8 @@ A robust, secure, and scalable **Modular Monolith** RESTful API built for managi
 *   **Advanced Security:** JWT-based authentication & OAuth2 (Google/GitHub) with Role-Based Access Control (RBAC), fortified with **Rate Limiting** to prevent API abuse.
     
 *   **Order & Inventory Management:** Full life-cycle of orders, real-time stock validation using **Optimistic Locking** and **Pessimistic Locking**, and cart management.
+
+*   :**Data Auditing:**: Implemented JPA Auditing to automatically track entity lifecycles (creation and modification timestamps/users), ensuring strict accountability and data traceability.
     
 *   **Payment Integration:** Secure payment gateway integration using **Paymob**.
     
@@ -31,6 +33,8 @@ A robust, secure, and scalable **Modular Monolith** RESTful API built for managi
 *   **Scheduled Jobs:** Automated cleanup tasks safely synchronized across multiple instances using **ShedLock**.
     
 *   **Reliability:** Covered by **260+ Test Cases** using JUnit 5 and Mockito.
+  
+*   **Automated Data Seeding:** Utilized Spring Boot's CommandLineRunner to automatically seed essential database records on startup (e.g., default Roles and the master Admin account), enabling instant API testing without manual setup.
     
 
 💻 Tech Stack
