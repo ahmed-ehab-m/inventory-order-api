@@ -141,14 +141,16 @@ This screenshot shows the entire development stack running seamlessly as decoupl
 ### 💳 2. Paymob Payment Gateway & Webhooks
 A preview of the Paymob merchant dashboard showing processed transactions, payment status, and successful server-to-server webhook callbacks handling order confirmations.
 
-<img width="1366" height="686" alt="Screenshot (183)" src="https://github.com/user-attachments/assets/15cf1cad-edb5-407a-bcb8-92528f81df01" />
-<img width="1366" height="768" alt="Screenshot (203)" src="https://github.com/user-attachments/assets/2202f628-66f9-4edb-b02a-8a3852d7dae2" 
-
-<img width="1366" height="714" alt="Screenshot (192)" src="https://github.com/user-attachments/assets/2adffc94-9f55-4c61-892f-24de3c663664" />
-<img width="1366" height="714" alt="Screenshot (192)" src="https://github.com/user-attachments/assets/08b1de92-b972-4f8e-90d9-217561f8fe43" />
+<img width="1366" height="677" alt="Screenshot (206)" src="https://github.com/user-attachments/assets/abdec220-bd48-40ad-8bd3-33d734137264" />
+<img width="1366" height="686" alt="Screenshot (183)" src="https://github.com/user-attachments/assets/42b51e8c-5c56-4261-8601-c0e480fd50a7" />
+<img width="1366" height="649" alt="Screenshot (202)" src="https://github.com/user-attachments/assets/4a0ace9a-94b3-40fc-a959-9f83bb64801c" />
 
 
+### ☁️ 3. Cloud Deployment & Managed Services (Railway)
+A live view of the production environment hosted on Railway. The first preview showcases the fully integrated cloud stack (Spring Boot Application, Managed MySQL, and Redis) running seamlessly. The database view highlights the successful execution of **Flyway migrations** and the active **ShedLock** table managing distributed cron jobs in production.
 
+<img width="1366" height="686" alt="Screenshot (197)" src="https://github.com/user-attachments/assets/2aa6d01a-d6b7-4ccf-a651-30b397e90dff" />
+<img width="1366" height="673" alt="Screenshot (196)" src="https://github.com/user-attachments/assets/5bed36b2-8376-4b72-b32c-99ca1af1dc4e" />
 
 
 
