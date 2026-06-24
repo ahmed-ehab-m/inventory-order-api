@@ -117,7 +117,8 @@ Detailed architectural and database visual representations showcasing the system
 ### 1. System Architecture & Data Flow
 This diagram illustrates the comprehensive cloud architecture, including edge rate-limiting, security filter chains, asynchronous payment webhooks, and managed data services.
 
-<img width="1574" height="942" alt="SystemArchitecture" src="https://github.com/user-attachments/assets/5a9d05a1-f852-4ae2-b11c-62241bf72ac6" />
+<img width="6308" height="3644" alt="Untitled Diagram drawio (8)" src="https://github.com/user-attachments/assets/1ff1d100-5e25-4c22-824a-74eb06ecd394" />
+
 
 
 
