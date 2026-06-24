@@ -42,7 +42,7 @@ A robust, secure, and scalable **Modular Monolith** RESTful API built for managi
 💻 Tech Stack
 -------------
 
-*   **Backend:** Java 17, Spring Boot 3, Spring Data JPA (Hibernate)
+*   **Backend:** Java 21, Spring Boot 4, Spring Data JPA (Hibernate)
     
 *   **Database & Migrations:** MySQL, Flyway
     
