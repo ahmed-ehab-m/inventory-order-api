@@ -123,6 +123,25 @@ This diagram illustrates the comprehensive cloud architecture, including edge ra
 The ERD shows the database schema, illustrating the relationships and constraints between tables.
 <img width="1900" height="966" alt="inventory-order-api-ERD" src="https://github.com/user-attachments/assets/654bdfa3-b8f8-4f30-a262-750de248f540" />
 
+🖼️ Screenshots & Previews
+-------------------------
+
+Visual evidence of the fully functional ecosystem, showcasing deployment environments and external service integrations.
+
+### 🐳 1. Dockerized Environment (Local Stack)
+This screenshot shows the entire development stack running seamlessly as decoupled containers via `docker-compose` (Application, MySQL, and Redis Cache).
+
+/><img width="1336" height="724" alt="Screenshot (188)" src="https://github.com/user-attachments/assets/7107b196-2c24-4e16-ad1a-8e5fda0d158e" />
+
+### 💳 2. Paymob Payment Gateway & Webhooks
+A preview of the Paymob merchant dashboard showing processed transactions, payment status, and successful server-to-server webhook callbacks handling order confirmations.
+
+<img width="1366" height="686" alt="Screenshot (183)" src="https://github.com/user-attachments/assets/15cf1cad-edb5-407a-bcb8-92528f81df01" />
+<img width="1366" height="768" alt="Screenshot (203)" src="https://github.com/user-attachments/assets/2202f628-66f9-4edb-b02a-8a3852d7dae2" 
+
+
+
+
 
 🚀 Getting Started
 ------------------
