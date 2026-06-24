@@ -135,11 +135,17 @@ This screenshot shows the entire development stack running seamlessly as decoupl
 
 /><img width="1336" height="724" alt="Screenshot (188)" src="https://github.com/user-attachments/assets/7107b196-2c24-4e16-ad1a-8e5fda0d158e" />
 
+<img width="1366" height="673" alt="Screenshot (190)" src="https://github.com/user-attachments/assets/174f1781-c286-42bf-baf4-60a77aa605a5" />
+
 ### 💳 2. Paymob Payment Gateway & Webhooks
 A preview of the Paymob merchant dashboard showing processed transactions, payment status, and successful server-to-server webhook callbacks handling order confirmations.
 
 <img width="1366" height="686" alt="Screenshot (183)" src="https://github.com/user-attachments/assets/15cf1cad-edb5-407a-bcb8-92528f81df01" />
 <img width="1366" height="768" alt="Screenshot (203)" src="https://github.com/user-attachments/assets/2202f628-66f9-4edb-b02a-8a3852d7dae2" 
+
+<img width="1366" height="714" alt="Screenshot (192)" src="https://github.com/user-attachments/assets/2adffc94-9f55-4c61-892f-24de3c663664" />
+<img width="1366" height="714" alt="Screenshot (192)" src="https://github.com/user-attachments/assets/08b1de92-b972-4f8e-90d9-217561f8fe43" />
+
 
 
 
