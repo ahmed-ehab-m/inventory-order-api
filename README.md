@@ -106,10 +106,17 @@ src/
 📊 System Diagrams
 ------------------
 
-Detailed architectural and database visual representations.
-### 1\. Entity Relationship Diagram (ERD)
+Detailed architectural and database visual representations showcasing the system's robustness and data flow.
 
-The ERD shows the database schema, illustrating the relationships between Tables
+### 1. System Architecture & Data Flow
+This diagram illustrates the comprehensive cloud architecture, including edge rate-limiting, security filter chains, asynchronous payment webhooks, and managed data services.
+
+<img width="1574" height="942" alt="SystemArchitecture" src="https://github.com/user-attachments/assets/5a9d05a1-f852-4ae2-b11c-62241bf72ac6" />
+
+
+
+### 2. Entity Relationship Diagram (ERD)
+The ERD shows the database schema, illustrating the relationships and constraints between tables.
 <img width="1900" height="966" alt="inventory-order-api-ERD" src="https://github.com/user-attachments/assets/654bdfa3-b8f8-4f30-a262-750de248f540" />
 
 
@@ -131,12 +138,13 @@ The ERD shows the database schema, illustrating the relationships between Tables
 
 ### Installation & Run
 
-1.  git clone https://github.com/your-username/inventory\_order\_db.gitcd inventory\_order\_db
-    
-2.  mvn clean install
-    
-3.  mvn spring-boot:run
-_Alternatively, you can run the entire stack using Docker Compose:_docker-compose up -d
+1.  git clone https://github.com/ahmed-ehab-m/inventory-order-api.git
+2.  cd inventory-order-api
+3.  mvn clean install
+4.  mvn spring-boot:run
+
+*Alternatively, you can run the entire stack locally using Docker Compose:*
+docker-compose up -d
     
 
 ⚙️ Configuration
@@ -146,7 +154,9 @@ _Alternatively, you can run the entire stack using Docker Compose:_docker-compos
 Create an application-prod.properties (or .env file) in your environment and configure the following essential variables:
 ```
 # Database
-DB_URL=jdbc:mysql://localhost:3308/inventory_order_dbDB_USER=rootDB_PASSWORD=your_password
+DB_URL=jdbc:mysql://localhost:3306/inventory_order_db
+DB_USER=root
+DB_PASSWORD=your_password
 # JWT
 JWT_SECRET=your_super_secret_jwt_key
 # Cloudinary
@@ -190,7 +200,7 @@ Distributed under the MIT License. See LICENSE for more information.
 👤 Author
 ---------
 
-**\[Your Name Here\]** - Backend Software Engineer
+*   **Ahmed Ehab** - Backend Software Engineer
 
 *   **LinkedIn:** https://www.linkedin.com/in/ahmed-ehab-72052b21a/
     
