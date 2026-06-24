@@ -2,6 +2,8 @@
 ===================================
 
 > **Live API Documentation (Swagger):** [Test the API Here](https://inventory-order-api-production.up.railway.app/docs)
+> **Postman Collection:** For advanced testing with pre-configured environments and automated token extraction, download the collection here:
+> 📥 [Download Postman Collection](./docs/Inventory-Order-API.postman_collection.json)
 > 
 > **Test Credentials:**
 > 
