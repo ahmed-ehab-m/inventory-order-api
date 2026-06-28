@@ -1,9 +1,13 @@
 package com.global.order_api.feature.auth;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import com.global.order_api.core.exception.BusinessLogicException;
 import com.global.order_api.core.response.ApiResponse;
 import com.global.order_api.core.utils.AppTranslator;
-import com.global.order_api.feature.user.dto.UserRequestDto;
+import com.global.order_api.feature.auth.dtos.AuthResponseDto;
+import com.global.order_api.feature.auth.dtos.SocialLoginRequestDto;
+import com.global.order_api.feature.auth.dtos.DtoViews;
+import com.global.order_api.feature.auth.dtos.UserRequestDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
@@ -38,6 +42,7 @@ public class AuthController {
     // ==================================================================================
     //                              1. LOGIN / REGISTER METHODS
     // ==================================================================================
+    @JsonView(DtoViews.OnRegister.class)
     @PostMapping("/register")
     @Operation(summary = "Register New User", description = "Creates a new user account and returns Access & Refresh tokens.")
     public ResponseEntity<ApiResponse<AuthResponseDto>> register(
@@ -51,6 +56,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(authResponseDto, message));
     }
 
+    @JsonView(DtoViews.OnLogin.class)
     @PostMapping("/login")
     @Operation(summary = "User Login", description = "Authenticates a user by email and password, and returns Access & Refresh tokens.")
     public ResponseEntity<ApiResponse<AuthResponseDto>> login(

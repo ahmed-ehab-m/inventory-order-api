@@ -1,6 +1,5 @@
-package com.global.order_api.feature.auth;
+package com.global.order_api.feature.auth.dtos;
 
-import com.global.order_api.feature.user.dto.UserResponseDto;
 import lombok.*;
 
 @Builder

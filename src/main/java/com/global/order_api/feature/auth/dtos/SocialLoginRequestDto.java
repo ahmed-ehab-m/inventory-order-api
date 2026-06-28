@@ -1,4 +1,4 @@
-package com.global.order_api.feature.auth;
+package com.global.order_api.feature.auth.dtos;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
