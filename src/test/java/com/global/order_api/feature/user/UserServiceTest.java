@@ -3,7 +3,7 @@ package com.global.order_api.feature.user;
 import com.global.order_api.core.exception.BusinessLogicException;
 import com.global.order_api.core.exception.DuplicateRecordException;
 import com.global.order_api.feature.auth.dtos.ChangePasswordRequestDto;
-import com.global.order_api.feature.auth.dtos.UserRequestDto;
+import com.global.order_api.feature.auth.dtos.RegisterRequestDto;
 import com.global.order_api.feature.auth.dtos.UserResponseDto;
 import com.global.order_api.feature.user.entity.UserEntity;
 import com.global.order_api.feature.user.mapper.UserMapper;
@@ -108,7 +108,7 @@ class UserServiceTest {
         @Test
         void updateUser_WithValidData_ShouldUpdateUserAndEvictCache() {
             Long userId = 1L;
-            UserRequestDto requestDto = new UserRequestDto();
+            RegisterRequestDto requestDto = new RegisterRequestDto();
             requestDto.setEmail("new@company.com");
             requestDto.setName("New Name");
 
@@ -132,7 +132,7 @@ class UserServiceTest {
         @Test
         void updateUser_WhenEmailIsTaken_ShouldThrowException() {
             Long userId = 1L;
-            UserRequestDto requestDto = new UserRequestDto();
+            RegisterRequestDto requestDto = new RegisterRequestDto();
             requestDto.setEmail("taken@company.com");
 
             UserEntity existingUser = new UserEntity();

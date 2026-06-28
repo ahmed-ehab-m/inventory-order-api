@@ -5,7 +5,7 @@ import com.global.order_api.core.exception.BusinessLogicException;
 import com.global.order_api.core.exception.DuplicateRecordException;
 import com.global.order_api.core.exception.ResourceNotFoundException;
 import com.global.order_api.feature.auth.dtos.ChangePasswordRequestDto;
-import com.global.order_api.feature.auth.dtos.UserRequestDto;
+import com.global.order_api.feature.auth.dtos.RegisterRequestDto;
 import com.global.order_api.feature.auth.dtos.UserResponseDto;
 import com.global.order_api.feature.user.entity.UserEntity;
 import com.global.order_api.feature.user.mapper.UserMapper;
@@ -51,7 +51,7 @@ public class UserService extends BaseService<UserEntity, Long> {
     // ==================================================================================
 
     @Transactional
-    public UserResponseDto updateUser(Long id, UserRequestDto updateRequest) {
+    public UserResponseDto updateUser(Long id, RegisterRequestDto updateRequest) {
         UserEntity existingUser = findById(id);
         String oldEmail = existingUser.getEmail();
 

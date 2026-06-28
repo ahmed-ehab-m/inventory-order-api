@@ -5,7 +5,8 @@
     import com.global.order_api.core.exception.DuplicateRecordException;
     import com.global.order_api.core.security.JwtService;
     import com.global.order_api.feature.auth.dtos.AuthResponseDto;
-    import com.global.order_api.feature.auth.dtos.UserRequestDto;
+    import com.global.order_api.feature.auth.dtos.LoginRequestDto;
+    import com.global.order_api.feature.auth.dtos.RegisterRequestDto;
     import com.global.order_api.feature.auth.dtos.UserResponseDto;
     import com.global.order_api.feature.user.entity.UserEntity;
     import com.global.order_api.feature.user.entity.UserPrincipal;
@@ -42,7 +43,7 @@
 
         /// REGISTER USER
         @Transactional
-        public AuthResponseDto register(UserRequestDto user) {
+        public AuthResponseDto register(RegisterRequestDto user) {
             //// 1=> check email first
             if (userRepo.existsByEmail(user.getEmail())) {
                 throw new DuplicateRecordException("User", "email", user.getEmail());
@@ -73,7 +74,7 @@
         }
 
         /// LOGIN USER
-        public AuthResponseDto login(UserRequestDto user) {
+        public AuthResponseDto login(LoginRequestDto user) {
             //// 1=> check email and password
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword())

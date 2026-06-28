@@ -4,7 +4,8 @@ import com.global.order_api.core.exception.BusinessLogicException;
 import com.global.order_api.core.exception.DuplicateRecordException;
 import com.global.order_api.core.security.JwtService;
 import com.global.order_api.feature.auth.dtos.AuthResponseDto;
-import com.global.order_api.feature.auth.dtos.UserRequestDto;
+import com.global.order_api.feature.auth.dtos.LoginRequestDto;
+import com.global.order_api.feature.auth.dtos.RegisterRequestDto;
 import com.global.order_api.feature.auth.dtos.UserResponseDto;
 import com.global.order_api.feature.user.entity.UserEntity;
 import com.global.order_api.feature.user.entity.UserPrincipal;
@@ -66,7 +67,7 @@ class AuthServiceTest {
         @Test
         void register_WithValidData_ShouldReturnAuthResponse() {
             // 1. Arrange new user data from register form
-            UserRequestDto requestDto = new UserRequestDto();
+            RegisterRequestDto requestDto = new RegisterRequestDto();
             requestDto.setEmail("newuser@test.com");
             requestDto.setPassword("password123");
 
@@ -113,7 +114,7 @@ class AuthServiceTest {
         @Test
         void register_WhenEmailExists_ShouldThrowException() {
             // 1. Arrange
-            UserRequestDto requestDto = new UserRequestDto();
+            RegisterRequestDto requestDto = new RegisterRequestDto();
             requestDto.setEmail("existing@test.com");
 
             when(userRepo.existsByEmail(requestDto.getEmail())).thenReturn(true);
@@ -138,7 +139,7 @@ class AuthServiceTest {
         @Test
         void login_WithValidCredentials_ShouldReturnAuthResponse() {
             // 1. Arrange
-            UserRequestDto requestDto = new UserRequestDto();
+            LoginRequestDto requestDto = new LoginRequestDto();
             requestDto.setEmail("user@test.com");
             requestDto.setPassword("correctPassword");
 
@@ -179,7 +180,7 @@ class AuthServiceTest {
         @Test
         void login_WithInvalidCredentials_ShouldThrowException() {
             // 1. Arrange
-            UserRequestDto requestDto = new UserRequestDto();
+            LoginRequestDto requestDto = new LoginRequestDto();
             requestDto.setEmail("user@test.com");
             requestDto.setPassword("wrongPassword");
 

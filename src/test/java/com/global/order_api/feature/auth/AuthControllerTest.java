@@ -2,10 +2,7 @@ package com.global.order_api.feature.auth;
 
 import com.global.order_api.core.security.JwtFilter;
 import com.global.order_api.core.utils.AppTranslator;
-import com.global.order_api.feature.auth.dtos.AuthResponseDto;
-import com.global.order_api.feature.auth.dtos.SocialLoginRequestDto;
-import com.global.order_api.feature.auth.dtos.UserRequestDto;
-import com.global.order_api.feature.auth.dtos.UserResponseDto;
+import com.global.order_api.feature.auth.dtos.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -81,7 +78,7 @@ class AuthControllerTest {
         /// // Register - Success
         @Test
         void register_WithValidData_ShouldReturnTokensAndUser() throws Exception {
-            UserRequestDto requestDto = new UserRequestDto();
+            RegisterRequestDto requestDto = new RegisterRequestDto();
             requestDto.setEmail("test@gmail.com");
             requestDto.setPassword("password123");
             requestDto.setName("Test User");
@@ -94,7 +91,7 @@ class AuthControllerTest {
             AuthResponseDto authResponseDto = new AuthResponseDto("fake.access.token", "fake.refresh.token", userResponseDto);
             String fakeMessage = "User registered successfully";
 
-            when(authService.register(ArgumentMatchers.any(UserRequestDto.class))).thenReturn(authResponseDto);
+            when(authService.register(ArgumentMatchers.any(RegisterRequestDto.class))).thenReturn(authResponseDto);
             when(appTranslator.getTranslatedAction(eq("success.created"), eq(ENTITY_KEY))).thenReturn(fakeMessage);
 
             mockMvc.perform(post("/api/v1/auth/register")
@@ -111,7 +108,7 @@ class AuthControllerTest {
         /// // Register - Invalid DTO (Bad Request)
         @Test
         void register_WithInvalidData_ShouldReturnBadRequest() throws Exception {
-            UserRequestDto invalidRequest = new UserRequestDto();
+            RegisterRequestDto invalidRequest = new RegisterRequestDto();
 
             mockMvc.perform(post("/api/v1/auth/register")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -125,10 +122,9 @@ class AuthControllerTest {
         /// // Login - Success
         @Test
         void login_WithValidData_ShouldReturnTokensAndUser() throws Exception {
-            UserRequestDto requestDto = new UserRequestDto();
+            LoginRequestDto requestDto = new LoginRequestDto();
             requestDto.setEmail("test@gmail.com");
             requestDto.setPassword("password123");
-            requestDto.setName("ahmed");
 
             UserResponseDto userResponseDto = new UserResponseDto();
             userResponseDto.setId(1L);
@@ -136,7 +132,7 @@ class AuthControllerTest {
             AuthResponseDto authResponseDto = new AuthResponseDto("fake.access.token", "fake.refresh.token", userResponseDto);
             String fakeMessage = "Login successful";
 
-            when(authService.login(ArgumentMatchers.any(UserRequestDto.class))).thenReturn(authResponseDto);
+            when(authService.login(ArgumentMatchers.any(LoginRequestDto.class))).thenReturn(authResponseDto);
             when(appTranslator.getTranslatedAction(eq("success.login"), eq(ENTITY_KEY))).thenReturn(fakeMessage);
 
             mockMvc.perform(post("/api/v1/auth/login")
@@ -151,7 +147,7 @@ class AuthControllerTest {
         /// // Login - Invalid DTO (Bad Request)
         @Test
         void login_WithInvalidData_ShouldReturnBadRequest() throws Exception {
-            UserRequestDto invalidRequest = new UserRequestDto();
+            RegisterRequestDto invalidRequest = new RegisterRequestDto();
 
             mockMvc.perform(post("/api/v1/auth/login")
                             .contentType(MediaType.APPLICATION_JSON)
