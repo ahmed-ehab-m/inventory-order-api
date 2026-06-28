@@ -5,7 +5,11 @@ name: CI/CD Pipeline
 # when we push on main or develop branches
 on:
   push:
-    branches: [ "main", "develop" ]
+    branches: [ "main" ]
+    paths-ignore:
+      - 'README.md'
+      - 'docs/**'
+      - '.github/**'
 
 # name of job contains several steps
 jobs:
@@ -80,3 +84,10 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/inventory-order-api:latest
+
+      - name: Deploy to Railway
+        run: |
+          npm install -g @railway/cli
+          railway redeploy --service inventory-order-api --yes
+        env:
+            RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
