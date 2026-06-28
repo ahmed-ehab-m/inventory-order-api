@@ -1,7 +1,8 @@
 ![Java](https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
-![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![Railway](https://img.shields.io/badge/Deploy-Railway-0B0D0E?style=for-the-badge&logo=railway&logoColor=white)
 ![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)![Swagger](https://img.shields.io/badge/API-Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
@@ -10,11 +11,13 @@
 
 ### Production-ready Spring Boot REST API for inventory management, order processing, and secure online payments.
 
+---------------------
 ## 🚀 Live Demo
 
 - 🌐 Live API (Swagger): https://inventory-order-api-production.up.railway.app/docs
 - 📬 Postman Collection: [Download Collection](./docs/Inventory-Order-API.postman_collection.json)
-  
+
+---------------------
 ## Demo Account
 
 | Role | Email | Password |
@@ -23,6 +26,7 @@
 
 > The default admin account is automatically seeded during application startup.
 
+---------------------
 # 📑 Table of Contents
 
 - [📖 About](#about)
@@ -33,19 +37,19 @@
 
 - [❓ Why These Technologies?](#why-these-technologies)
 
-- [🏗️ Project Structure](#️project-structure)
+- [🏗️ Project Structure](#project-structure)
 
 - [🧪 Testing Strategy](#testing-strategy)
 
-- [☁️ Deployment](#️deployment)
+- [☁️ Deployment](#deployment)
 
 - [📊 System Diagrams](#system-diagrams)
 
-- [🖼️ Screenshots](#️screenshots--previews)
+- [🖼️ Screenshots](#screenshots--previews)
 
 - [🚀 Getting Started](#getting-started)
 
-- [⚙️ Configuration](#️configuration)
+- [⚙️ Configuration](#configuration)
 
 - [🔄 CI/CD](#cicd)
 
@@ -55,7 +59,7 @@
 
 - [👤 Author](#author)
 
-  
+---------------------  
 <a id="about"></a>
 ## 📖 About
 
@@ -76,6 +80,7 @@ It covers:
 - Dockerized deployment on Railway
 - Automated testing and CI/CD
 
+---------------------
 <a id="features"></a>
 ## ✨ Features
 
@@ -100,7 +105,9 @@ It covers:
 * **Testing:** 260+ Unit, Controller, and Repository tests using JUnit 5, Mockito, MockMvc, and Testcontainers (Real MySQL).
 
 * **Developer Experience:** Automatic database migrations with Flyway and startup data seeding using CommandLineRunner.
-  
+
+
+---------------------  
 <a id="tech-stack"></a>
 ## 💻 Tech Stack
 
@@ -122,8 +129,8 @@ It covers:
 
 * **DevOps:** Docker, Docker Compose, GitHub Actions (CI/CD), Railway
 
-
-<a id="why"></a>
+---------------------
+<a id="why-these-technologies"></a>
 ## ❓ Why These Technologies?
 
 ### Why Redis for Rate Limiting?
@@ -163,7 +170,8 @@ To generate type-safe object mappings at compile time and eliminate repetitive m
 To decouple the API contract from the persistence layer and avoid exposing internal entities.
 
 
-<a id="testing"></a>
+---------------------
+<a id="testing-strategy"></a>
 ## 🧪 Testing Strategy
 
 The project contains **260+ automated test cases**, with each layer tested independently using the most appropriate approach:
@@ -174,6 +182,7 @@ The project contains **260+ automated test cases**, with each layer tested indep
 
 This testing strategy ensures business logic, REST APIs, and database queries are validated independently while keeping tests fast and reliable.
 
+---------------------
 <a id="deployment"></a>
 ## ☁️ Deployment
 
@@ -194,10 +203,10 @@ Every push to the `main` branch triggers a GitHub Actions pipeline that:
 3. Pushes the image to Docker Hub.
 4. Deploys the latest version to Railway.
 
-    
+
+---------------------    
 <a id="project-structure"></a>
 ## 🗂️ Project Structure
----------------------
 
 The project follows a Feature-based modules architecture to maintain separation of concerns:
 
@@ -246,9 +255,10 @@ src/
             └── user/                              # User tests 
 ```
 
+---------------------
 <a id="system-diagrams"></a>
-📊 System Diagrams
-------------------
+## 📊 System Diagrams
+
 
 Detailed architectural and database visual representations showcasing the system's robustness and data flow.
 
@@ -264,9 +274,9 @@ The ERD shows the database schema, illustrating the relationships and constraint
 
 The following diagrams provide a high-level overview of the application's architecture and database design.
 
-<a id="screenshots"></a>
-🖼️ Screenshots & Previews
--------------------------
+---------------------
+<a id="screenshots--previews"></a>
+## 🖼️ Screenshots & Previews
 
 Visual evidence of the fully functional ecosystem, showcasing deployment environments and external service integrations.
 
@@ -292,8 +302,10 @@ A live view of the production environment hosted on Railway. The first preview s
 <img width="1366" height="673" alt="Screenshot (196)" src="https://github.com/user-attachments/assets/5bed36b2-8376-4b72-b32c-99ca1af1dc4e" />
 
 
+---------------------
 <a id="getting-started"></a>
-🚀 Getting Started
+## 🚀 Getting Started
+
 Prerequisites
 Java 21
 Maven
@@ -302,6 +314,7 @@ Redis
 Docker (Optional)
 Run Locally
 
+```
 git clone https://github.com/ahmed-ehab-m/inventory-order-api.git
 
 
@@ -313,8 +326,11 @@ mvn spring-boot:run
 Run with Docker Compose
 docker compose up -d
 
+```
+
 > This starts the complete local environment (Spring Boot, MySQL, and Redis).
-    
+
+---------------------    
 <a id="configuration"></a>
 ## ⚙️ Configuration
 
@@ -345,14 +361,18 @@ REDIS_PORT=6379
 # Default Admin
 ADMIN_EMAIL=admin@orderapi.com
 ADMIN_PASSWORD=admin123456
+
 ```
 
 > **Note:** Only configure the integrations you plan to use (e.g., Cloudinary or Paymob). The remaining environment variables can be omitted if those features are disabled.
 
 
-```
-<a id="ci-cd"></a>
+
+---------
+<a id="cicd"></a>
 ## 🔄 CI/CD
+
+
 
 The project uses **GitHub Actions** to automate building, testing, and deployment.
 
@@ -372,6 +392,7 @@ When changes are merged into the main branch, the pipeline:
 * Pushes the image to Docker Hub
 * Deploys the latest version to Railway automatically
 
+---------
 <a id="contributing"></a>
 ## 🤝 Contributing
 
@@ -385,15 +406,17 @@ If you'd like to contribute:
 4. Push your branch.
 5. Open a Pull Request.
 
-    
+
+---------    
 <a id="license"></a>
-📄 License
+## 📄 License
 
 This project is licensed under the MIT License. See the LICENSE file for more details.
 
-<a id="author"></a>
-👤 Author
+
 ---------
+<a id="author"></a>
+## 👤 Author
 
 *   **Ahmed Ehab** - Backend Software Engineer
 
