@@ -1,9 +1,9 @@
 ![Java](https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
-![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker&log[...]
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker&[...]
 ![Railway](https://img.shields.io/badge/Deploy-Railway-0B0D0E?style=for-the-badge&logo=railway&logoColor=white)
-![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)![Swagger](https://img.shields.io/badge/API-Swagger-85EA2D?style=for[...]
+![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)![Swagger](https://img.shields.io/badge/API-Swagger-85EA2D?style=[...]
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 # 🛒 Inventory & Order API  
 ===================================
@@ -338,7 +338,9 @@ ADMIN_PASSWORD=admin123456
 
 
 ```
-<a id="cicd"></a>
+
+<!-- Explicit anchors (aliases) to ensure TOC links work across different renderers -->
+<a id="cicd"></a><a id="ci-cd"></a><a id="ci_cd"></a>
 ## 🔄 CI/CD
 
 The project uses **GitHub Actions** to automate building, testing, and deployment.
@@ -359,7 +361,8 @@ When changes are merged into the main branch, the pipeline:
 * Pushes the image to Docker Hub
 * Deploys the latest version to Railway automatically
 
-<a id="contributing"></a>
+<!-- Contributing anchors -->
+<a id="contributing"></a><a id="contribute"></a>
 ## 🤝 Contributing
 
 Contributions are welcome and greatly appreciated.
@@ -373,12 +376,14 @@ If you'd like to contribute:
 5. Open a Pull Request.
 
     
-<a id="license"></a>
-📄 License
+<!-- License anchors -->
+<a id="license"></a><a id="licence"></a>
+## 📄 License
 
 This project is licensed under the MIT License. See the LICENSE file for more details.
 
-<a id="author"></a>
+<!-- Author anchors -->
+<a id="author"></a><a id="authors"></a>
 ## 👤 Author
 ---------
 
