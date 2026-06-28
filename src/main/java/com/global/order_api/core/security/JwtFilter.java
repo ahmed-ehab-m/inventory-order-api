@@ -36,26 +36,26 @@ public class JwtFilter extends OncePerRequestFilter {
             HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         final String authHeader = request.getHeader("Authorization");
-        String jwtToken = null;
+        String accessToken = null;
         String userEmail = null;
 
         /// reading from header (for Mobile , PostMan)
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             /// get token
-            jwtToken = authHeader.substring(7);
+            accessToken = authHeader.substring(7);
         }
 
         /// reading from cookies (for web)
-        if (jwtToken == null && request.getCookies() != null) {
+        if (accessToken == null && request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
-                if ("jwt_token".equals(cookie.getName())) {
-                    jwtToken = cookie.getValue();
+                if ("access_token".equals(cookie.getName())) {
+                    accessToken = cookie.getValue();
                     break;
                 }
             }
         }
         /// user login first time
-        if (jwtToken == null) {
+        if (accessToken == null) {
             //// Request go to next filter but not authenticated
             //// if request go to login or register endpoint
             //// will go direct to controller
@@ -65,7 +65,7 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         try {
-            userEmail = jwtService.extractUserEmail(jwtToken);
+            userEmail = jwtService.extractUserEmail(accessToken);
             /// check the token is valid
             /// SecurityContextHolder => temp memory of spring
             /// check this user not authenticated
@@ -78,7 +78,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 /// get user details from db
                 UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
                 /// validate the token
-                if (jwtService.validateToken(jwtToken, userDetails)) {
+                if (jwtService.validateToken(accessToken, userDetails)) {
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(
                                     userDetails,
@@ -102,6 +102,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 }
             }
         } catch (ExpiredJwtException ex) {
+            ex.printStackTrace();
             /// HttpServletResponse => because jwt filter work in
             /// web container means that request doesn't come to spring mvc yet
             /// so we can't use Response Entity
