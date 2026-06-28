@@ -1,4 +1,22 @@
-🛒 E-Commerce Inventory & Order API
+![Java](https://img.shields.io/badge/java-21%2B-orange?logo=openjdk)
+
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0-6DB33F?logo=springboot&logoColor=white)
+
+![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql&logoColor=white)
+
+![Redis](https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white)
+
+![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?logo=docker&logoColor=white)
+
+![Railway](https://img.shields.io/badge/Deploy-Railway-0B0D0E?logo=railway&logoColor=white)
+
+![GitHub Actions](https://img.shields.io/badge/CI-GitHub_Actions-2088FF?logo=githubactions&logoColor=white)
+
+![Swagger](https://img.shields.io/badge/API-Swagger-85EA2D?logo=swagger&logoColor=black)
+
+![License](https://img.shields.io/badge/License-MIT-blue)
+
+# 🛒 Inventory & Order API  
 ===================================
 
 > **Live API Documentation (Swagger):** [Test the API Here](https://inventory-order-api-production.up.railway.app/docs)
@@ -15,7 +33,17 @@
 📖 About
 --------
 
-A robust, secure, and scalable **Modular Monolith** RESTful API built for managing an e-commerce ecosystem. Designed utilizing the **MVC** pattern and structured with a **Package-by-Feature** architecture, this project aims to solve the complex challenges of concurrent inventory tracking and secure order processing. This clean, modular approach ensures high code maintainability, data integrity, robust security, and seamless integration with external services.
+Inventory Order API is a production-oriented backend application built with Java and Spring Boot.
+
+The project follows a **Modular Monolith (MVC)** architecture with a **Feature-Based Package Structure**, focusing on solving real backend challenges such as:
+
+- Concurrent inventory updates
+- Secure order processing
+- Payment gateway integration
+- Caching
+- Background jobs
+- Production deployment
+- Automated testing
 
 ✨ Features
 ----------
@@ -24,8 +52,8 @@ A robust, secure, and scalable **Modular Monolith** RESTful API built for managi
     
 *   **Order & Inventory Management:** Full life-cycle of orders, real-time stock validation using **Optimistic Locking** and **Pessimistic Locking**, and cart management.
 
-*   :**Data Auditing:**: Implemented JPA Auditing to automatically track entity lifecycles (creation and modification timestamps/users), ensuring strict accountability and data traceability.
-    
+*   **Observability:** Structured logging, execution time tracking using Spring AOP, and Spring Data Auditing.
+
 *   **Payment Integration:** Secure payment gateway integration using **Paymob**.
     
 *   **Media Management:** Automated product image uploads and cloud storage via **Cloudinary**.
@@ -34,8 +62,10 @@ A robust, secure, and scalable **Modular Monolith** RESTful API built for managi
     
 *   **Scheduled Jobs:** Automated cleanup tasks safely synchronized across multiple instances using **ShedLock**.
     
-*   **Reliability:** Covered by **260+ Test Cases** using JUnit 5 and Mockito.
-  
+*   **Reliability:** Covered by **260+ Test Cases** using JUnit 5 and Mockito (Repo, Service, Controller).
+
+*   **Unified API Responses & Global Exception Handling**
+          
 *   **Automated Data Seeding:** Utilized Spring Boot's CommandLineRunner to automatically seed essential database records on startup (e.g., default Roles and the master Admin account), enabling instant API testing without manual setup.
     
 
@@ -57,12 +87,71 @@ A robust, secure, and scalable **Modular Monolith** RESTful API built for managi
 *   **Testing:** JUnit 5, Mockito
     
 *   **Documentation:** Springdoc OpenAPI (Swagger UI)
+    **Developer Tools:**
+    MapStruct
+    Log4j2
+    Spring AOP
+
+
+## Why these technologies?
+
+### Why Redis for Rate Limiting?
+
+Redis provides atomic increment operations and automatic key expiration, making it more suitable than relational databases.
+
+### Why Pessimistic Locking?
+
+To guarantee that the same stock cannot be reserved by multiple concurrent orders.
+
+### Why Optimistic Locking?
+
+Product updates are read-heavy and write-light, so optimistic locking reduces unnecessary database locks.
+
+### Why ShedLock?
+
+To ensure scheduled jobs execute only once across multiple application instances.
+
+### Why Flyway?
+
+Keeping database schema changes versioned and reproducible across all environments.
+
+### Why Testcontainers?
+
+To validate repository behavior against a real MySQL instance instead of relying only on in-memory databases.
+
+## 🧪 Testing Strategy
+
+The project contains over **260 automated test cases** covering:
+
+- Service Layer (Mockito)
+
+- Controller Layer (MockMvc)
+
+- Repository Layer (Testcontainers + Real MySQL)
+
+This ensures business logic, REST APIs, and SQL queries are all verified independently.
+
+## ☁️ Deployment
+
+The application is deployed on Railway.
+
+Production environment includes:
+
+- Spring Boot Application
+
+- Managed MySQL Database
+
+- Managed Redis Instance
+
+- Docker Container
+
+Database schema is managed automatically using Flyway migrations.
     
 
-🗂️ Project Structure
+## 🗂️ Project Structure
 ---------------------
 
-The project follows a standard layered architecture to maintain separation of concerns:
+The project follows a Feature-based modules architecture to maintain separation of concerns:
 
 ```  
 src/
@@ -126,6 +215,8 @@ This diagram illustrates the comprehensive cloud architecture, including edge ra
 The ERD shows the database schema, illustrating the relationships and constraints between tables.
 <img width="1900" height="966" alt="inventory-order-api-ERD" src="https://github.com/user-attachments/assets/654bdfa3-b8f8-4f30-a262-750de248f540" />
 
+The following diagrams provide a high-level overview of the application's architecture and database design.
+
 🖼️ Screenshots & Previews
 -------------------------
 
@@ -159,7 +250,7 @@ A live view of the production environment hosted on Railway. The first preview s
 
 ### Prerequisites
 
-*   Java 17+
+*   Java 21
     
 *   Maven
     
@@ -174,7 +265,7 @@ A live view of the production environment hosted on Railway. The first preview s
 
 1.  git clone https://github.com/ahmed-ehab-m/inventory-order-api.git
 2.  cd inventory-order-api
-3.  mvn clean install
+3.  mvn clean package
 4.  mvn spring-boot:run
 
 *Alternatively, you can run the entire stack locally using Docker Compose:*
@@ -201,14 +292,31 @@ CLOUDINARY_API_SECRET=your_api_secret
 PAYMOB_API_KEY=your_paymob_api_key
 PAYMOB_HMAC_SECRET=your_hmac_secret
 
+# Redis
+REDIS_HOST=your_redis_host
+REDIS_PORT=your_redis_port
+
+# Admin
+ADMIN_EMAIL
+ADMIN_PASSWORD
+
 ```
 
-## 🔄 CI/CD Pipeline
+## 🔄 CI/CD
 
-The project utilizes **GitHub Actions** for continuous integration and deployment, ensuring reliable and automated delivery:
+The project uses GitHub Actions to automate the build pipeline.
 
-1. **Continuous Integration (CI):** On every push or pull request to the `main` branch, the workflow automatically builds the application and runs all **260+ unit and integration tests** to ensure code quality and prevent regressions.
-2. **Continuous Deployment (CD):** Once the build and tests pass successfully, the application is containerized using **Docker** and seamlessly deployed to the **Railway** cloud platform.-
+### Continuous Integration
+
+- Build the application
+- Run 260+ automated tests
+- Verify code quality
+
+### Continuous Deployment
+
+- Build Docker Image
+- Push Image to Docker Hub
+- Deploy the latest version on Railway
 
 🤝 How to Contribute
 --------------------
