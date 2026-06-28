@@ -25,6 +25,7 @@
 | Admin | admin@orderapi.com | admin123456 |
 
 > The following account is intentionally provided for testing the live application.
+
 > The default admin account is automatically seeded during application startup.
 
 ---------------------
