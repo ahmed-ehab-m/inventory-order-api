@@ -326,6 +326,7 @@ mvn clean package
 mvn spring-boot:run
 Run with Docker Compose
 docker compose up -d
+
 ```
 
 > This starts the complete local environment (Spring Boot, MySQL, and Redis).
@@ -361,6 +362,7 @@ REDIS_PORT=6379
 # Default Admin
 ADMIN_EMAIL=admin@orderapi.com
 ADMIN_PASSWORD=admin123456
+
 ```
 
 > **Note:** Only configure the integrations you plan to use (e.g., Cloudinary or Paymob). The remaining environment variables can be omitted if those features are disabled.
