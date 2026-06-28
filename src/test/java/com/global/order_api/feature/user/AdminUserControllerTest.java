@@ -6,7 +6,7 @@ import com.global.order_api.core.security.JwtFilter;
 import com.global.order_api.core.utils.AppTranslator;
 import com.global.order_api.feature.user.controller.AdminUserController;
 import com.global.order_api.feature.user.specification.UserFilterRequest;
-import com.global.order_api.feature.user.dto.UserResponseDto;
+import com.global.order_api.feature.auth.dtos.UserResponseDto;
 import com.global.order_api.feature.user.service.AdminUserService;
 import com.global.order_api.feature.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;

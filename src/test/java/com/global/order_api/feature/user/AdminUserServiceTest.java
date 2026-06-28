@@ -5,7 +5,7 @@ import com.global.order_api.core.exception.BusinessLogicException;
 import com.global.order_api.core.exception.ResourceNotFoundException;
 import com.global.order_api.feature.user.enums.UserRole;
 import com.global.order_api.feature.user.specification.UserFilterRequest;
-import com.global.order_api.feature.user.dto.UserResponseDto;
+import com.global.order_api.feature.auth.dtos.UserResponseDto;
 import com.global.order_api.feature.user.entity.UserEntity;
 import com.global.order_api.feature.user.mapper.UserMapper;
 import com.global.order_api.feature.user.repo.UserRepo;

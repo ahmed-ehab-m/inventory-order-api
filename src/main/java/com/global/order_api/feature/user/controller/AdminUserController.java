@@ -6,7 +6,7 @@ import com.global.order_api.core.response.ApiResponse;
 import com.global.order_api.core.utils.AppTranslator;
 import com.global.order_api.feature.user.service.AdminUserService;
 import com.global.order_api.feature.user.specification.UserFilterRequest;
-import com.global.order_api.feature.user.dto.UserResponseDto;
+import com.global.order_api.feature.auth.dtos.UserResponseDto;
 import com.global.order_api.feature.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

@@ -2,7 +2,8 @@ package com.global.order_api.feature.auth;
 
 import com.global.order_api.core.exception.BusinessLogicException;
 import com.global.order_api.core.security.JwtService;
-import com.global.order_api.feature.user.dto.UserResponseDto;
+import com.global.order_api.feature.auth.dtos.AuthResponseDto;
+import com.global.order_api.feature.auth.dtos.UserResponseDto;
 import com.global.order_api.feature.user.entity.UserEntity;
 import com.global.order_api.feature.user.entity.UserPrincipal;
 import com.global.order_api.feature.user.repo.UserRepo;

@@ -1,4 +1,4 @@
-package com.global.order_api.feature.user.dto;
+package com.global.order_api.feature.auth.dtos;
 
 import com.global.order_api.feature.auth.ValidationGroups;
 import jakarta.validation.constraints.NotBlank;
