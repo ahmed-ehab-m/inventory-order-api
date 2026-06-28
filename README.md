@@ -1,9 +1,9 @@
 ![Java](https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
-![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker&log[...]
 ![Railway](https://img.shields.io/badge/Deploy-Railway-0B0D0E?style=for-the-badge&logo=railway&logoColor=white)
-![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)![Swagger](https://img.shields.io/badge/API-Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)
+![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)![Swagger](https://img.shields.io/badge/API-Swagger-85EA2D?style=for[...]
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 # 🛒 Inventory & Order API  
 ===================================
@@ -26,33 +26,19 @@
 # 📑 Table of Contents
 
 - [📖 About](#about)
-
 - [✨ Features](#features)
-
 - [💻 Tech Stack](#tech-stack)
-
 - [❓ Why These Technologies?](#why-these-technologies)
-
-- [🏗️ Project Structure](#️project-structure)
-
+- [🏗️ Project Structure](#project-structure)
 - [🧪 Testing Strategy](#testing-strategy)
-
-- [☁️ Deployment](#️deployment)
-
+- [☁️ Deployment](#deployment)
 - [📊 System Diagrams](#system-diagrams)
-
-- [🖼️ Screenshots](#️screenshots--previews)
-
+- [🖼️ Screenshots & Previews](#screenshots--previews)
 - [🚀 Getting Started](#getting-started)
-
-- [⚙️ Configuration](#️configuration)
-
+- [⚙️ Configuration](#configuration)
 - [🔄 CI/CD](#cicd)
-
 - [🤝 Contributing](#contributing)
-
 - [📄 License](#license)
-
 - [👤 Author](#author)
 
   
@@ -286,7 +272,7 @@ A preview of the Paymob merchant dashboard showing processed transactions, payme
 
 
 ### ☁️ 3. Cloud Deployment & Managed Services (Railway)
-A live view of the production environment hosted on Railway. The first preview showcases the fully integrated cloud stack (Spring Boot Application, Managed MySQL, and Redis) running seamlessly. The database view highlights the successful execution of **Flyway migrations** and the active **ShedLock** table managing distributed cron jobs in production.
+A live view of the production environment hosted on Railway. The first preview showcases the fully integrated cloud stack (Spring Boot Application, Managed MySQL, and Redis) running seamlessly. T[...]
 
 <img width="1366" height="686" alt="Screenshot (197)" src="https://github.com/user-attachments/assets/2aa6d01a-d6b7-4ccf-a651-30b397e90dff" />
 <img width="1366" height="673" alt="Screenshot (196)" src="https://github.com/user-attachments/assets/5bed36b2-8376-4b72-b32c-99ca1af1dc4e" />
@@ -393,7 +379,7 @@ If you'd like to contribute:
 This project is licensed under the MIT License. See the LICENSE file for more details.
 
 <a id="author"></a>
-👤 Author
+## 👤 Author
 ---------
 
 *   **Ahmed Ehab** - Backend Software Engineer
