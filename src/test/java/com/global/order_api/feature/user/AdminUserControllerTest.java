@@ -97,6 +97,27 @@ class AdminUserControllerTest {
         }
 
         @Test
+        @DisplayName("Promote User To Admin - Should Return Ok")
+        void promoteUserToAdmin_ShouldReturnOk() throws Exception {
+            // Arrange
+            Long userId = 1L;
+            String fakeMessage = "User updated successfully";
+
+            doNothing().when(adminUserService).promoteUserToAdmin(userId);
+
+            when(appTranslator.getTranslatedAction(eq("success.updated"), eq(ENTITY_KEY))).thenReturn(fakeMessage);
+
+            mockMvc.perform(put("/api/v1/admin/users/{id}/promote", userId)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value(fakeMessage))
+                    .andExpect(jsonPath("$.success").value(true));
+
+            verify(adminUserService, times(1)).promoteUserToAdmin(userId);
+            verify(appTranslator, times(1)).getTranslatedAction(eq("success.updated"), eq(ENTITY_KEY));
+        }
+
+        @Test
         void softDeleteUser_ShouldReturnOk() throws Exception {
             Long userId = 1L;
             String fakeMessage = "User deleted successfully";

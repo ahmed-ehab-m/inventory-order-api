@@ -80,4 +80,19 @@ public class AdminUserController {
         String message = appTranslator.getTranslatedAction("success.restored", ENTITY_KEY);
         return ResponseEntity.ok(ApiResponse.success(null, message));
     }
+
+    // ==================================================================================
+    //                                3. UPDATE METHODS
+    // ==================================================================================
+
+    @PutMapping("/{id}/promote")
+    @Operation(summary = "Promote User to Admin", description = "Promotes a regular user to an administrator role.")
+    public ResponseEntity<ApiResponse<Void>> promoteUserToAdmin(
+            @PathVariable Long id) {
+        adminUserService.promoteUserToAdmin(id);
+
+        String message = appTranslator.getTranslatedAction("success.updated", ENTITY_KEY);
+
+        return ResponseEntity.ok(ApiResponse.success(null, message));
+    }
 }

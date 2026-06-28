@@ -3,6 +3,7 @@ package com.global.order_api.feature.user;
 import com.global.order_api.core.base.PageResponse;
 import com.global.order_api.core.exception.BusinessLogicException;
 import com.global.order_api.core.exception.ResourceNotFoundException;
+import com.global.order_api.feature.user.enums.UserRole;
 import com.global.order_api.feature.user.specification.UserFilterRequest;
 import com.global.order_api.feature.user.dto.UserResponseDto;
 import com.global.order_api.feature.user.entity.UserEntity;
@@ -69,6 +70,62 @@ class AdminUserServiceTest {
             assertFalse(result.getData().isEmpty());
 
             verify(userRepo, times(1)).findAll(any(Specification.class), any(Pageable.class));
+        }
+    }
+
+    /// /////////////////////////////////////////////////////////////////////////////////////
+    /// /////////////////////////////////UPDATE METHODS//////////////////////////////////////
+
+    @Nested
+    @DisplayName("3. Update Role Tests (Admin)")
+    class UpdateRoleTests {
+
+        @Test
+        void promoteUserToAdmin_WhenUserIsNormal_ShouldPromoteAndEvictCache() {
+            // Arrange
+            Long userId = 1L;
+            UserEntity user = new UserEntity();
+            user.setId(userId);
+            user.setEmail("user@test.com");
+            user.setRole(UserRole.USER);
+
+            when(userRepo.findByIdOrThrow(userId)).thenReturn(user);
+
+            // Act
+            adminUserService.promoteUserToAdmin(userId);
+
+            // Assert
+            assertEquals("ADMIN", user.getRole().toString());
+            verify(userRepo, times(1)).save(user);
+            verify(userService, times(1)).evictUserCache("user@test.com");
+        }
+
+        @Test
+        void promoteUserToAdmin_WhenUserIsAlreadyAdmin_ShouldThrowException() {
+            // Arrange
+            Long userId = 1L;
+            UserEntity user = new UserEntity();
+            user.setId(userId);
+            user.setRole(UserRole.ADMIN);
+
+            when(userRepo.findByIdOrThrow(userId)).thenReturn(user);
+
+            assertThrows(BusinessLogicException.class, () -> adminUserService.promoteUserToAdmin(userId));
+
+            verify(userRepo, never()).save(any());
+            verify(userService, never()).evictUserCache(anyString());
+        }
+
+        @Test
+        void promoteUserToAdmin_WhenUserDoesNotExist_ShouldThrowException() {
+            // Arrange
+            Long userId = 999L;
+            when(userRepo.findByIdOrThrow(userId)).thenThrow(new ResourceNotFoundException("User", "id", userId));
+
+            assertThrows(ResourceNotFoundException.class, () -> adminUserService.promoteUserToAdmin(userId));
+
+            verify(userRepo, never()).save(any());
+            verify(userService, never()).evictUserCache(anyString());
         }
     }
 

@@ -10,6 +10,7 @@ import com.global.order_api.feature.user.service.UserService;
 import com.global.order_api.feature.user.dto.ChangePasswordRequestDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -75,4 +76,17 @@ public class UserController {
         String message = appTranslator.getTranslatedAction("success.deleted", ENTITY_KEY);
         return ResponseEntity.ok(ApiResponse.success(null, message));
     }
+
+//    /// test ip address
+//    @GetMapping("/test-ip")
+//    public String testIp(HttpServletRequest request) {
+//
+//        return """
+//            remoteAddr = %s
+//            x-forwarded-for = %s
+//            """.formatted(
+//                request.getRemoteAddr(),
+//                request.getHeader("X-Forwarded-For")
+//        );
+//    }
 }
