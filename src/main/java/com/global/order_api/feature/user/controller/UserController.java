@@ -77,16 +77,16 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(null, message));
     }
 
-    /// test ip address
-    @GetMapping("/test-ip")
-    public String testIp(HttpServletRequest request) {
-
-        return """
-            remoteAddr = %s
-            x-forwarded-for = %s
-            """.formatted(
-                request.getRemoteAddr(),
-                request.getHeader("X-Forwarded-For")
-        );
-    }
+//    /// test ip address
+//    @GetMapping("/test-ip")
+//    public String testIp(HttpServletRequest request) {
+//
+//        return """
+//            remoteAddr = %s
+//            x-forwarded-for = %s
+//            """.formatted(
+//                request.getRemoteAddr(),
+//                request.getHeader("X-Forwarded-For")
+//        );
+//    }
 }

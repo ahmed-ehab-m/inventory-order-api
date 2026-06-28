@@ -4,6 +4,7 @@ import com.global.order_api.core.base.BaseService;
 import com.global.order_api.core.base.PageResponse;
 import com.global.order_api.core.exception.BusinessLogicException;
 import com.global.order_api.core.exception.ResourceNotFoundException;
+import com.global.order_api.feature.user.enums.UserRole;
 import com.global.order_api.feature.user.specification.UserFilterRequest;
 import com.global.order_api.feature.user.dto.UserResponseDto;
 import com.global.order_api.feature.user.entity.UserEntity;
@@ -49,7 +50,7 @@ public class AdminUserService extends BaseService<UserEntity, Long> {
     }
 
     // ==================================================================================
-    //                                2. HARD DELETE & RESTORE
+    //                                2. HARD DELETE & RESTORE &
     // ==================================================================================
 
     @Transactional
@@ -88,4 +89,26 @@ public class AdminUserService extends BaseService<UserEntity, Long> {
         user.setDeleted(false);
         userRepo.save(user);
     }
+
+    // ==================================================================================
+    //                                3. UPDATE ROLE (ADMIN)
+    // ==================================================================================
+
+    @Transactional
+    public void promoteUserToAdmin(Long id) {
+        UserEntity user = userRepo.findByIdOrThrow(id);
+
+
+        if ("ADMIN".equalsIgnoreCase(user.getRole().toString())) {
+            throw new BusinessLogicException("error.user.already.admin");
+        }
+
+        user.setRole(UserRole.ADMIN);
+
+        userRepo.save(user);
+
+        userService.evictUserCache(user.getEmail());
+    }
+
+
 }
