@@ -123,7 +123,7 @@ It covers:
 * **DevOps:** Docker, Docker Compose, GitHub Actions (CI/CD), Railway
 
 
-<a id="why"></a>
+<a id="why-these-technologies"></a>
 ## ❓ Why These Technologies?
 
 ### Why Redis for Rate Limiting?
@@ -163,7 +163,7 @@ To generate type-safe object mappings at compile time and eliminate repetitive m
 To decouple the API contract from the persistence layer and avoid exposing internal entities.
 
 
-<a id="testing"></a>
+<a id="testing-strategy"></a>
 ## 🧪 Testing Strategy
 
 The project contains **260+ automated test cases**, with each layer tested independently using the most appropriate approach:
@@ -264,7 +264,7 @@ The ERD shows the database schema, illustrating the relationships and constraint
 
 The following diagrams provide a high-level overview of the application's architecture and database design.
 
-<a id="screenshots"></a>
+<a id="screenshots--previews"></a>
 🖼️ Screenshots & Previews
 -------------------------
 
@@ -294,6 +294,7 @@ A live view of the production environment hosted on Railway. The first preview s
 
 <a id="getting-started"></a>
 🚀 Getting Started
+-------------------------
 Prerequisites
 Java 21
 Maven
@@ -351,7 +352,7 @@ ADMIN_PASSWORD=admin123456
 
 
 ```
-<a id="ci-cd"></a>
+<a id="cicd"></a>
 ## 🔄 CI/CD
 
 The project uses **GitHub Actions** to automate building, testing, and deployment.
