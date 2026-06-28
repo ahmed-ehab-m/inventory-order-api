@@ -37,19 +37,19 @@
 
 - [❓ Why These Technologies?](#why-these-technologies)
 
-- [🏗️ Project Structure](#️project-structure)
+- [🏗️ Project Structure](#project-structure)
 
 - [🧪 Testing Strategy](#testing-strategy)
 
-- [☁️ Deployment](#️deployment)
+- [☁️ Deployment](#deployment)
 
 - [📊 System Diagrams](#system-diagrams)
 
-- [🖼️ Screenshots](#️screenshots--previews)
+- [🖼️ Screenshots](#screenshots--previews)
 
 - [🚀 Getting Started](#getting-started)
 
-- [⚙️ Configuration](#️configuration)
+- [⚙️ Configuration](#configuration)
 
 - [🔄 CI/CD](#cicd)
 
@@ -58,7 +58,6 @@
 - [📄 License](#license)
 
 - [👤 Author](#author)
-
 
 ---------------------  
 <a id="about"></a>
