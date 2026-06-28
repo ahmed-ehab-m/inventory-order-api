@@ -196,10 +196,8 @@ Detailed architectural and database visual representations showcasing the system
 ### 1. System Architecture & Data Flow
 This diagram illustrates the comprehensive cloud architecture, including edge rate-limiting, security filter chains, asynchronous payment webhooks, and managed data services.
 
-<img width="6308" height="3644" alt="Untitled Diagram drawio (8)" src="https://github.com/user-attachments/assets/1ff1d100-5e25-4c22-824a-74eb06ecd394" />
 
-
-
+<img width="8928" height="4224" alt="Untitled Diagram (8)" src="https://github.com/user-attachments/assets/ee45d00c-e0d4-43dc-8750-e875f7ae9f76" />
 
 ### 2. Entity Relationship Diagram (ERD)
 The ERD shows the database schema, illustrating the relationships and constraints between tables.
