@@ -304,7 +304,6 @@ The project uses GitHub Actions to automate the build pipeline.
 
 - Build Docker Image
 - Push Image to Docker Hub
-- Deploy the latest version on Railway
 
 🤝 How to Contribute
 --------------------
