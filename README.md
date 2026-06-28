@@ -3,99 +3,144 @@
 ![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
 ![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![Railway](https://img.shields.io/badge/Deploy-Railway-0B0D0E?style=for-the-badge&logo=railway&logoColor=white)
-![GitHub Actions](https://img.shields.io/badge/CI-GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)
-![Swagger](https://img.shields.io/badge/API-Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)
+![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)![Swagger](https://img.shields.io/badge/API-Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 # 🛒 Inventory & Order API  
 ===================================
 
-> **Live API Documentation (Swagger):** [Test the API Here](https://inventory-order-api-production.up.railway.app/docs)
-> **Postman Collection:** For advanced testing with pre-configured environments and automated token extraction, download the collection here:
-> 📥 [Download Postman Collection](./docs/Inventory-Order-API.postman_collection.json)
-> 
-> **Test Credentials:**
-> 
-> *   Email: admin@orderapi.com
->     
-> *   Password: admin123456
->     
+### Production-ready Spring Boot REST API for inventory management, order processing, and secure online payments.
 
-📖 About
---------
+## 🚀 Live Demo
 
-Inventory Order API is a production-oriented backend application built with Java and Spring Boot.
+- 🌐 Live API (Swagger): https://inventory-order-api-production.up.railway.app/docs
+- 📬 Postman Collection: [Download Collection](./docs/Inventory-Order-API.postman_collection.json)
+  
+## Demo Account
 
-The project follows a **Modular Monolith (MVC)** architecture with a **Feature-Based Package Structure**, focusing on solving real backend challenges such as:
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | admin@orderapi.com | admin123456 |
 
-- Concurrent inventory updates
-- Secure order processing
-- Payment gateway integration
-- Caching
-- Background jobs
-- Production deployment
-- Automated testing
+> The default admin account is automatically seeded during application startup.
 
-✨ Features
-----------
+# 📑 Table of Contents
 
-*   **Advanced Security:** JWT-based authentication & OAuth2 (Google/GitHub) with Role-Based Access Control (RBAC), fortified with **Rate Limiting** to prevent API abuse.
-    
-*   **Order & Inventory Management:** Full life-cycle of orders, real-time stock validation using **Optimistic Locking** and **Pessimistic Locking**, and cart management.
+- [📖 About](#about)
 
-*   **Observability:** Structured logging, execution time tracking using Spring AOP, and Spring Data Auditing.
+- [✨ Features](#features)
 
-*   **Payment Integration:** Secure payment gateway integration using **Paymob**.
-    
-*   **Media Management:** Automated product image uploads and cloud storage via **Cloudinary**.
-    
-*   **High Performance:** API response acceleration using **Redis** caching, alongside optimized **MySQL indexing**, Pagination, and Projection.
-    
-*   **Scheduled Jobs:** Automated cleanup tasks safely synchronized across multiple instances using **ShedLock**.
-    
-*   **Reliability:** Covered by **260+ Test Cases** using JUnit 5 and Mockito (Repo, Service, Controller).
+- [💻 Tech Stack](#tech-stack)
 
-*   **Unified API Responses & Global Exception Handling**
-          
-*   **Automated Data Seeding:** Utilized Spring Boot's CommandLineRunner to automatically seed essential database records on startup (e.g., default Roles and the master Admin account), enabling instant API testing without manual setup.
-    
+- [❓ Why These Technologies?](#why-these-technologies)
 
-💻 Tech Stack
--------------
+- [🏗️ Project Structure](#️project-structure)
 
-*   **Backend:** Java 21, Spring Boot 4, Spring Data JPA (Hibernate)
-    
-*   **Database & Migrations:** MySQL, Flyway
-    
-*   **Caching:** Redis
-    
-*   **Security:** Spring Security, JWT, OAuth2
-    
-*   **3rd Party APIs:** Paymob, Cloudinary
-    
-*   **DevOps & Deployment:** Docker, CI/CD (GitHub Actions), Railway
-    
-*   **Testing:** JUnit 5, Mockito
-    
-*   **Documentation:** Springdoc OpenAPI (Swagger UI)
-    **Developer Tools:**
-    MapStruct
-    Log4j2
-    Spring AOP
+- [🧪 Testing Strategy](#testing-strategy)
+
+- [☁️ Deployment](#️deployment)
+
+- [📊 System Diagrams](#system-diagrams)
+
+- [🖼️ Screenshots](#️screenshots--previews)
+
+- [🚀 Getting Started](#getting-started)
+
+- [⚙️ Configuration](#️configuration)
+
+- [🔄 CI/CD](#cicd)
+
+- [🤝 Contributing](#contributing)
+
+- [📄 License](#license)
+
+- [👤 Author](#author)
+
+  
+<a id="about"></a>
+## 📖 About
+
+#### Inventory Order API is a production-oriented backend application built with Java and Spring Boot.
+
+#### The project is fully dockerized and deployed on Railway with managed MySQL and Redis services.
 
 
-## Why these technologies?
+#### The project follows a Modular Monolith (MVC) architecture with a Feature-Based Package Structure, focusing on building production-ready backend systems rather than simple CRUD applications.
+
+It covers:
+
+- Concurrent inventory management
+- Secure authentication & authorization
+- Payment processing (Paymob)
+- Distributed caching & IP Rate Limiting
+- Background job synchronization
+- Dockerized deployment on Railway
+- Automated testing and CI/CD
+
+<a id="features"></a>
+## ✨ Features
+
+* **Authentication & Authorization:** JWT Authentication (Access & Refresh Tokens), OAuth2 Login (Google/GitHub), and Role-Based Access Control (RBAC).
+
+* **Order & Inventory Management:** Shopping cart, order lifecycle, stock validation, and concurrency handling using Optimistic & Pessimistic Locking.
+
+* **Payment Integration:** Secure Paymob integration with Card, Wallet, Kiosk, HMAC verification, Idempotent webhooks, and Refund support.
+
+* **Caching & Performance:** Redis-based feature caching, MySQL indexing (Full-Text & Composite Indexes), Pagination, Projection, and JPA Specifications.
+
+* **API Protection:** IP Rate Limiting using Redis (Fixed Window Counter strategy).
+
+* **Media Management:** Product image upload, validation, and cloud storage with Cloudinary.
+
+* **Background Jobs:** Automated scheduled tasks synchronized across multiple instances using Spring Scheduler and ShedLock.
+
+* **Observability:** Centralized Log4j2 configuration, structured logging, Spring AOP execution time tracking, and Spring Data Auditing.
+  
+* **API Design:** DTO Pattern, Unified API Responses, Global Exception Handling, and Localization (i18n).
+
+* **Testing:** 260+ Unit, Controller, and Repository tests using JUnit 5, Mockito, MockMvc, and Testcontainers (Real MySQL).
+
+* **Developer Experience:** Automatic database migrations with Flyway and startup data seeding using CommandLineRunner.
+  
+<a id="tech-stack"></a>
+## 💻 Tech Stack
+
+* **Backend:** Java 21, Spring Boot 4, Spring MVC, Spring Data JPA (Hibernate)
+
+* **Database:** MySQL, Flyway
+
+* **Caching & Rate Limiting:** Redis
+
+* **Security:** Spring Security, JWT, OAuth2
+
+* **Payments & Storage:** Paymob, Cloudinary
+
+* **Testing:** JUnit 5, Mockito, MockMvc, Testcontainers
+
+* **Documentation:** SpringDoc OpenAPI (Swagger UI)
+
+* **Developer Tools:** MapStruct, Log4j2, Spring AOP
+
+* **DevOps:** Docker, Docker Compose, GitHub Actions (CI/CD), Railway
+
+
+<a id="why"></a>
+## ❓ Why These Technologies?
 
 ### Why Redis for Rate Limiting?
 
-Redis provides atomic increment operations and automatic key expiration, making it more suitable than relational databases.
+Redis provides atomic increment operations with automatic key expiration, making it ideal for implementing efficient IP-based rate limiting.
+
+### Why Feature-Based Caching?
+
+Different resources have different read/write patterns, so each feature uses a caching strategy and TTL that best fits its usage.
 
 ### Why Pessimistic Locking?
 
-To guarantee that the same stock cannot be reserved by multiple concurrent orders.
+To guarantee that the same stock cannot be reserved by multiple concurrent orders during checkout.
 
 ### Why Optimistic Locking?
 
-Product updates are read-heavy and write-light, so optimistic locking reduces unnecessary database locks.
+Product updates are read-heavy and write-light, reducing unnecessary database locks while preventing conflicting updates.
 
 ### Why ShedLock?
 
@@ -103,41 +148,54 @@ To ensure scheduled jobs execute only once across multiple application instances
 
 ### Why Flyway?
 
-Keeping database schema changes versioned and reproducible across all environments.
+To keep database schema changes versioned, repeatable, and consistent across all environments.
 
 ### Why Testcontainers?
 
-To validate repository behavior against a real MySQL instance instead of relying only on in-memory databases.
+To validate repository behavior against a real MySQL instance instead of relying solely on in-memory databases.
 
+### Why MapStruct?
+
+To generate type-safe object mappings at compile time and eliminate repetitive mapping code.
+
+### Why DTO Pattern?
+
+To decouple the API contract from the persistence layer and avoid exposing internal entities.
+
+
+<a id="testing"></a>
 ## 🧪 Testing Strategy
 
-The project contains over **260 automated test cases** covering:
+The project contains **260+ automated test cases**, with each layer tested independently using the most appropriate approach:
 
-- Service Layer (Mockito)
+* **Service Layer:** Mockito-based unit tests with mocked dependencies.
+* **Controller Layer:** MockMvc tests for REST endpoints without starting the server.
+* **Repository Layer:** Testcontainers running a real MySQL instance inside Docker.
 
-- Controller Layer (MockMvc)
+This testing strategy ensures business logic, REST APIs, and database queries are validated independently while keeping tests fast and reliable.
 
-- Repository Layer (Testcontainers + Real MySQL)
-
-This ensures business logic, REST APIs, and SQL queries are all verified independently.
-
+<a id="deployment"></a>
 ## ☁️ Deployment
 
-The application is deployed on Railway.
+The application is containerized with Docker and deployed on **Railway**.
 
-Production environment includes:
+The production environment includes:
 
-- Spring Boot Application
+* Spring Boot Application
+* Managed MySQL Database
+* Managed Redis Instance
 
-- Managed MySQL Database
+Database schema is managed automatically using **Flyway** migrations.
 
-- Managed Redis Instance
+Every push to the `main` branch triggers a GitHub Actions pipeline that:
 
-- Docker Container
+1. Runs the automated test suite.
+2. Builds a new Docker image.
+3. Pushes the image to Docker Hub.
+4. Deploys the latest version to Railway.
 
-Database schema is managed automatically using Flyway migrations.
     
-
+<a id="project-structure"></a>
 ## 🗂️ Project Structure
 ---------------------
 
@@ -188,6 +246,7 @@ src/
             └── user/                              # User tests 
 ```
 
+<a id="system-diagrams"></a>
 📊 System Diagrams
 ------------------
 
@@ -205,6 +264,7 @@ The ERD shows the database schema, illustrating the relationships and constraint
 
 The following diagrams provide a high-level overview of the application's architecture and database design.
 
+<a id="screenshots"></a>
 🖼️ Screenshots & Previews
 -------------------------
 
@@ -232,100 +292,106 @@ A live view of the production environment hosted on Railway. The first preview s
 <img width="1366" height="673" alt="Screenshot (196)" src="https://github.com/user-attachments/assets/5bed36b2-8376-4b72-b32c-99ca1af1dc4e" />
 
 
-
+<a id="getting-started"></a>
 🚀 Getting Started
-------------------
+Prerequisites
+Java 21
+Maven
+MySQL
+Redis
+Docker (Optional)
+Run Locally
 
-### Prerequisites
+git clone https://github.com/ahmed-ehab-m/inventory-order-api.git
 
-*   Java 21
+
+cd inventory-order-api
+
+mvn clean package
+
+mvn spring-boot:run
+Run with Docker Compose
+docker compose up -d
+
+> This starts the complete local environment (Spring Boot, MySQL, and Redis).
     
-*   Maven
-    
-*   MySQL
-    
-*   Redis
-    
-*   Docker (Optional for containerized run)
-    
+<a id="configuration"></a>
+## ⚙️ Configuration
 
-### Installation & Run
+Create an `application-prod.properties` file (or configure environment variables) and provide the required values.
 
-1.  git clone https://github.com/ahmed-ehab-m/inventory-order-api.git
-2.  cd inventory-order-api
-3.  mvn clean package
-4.  mvn spring-boot:run
-
-*Alternatively, you can run the entire stack locally using Docker Compose:*
-docker-compose up -d
-    
-
-⚙️ Configuration
----------------
-
-
-Create an application-prod.properties (or .env file) in your environment and configure the following essential variables:
-```
+```properties
 # Database
 DB_URL=jdbc:mysql://localhost:3306/inventory_order_db
 DB_USER=root
 DB_PASSWORD=your_password
+
 # JWT
 JWT_SECRET=your_super_secret_jwt_key
+
 # Cloudinary
 CLOUDINARY_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
+
 # Paymob
 PAYMOB_API_KEY=your_paymob_api_key
 PAYMOB_HMAC_SECRET=your_hmac_secret
 
 # Redis
-REDIS_HOST=your_redis_host
-REDIS_PORT=your_redis_port
+REDIS_HOST=localhost
+REDIS_PORT=6379
 
-# Admin
-ADMIN_EMAIL
-ADMIN_PASSWORD
-
+# Default Admin
+ADMIN_EMAIL=admin@orderapi.com
+ADMIN_PASSWORD=admin123456
 ```
 
+> **Note:** Only configure the integrations you plan to use (e.g., Cloudinary or Paymob). The remaining environment variables can be omitted if those features are disabled.
+
+
+```
+<a id="ci-cd"></a>
 ## 🔄 CI/CD
 
-The project uses GitHub Actions to automate the build pipeline.
+The project uses **GitHub Actions** to automate building, testing, and deployment.
 
 ### Continuous Integration
 
-- Build the application
-- Run 260+ automated tests
-- Verify code quality
+On every push or pull request, the pipeline:
+
+* Builds the application
+* Runs all **260+ automated tests**
+* Ensures the project is ready for deployment
 
 ### Continuous Deployment
 
-- Build Docker Image
-- Push Image to Docker Hub
+When changes are merged into the main branch, the pipeline:
 
-🤝 How to Contribute
---------------------
+* Builds a new Docker image
+* Pushes the image to Docker Hub
+* Deploys the latest version to Railway automatically
 
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are greatly appreciated.
+<a id="contributing"></a>
+## 🤝 Contributing
 
-1.  Fork the Project
-    
-2.  Create your Feature Branch (git checkout -b feature/AmazingFeature)
-    
-3.  Commit your Changes (git commit -m 'Add some AmazingFeature')
-    
-4.  Push to the Branch (git push origin feature/AmazingFeature)
-    
-5.  Open a Pull Request
-    
+Contributions are welcome and greatly appreciated.
 
+If you'd like to contribute:
+
+1. Fork the repository.
+2. Create a new branch (`feature/your-feature`).
+3. Commit your changes.
+4. Push your branch.
+5. Open a Pull Request.
+
+    
+<a id="license"></a>
 📄 License
-----------
 
-Distributed under the MIT License. See LICENSE for more information.
+This project is licensed under the MIT License. See the LICENSE file for more details.
 
+<a id="author"></a>
 👤 Author
 ---------
 
