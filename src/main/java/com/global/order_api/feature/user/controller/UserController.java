@@ -4,7 +4,7 @@ import com.global.order_api.core.response.ApiResponse;
 import com.global.order_api.core.security.SecurityUtils;
 import com.global.order_api.core.utils.AppTranslator;
 import com.global.order_api.feature.auth.ValidationGroups;
-import com.global.order_api.feature.auth.dtos.UserRequestDto;
+import com.global.order_api.feature.auth.dtos.RegisterRequestDto;
 import com.global.order_api.feature.auth.dtos.UserResponseDto;
 import com.global.order_api.feature.user.service.UserService;
 import com.global.order_api.feature.auth.dtos.ChangePasswordRequestDto;
@@ -46,7 +46,7 @@ public class UserController {
     @PutMapping
     @Operation(summary = "Update My Profile", description = "Updates the authenticated user's information.")
     public ResponseEntity<ApiResponse<UserResponseDto>> updateMyProfile(
-            @Validated(ValidationGroups.OnUpdate.class) @RequestBody UserRequestDto updateRequest) {
+            @Validated(ValidationGroups.OnUpdate.class) @RequestBody RegisterRequestDto updateRequest) {
         Long userId = SecurityUtils.getCurrentUserId();
         UserResponseDto updatedUser = userService.updateUser(userId, updateRequest);
         String message = appTranslator.getTranslatedAction("success.updated", ENTITY_KEY);

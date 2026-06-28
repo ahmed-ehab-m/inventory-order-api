@@ -3,9 +3,9 @@ package com.global.order_api.feature.user;
 import com.global.order_api.core.security.JwtFilter;
 import com.global.order_api.core.security.SecurityUtils;
 import com.global.order_api.core.utils.AppTranslator;
+import com.global.order_api.feature.auth.dtos.RegisterRequestDto;
 import com.global.order_api.feature.user.controller.UserController;
 import com.global.order_api.feature.auth.dtos.ChangePasswordRequestDto;
-import com.global.order_api.feature.auth.dtos.UserRequestDto;
 import com.global.order_api.feature.auth.dtos.UserResponseDto;
 import com.global.order_api.feature.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -87,7 +87,7 @@ class UserControllerTest {
 
         @Test
         void updateMyProfile_WithValidData_ShouldReturnUpdatedUser() throws Exception {
-            UserRequestDto requestDto = new UserRequestDto();
+            RegisterRequestDto requestDto = new RegisterRequestDto();
             requestDto.setName("Updated Name");
             requestDto.setEmail("test@test.com"); // Assuming this is required in DTO
 
@@ -100,7 +100,7 @@ class UserControllerTest {
             try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
                 mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(CURRENT_USER_ID);
 
-                when(userService.updateUser(eq(CURRENT_USER_ID), ArgumentMatchers.any(UserRequestDto.class))).thenReturn(responseDto);
+                when(userService.updateUser(eq(CURRENT_USER_ID), ArgumentMatchers.any(RegisterRequestDto.class))).thenReturn(responseDto);
                 when(appTranslator.getTranslatedAction(eq("success.updated"), eq(ENTITY_KEY))).thenReturn(fakeMessage);
 
                 mockMvc.perform(put("/api/v1/users/me")
