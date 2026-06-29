@@ -104,7 +104,7 @@
                   "bearer": [
                     {
                       "key": "token",
-                      "value": "{{auth_secret_0ii1}}",
+                      "value": "{{accessToken}}",
                       "type": "string"
                     }
                   ]
@@ -407,7 +407,7 @@
                   "formdata": [
                     {
                       "key": "data",
-                      "value": "{\n\"name\": \"laptop hp\" ,\n\"price\":150.00\",\ncategoryId\":2\n}",
+                      "value": "{\n\"name\": \"laptop hp\" ,\n\"price\":45.000,\n\"categoryId\":2,\n\"stockCount\":10\n}",
                       "type": "text",
                       "uuid": "6c48c553-0e55-4e60-92d3-2d9af0554431",
                       "contentType": "application/json"
@@ -416,7 +416,7 @@
                       "key": "image",
                       "type": "file",
                       "uuid": "5af69b67-2d15-41c0-ba53-6af0beccaac1",
-                      "src": "/C:/Users/HP/Downloads/Artboard 9.png"
+                      "src": "/C:/Users/HP/Desktop/hplaptop.jpg"
                     }
                   ]
                 },
@@ -703,14 +703,13 @@
                   }
                 },
                 "url": {
-                  "raw": "{{base_url}}/cart/items/",
+                  "raw": "{{base_url}}/cart/items",
                   "host": [
                     "{{base_url}}"
                   ],
                   "path": [
                     "cart",
-                    "items",
-                    ""
+                    "items"
                   ]
                 }
               },
@@ -998,7 +997,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\r\n    \"shippingAddress\":\"shp\",\r\n    \"orderNotes\":\"shp\"\r\n}",
+                  "raw": "{\r\n    \"shippingAddress\":\"shp\",\r\n    \"orderNotes\":\"shp\",\r\n    \"paymentType\": \"CARD\"\r\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1136,6 +1135,26 @@
                     "users",
                     "3",
                     "restore"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Promote User",
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/users/1/promote",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "users",
+                    "1",
+                    "promote"
                   ]
                 }
               },
@@ -1279,10 +1298,8 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "// بنستقبل الرد من السيرفر\r",
                   "let response = pm.response.json();\r",
                   "\r",
-                  "// بنحفظ التوكن في متغير اسمه jwt_token جوه الـ Environment\r",
                   "if(response.success && response.data.accessToken) {\r",
                   "    pm.environment.set(\"accessToken\", response.data.accessToken);\r",
                   "    console.log(\"Token saved automatically!\");\r",
