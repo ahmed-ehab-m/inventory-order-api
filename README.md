@@ -39,13 +39,13 @@
 
 - [❓ Why These Technologies?](#why-these-technologies)
 
+- [📊 System Diagrams](#system-diagrams)
+
 - [🏗️ Project Structure](#project-structure)
 
 - [🧪 Testing Strategy](#testing-strategy)
 
 - [☁️ Deployment](#deployment)
-
-- [📊 System Diagrams](#system-diagrams)
 
 - [🖼️ Screenshots](#screenshots--previews)
 
@@ -171,6 +171,25 @@ To generate type-safe object mappings at compile time and eliminate repetitive m
 
 To decouple the API contract from the persistence layer and avoid exposing internal entities.
 
+---------------------
+<a id="system-diagrams"></a>
+## 📊 System Diagrams
+
+
+Detailed architectural and database visual representations showcasing the system's robustness and data flow.
+
+### 1. System Architecture & Data Flow
+This diagram illustrates the comprehensive cloud architecture, including edge rate-limiting, security filter chains, asynchronous payment webhooks, and managed data services.
+
+<img width="6140" height="3382" alt="highlevelarch" src="https://github.com/user-attachments/assets/5f6326a5-ba2e-43aa-b340-04d6b4b4e600" />
+
+
+### 2. Entity Relationship Diagram (ERD)
+The ERD shows the database schema, illustrating the relationships and constraints between tables.
+<img width="1900" height="966" alt="inventory-order-api-ERD" src="https://github.com/user-attachments/assets/654bdfa3-b8f8-4f30-a262-750de248f540" />
+
+The following diagrams provide a high-level overview of the application's architecture and database design.
+
 
 ---------------------
 <a id="testing-strategy"></a>
@@ -256,25 +275,6 @@ src/
             ├── product/                           # ProductRepoTest, AdminProductControllerTest, ProductServiceTest
             └── user/                              # User tests 
 ```
-
----------------------
-<a id="system-diagrams"></a>
-## 📊 System Diagrams
-
-
-Detailed architectural and database visual representations showcasing the system's robustness and data flow.
-
-### 1. System Architecture & Data Flow
-This diagram illustrates the comprehensive cloud architecture, including edge rate-limiting, security filter chains, asynchronous payment webhooks, and managed data services.
-
-<img width="6140" height="3382" alt="highlevelarch" src="https://github.com/user-attachments/assets/5f6326a5-ba2e-43aa-b340-04d6b4b4e600" />
-
-
-### 2. Entity Relationship Diagram (ERD)
-The ERD shows the database schema, illustrating the relationships and constraints between tables.
-<img width="1900" height="966" alt="inventory-order-api-ERD" src="https://github.com/user-attachments/assets/654bdfa3-b8f8-4f30-a262-750de248f540" />
-
-The following diagrams provide a high-level overview of the application's architecture and database design.
 
 ---------------------
 <a id="screenshots--previews"></a>
